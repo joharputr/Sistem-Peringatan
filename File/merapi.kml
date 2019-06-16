@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>merapi</name>
+    <Style id="poly-000000-1200-77-normal">
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1.2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d000000</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <Style id="poly-000000-1200-77-highlight">
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1.8</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d000000</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <StyleMap id="poly-000000-1200-77">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-000000-1200-77-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-000000-1200-77-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Placemark>
+      <name>Merapi zona 1</name>
+      <description>merapi zona 1</description>
+      <styleUrl>#poly-000000-1200-77</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              110.447306,-7.5425057,0
+              110.4370063,-7.548632,0
+              110.4263633,-7.5544179,0
+              110.4205268,-7.5581617,0
+              110.4157203,-7.5622457,0
+              110.4061072,-7.5741573,0
+              110.3971808,-7.5870896,0
+              110.4637854,-7.5979796,0
+              110.4613822,-7.5949168,0
+              110.4606955,-7.5898121,0
+              110.4600089,-7.5847074,0
+              110.4603522,-7.5775606,0
+              110.4593223,-7.5704137,0
+              110.4586356,-7.5642877,0
+              110.457949,-7.5588423,0
+              110.4517692,-7.5513548,0
+              110.447306,-7.5425057,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

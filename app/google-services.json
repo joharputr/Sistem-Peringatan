@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "103151969753",
+    "firebase_url": "https://geofire-6b45f.firebaseio.com",
+    "project_id": "geofire-6b45f",
+    "storage_bucket": "geofire-6b45f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103151969753:android:c15657ff64c12f2d",
+        "android_client_info": {
+          "package_name": "com.example.systemperingatan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "103151969753-pcs2d9ued2crevjug9ecoi3kac991jh5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.systemperingatan",
+            "certificate_hash": "840fb73315337b024ac975f7a914e4646acb0ed5"
+          }
+        },
+        {
+          "client_id": "103151969753-1bdpn8bn546dnjndid7o68vra02jce93.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcgkU-gP-QU-53LmGoh4TQ87yMDLl2hXc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "103151969753-1bdpn8bn546dnjndid7o68vra02jce93.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
