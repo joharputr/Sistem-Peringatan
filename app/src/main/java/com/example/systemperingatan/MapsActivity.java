@@ -20,14 +20,16 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.systemperingatan.Database.GeofenceContract;
-import com.example.systemperingatan.Database.GeofenceDbHelper;
-import com.example.systemperingatan.Database.GeofenceStorage;
+import com.example.systemperingatan.API.Api;
+import com.example.systemperingatan.API.Data;
+import com.example.systemperingatan.API.NetworkConfig;
+import com.example.systemperingatan.SQLite.GeofenceContract;
+import com.example.systemperingatan.SQLite.GeofenceDbHelper;
+import com.example.systemperingatan.SQLite.GeofenceStorage;
 import com.firebase.geofire.GeoFire;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -57,6 +59,10 @@ import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -70,7 +76,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final float GEOFENCE_RADIUS = 1000.0f; // in meters
     private static final String GEOFENCE_REQ_ID = "My Geofence";
     public static final float GEOFENCE_RADIUS_IN_METERS = 100; // 100 m
-    private static final String NOTIFICATION_MSG = "NOTIFICATION MSG";
     public static final long GEOFENCE_EXPIRATION_IN_HOURS = 12;
     public static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = GEOFENCE_EXPIRATION_IN_HOURS * 60 * 1000;
     //sharedpref
@@ -87,19 +92,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private PendingIntent mpendingIntent;
     DatabaseReference ref;
     GeoFire geofire;
-    Marker mCurrent;
     private Marker locationMarker;
-    GeofenceDbHelper geofenceDbHelper= null;
+    GeofenceDbHelper geofenceDbHelper = null;
     VerticalSeekBar mSeekbar;
     //spinner
     private Spinner spName;
-    private ImageView position;
 
-    public static Intent makeNotificationIntent(Context context, String msg) {
-        Intent intent = new Intent(context, MapsActivity.class);
-        intent.putExtra(NOTIFICATION_MSG, msg);
-        return intent;
-    }
+    //Retrofit
+    Api api = NetworkConfig.getClient().create(Api.class);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +109,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setupFirebase();
         setUpLocation();
         seekbarFunction();
-        //    setupSpinner();
+        // setupSpinner();
         clickStart();
         clickRemove();
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
@@ -163,7 +163,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
     }
-
 
     private void askPermission() {
         ActivityCompat.requestPermissions(this, new String[]{
@@ -254,6 +253,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //add gps location now
     private void displayLocation() {
+        Log.d("Cek lokasi", "cek lokasi");
         if (mMap != null) {
             if (checkPermission()) {
 
@@ -535,6 +535,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         //    saveGeofence();
                         //    drawGeofence();
                         GeofenceDbHelper.saveToDb(key, latLng.latitude, latLng.longitude, expTime);
+                       api.addData(key, latLng.latitude, latLng.longitude, expTime).enqueue(new Callback<Data>() {
+                            @Override
+                            public void onResponse(Call<Data> call, Response<Data> response) {
+                                Toast.makeText(MapsActivity.this, "added data succes", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onFailure(Call<Data> call, Throwable t) {
+                                Toast.makeText(MapsActivity.this, t.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
                         Log.d("SAVE", "key = " + key + " lat = " + latLng.latitude + " long = " + latLng.longitude + " exp = " + expTime);
                         Toast.makeText(MapsActivity.this, "Geofence Added!", Toast.LENGTH_SHORT).show();
                     } else {
@@ -567,6 +578,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .radius(GEOFENCE_RADIUS_IN_METERS)
                 .strokeColor(Color.RED)
                 .fillColor(Color.parseColor("#80ff0000")));
+        /*LatLng tes = new LatLng(-7, 122);
+        LatLng kes = new LatLng(-8, 123);
+        mMap.addPolygon(new PolygonOptions()
+                .add(latLng)
+                .fillColor(Color.parseColor("#000000"))
+                .fillColor(Color.RED)
+                .add(kes).add(tes)
+        );*/
     }
 
     @Override
@@ -604,8 +623,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    //select all from db
     private void reloadMapMarkers() {
         mMap.clear();
         try (Cursor cursor = GeofenceStorage.getCursor()) {

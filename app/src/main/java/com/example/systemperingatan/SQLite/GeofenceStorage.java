@@ -1,15 +1,11 @@
-package com.example.systemperingatan.Database;
+package com.example.systemperingatan.SQLite;
 
-import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.Log;
-
-import com.google.android.gms.maps.model.LatLng;
 
 public class GeofenceStorage {
 
     private static final String TAG = "GeofenceStorage";
-
 
     public static Cursor getCursor() {
         String[] columns = new String[]{GeofenceContract.GeofenceEntry._ID, GeofenceContract.GeofenceEntry.COLUMN_NAME_KEY, GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG, GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT, GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES};

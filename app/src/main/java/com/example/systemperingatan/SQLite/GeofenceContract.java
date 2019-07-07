@@ -1,4 +1,4 @@
-package com.example.systemperingatan.Database;
+package com.example.systemperingatan.SQLite;
 
 import android.provider.BaseColumns;
 public class GeofenceContract {
