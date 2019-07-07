@@ -61,6 +61,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
     //json ke coding
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.0'
+    //volley(cadangan retrofit kamret)
+    implementation 'com.android.volley:volley:1.1.1'
 
 }
 

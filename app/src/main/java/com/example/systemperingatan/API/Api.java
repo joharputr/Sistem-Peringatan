@@ -16,7 +16,6 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface Api {
-    String BASE_URL = "http://http://192.168.1.17/api/hakiki95tutorial/";
 
     @GET("kontak")
     @Headers("Content-Type: application/json")

@@ -24,6 +24,10 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.example.systemperingatan.API.Api;
 import com.example.systemperingatan.API.Data;
 import com.example.systemperingatan.API.NetworkConfig;
@@ -54,10 +58,19 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -504,6 +517,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void markerForGeofence(final LatLng latLng) {
+        String ff = String.valueOf(latLng.latitude);
+
         if (!mGoogleApiClient.isConnected()) {
             Toast.makeText(this, "Google Api not connected!", Toast.LENGTH_SHORT).show();
             return;
@@ -535,7 +550,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         //    saveGeofence();
                         //    drawGeofence();
                         GeofenceDbHelper.saveToDb(key, latLng.latitude, latLng.longitude, expTime);
-                       api.addData(key, latLng.latitude, latLng.longitude, expTime).enqueue(new Callback<Data>() {
+                        Log.d("__DEBUG", "key :" + key + " Latitude :" + latLng.latitude + " Longitude :" + latLng.longitude + " expTime:" + expTime);
+                 /*       api.addData(key, latLng.latitude, latLng.longitude, expTime).enqueue(new Callback<Data>() {
                             @Override
                             public void onResponse(Call<Data> call, Response<Data> response) {
                                 Toast.makeText(MapsActivity.this, "added data succes", Toast.LENGTH_SHORT).show();
@@ -543,9 +559,80 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                             @Override
                             public void onFailure(Call<Data> call, Throwable t) {
-                                Toast.makeText(MapsActivity.this, t.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MapsActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
                             }
-                        });
+                        });*/
+
+                        //pake volley
+                        String tag_string_req = "req_postdata";
+                        StringRequest strReq = new StringRequest(Request.Method.POST,
+                                NetworkConfig.post, response -> {
+                                    Log.d("CLOG", "responh: " + response);
+                                    try {
+                                        JSONObject jObj = new JSONObject(response);
+                                        String status1 = jObj.getString("status");
+                                        if (status1.contains("200")) {
+                                            JSONArray jArray = jObj.getJSONArray("data");
+                                            for (int i = 0; i < jArray.length(); i++) {
+                                                JSONObject jData = jArray.getJSONObject(i);
+                                                Gson gson = new Gson();
+                                                JsonParser parser = new JsonParser();
+                                                JsonElement mJson = parser.parse(jData.toString());
+
+                                             /* Data pr = gson.fromJson(mJson, Data.class);
+                                                kablist.add(pr.getName());
+                                                kabupaten.add(pr);*/
+
+                                            }
+
+
+                                        } else {
+
+                                            String msg = jObj.getString("message");
+                                            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                                        }
+
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }, error -> {
+                                    Log.d("CLOG", "verespon: " + error.toString());
+                                    String json = null;
+                                    NetworkResponse response = error.networkResponse;
+                                    if (response != null && response.data != null) {
+                                        json = new String(response.data);
+                                        JSONObject jObj = null;
+                                        try {
+                                            jObj = new JSONObject(json);
+                                            String msg = jObj.getString("message");
+                                            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                    }
+
+                                }) {
+
+                            @Override
+                            protected Map<String, String> getParams() {
+                                // Posting parameters to login url
+                                Map<String, String> params = new HashMap<String, String>();
+                                params.put("numbers", key);
+                                params.put("latitude", String.valueOf(latLng.latitude));
+                                params.put("longitude", String.valueOf(latLng.longitude));
+                                params.put("expires", String.valueOf(expTime));
+                                return params;
+                            }
+
+
+                        };
+
+                        // Adding request to request queue
+                        App.getInstance().addToRequestQueue(strReq, tag_string_req);
+
+
                         Log.d("SAVE", "key = " + key + " lat = " + latLng.latitude + " long = " + latLng.longitude + " exp = " + expTime);
                         Toast.makeText(MapsActivity.this, "Geofence Added!", Toast.LENGTH_SHORT).show();
                     } else {

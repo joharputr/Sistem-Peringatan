@@ -12,13 +12,21 @@ public class Data {
     @SerializedName("pesan")
     @Expose
     private String pesan;
-
+    List<Result> result;
     public Integer getKode() {
         return kode;
     }
 
     public void setKode(Integer kode) {
         this.kode = kode;
+    }
+
+    public List<Result> getResult() {
+        return result;
+    }
+
+    public void setResult(List<Result> result) {
+        this.result = result;
     }
 
     public String getPesan() {
