@@ -9,4 +9,5 @@
         <item>Polygon</item>
         <item>Line</item>
     </string-array>
+    <string name="title_activity_user">Map</string>
 </resources>

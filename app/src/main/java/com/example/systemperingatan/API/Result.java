@@ -4,9 +4,10 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class Result {
+
     @SerializedName("id")
     @Expose
-    private Integer id;
+    private String id;
     @SerializedName("numbers")
     @Expose
     private String numbers;
@@ -20,20 +21,20 @@ public class Result {
     @Expose
     private String expires;
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getNumbers() {
         return numbers;
     }
 
     public void setNumbers(String numbers) {
         this.numbers = numbers;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getLatitude() {
@@ -59,4 +60,5 @@ public class Result {
     public void setExpires(String expires) {
         this.expires = expires;
     }
+
 }

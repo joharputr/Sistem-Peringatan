@@ -17,9 +17,9 @@ import retrofit2.http.Query;
 
 public interface Api {
 
-    @GET("kontak")
+    @GET("read.php")
     @Headers("Content-Type: application/json")
-    Call<List<Data>> getAllData();
+    Call<Data> getAllData();
 
     @DELETE("kontak/{id}")
     @Headers("Content-Type: application/json")
@@ -28,9 +28,9 @@ public interface Api {
     @POST("insert.php")
     @Headers("Content-Type: application/json")
     Call<Data> addData(@Query("numbers") String numbers,
-                       @Query("latitude") double latitiude,
-                       @Query("longitude") double longitude,
-                       @Query("expires") long expires);
+                       @Query("latitude") String latitiude,
+                       @Query("longitude") String longitude,
+                       @Query("expires") String expires);
 
     @PUT("kontak/")
     @Headers("Content-Type: application/json")

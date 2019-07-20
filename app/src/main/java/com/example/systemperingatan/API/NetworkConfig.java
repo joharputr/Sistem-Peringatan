@@ -11,8 +11,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NetworkConfig {
-    private static final String base_url = "http://192.168.1.16/api/hakiki95tutorial/";
-    public static  String post = "http://192.168.1.16/api/hakiki95tutorial/insert.php";
+    private static final String base_url = "http://192.168.1.2/api/hakiki95tutorial/";
+    public static  String post = "http://192.168.1.2/api/hakiki95tutorial/insert.php";
 
     private static Retrofit retrofit;
 

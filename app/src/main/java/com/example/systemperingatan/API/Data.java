@@ -9,10 +9,10 @@ public class Data {
     @SerializedName("kode")
     @Expose
     private Integer kode;
-    @SerializedName("pesan")
+    @SerializedName("result")
     @Expose
-    private String pesan;
-    List<Result> result;
+    private List<Result> result = null;
+
     public Integer getKode() {
         return kode;
     }
@@ -29,12 +29,5 @@ public class Data {
         this.result = result;
     }
 
-    public String getPesan() {
-        return pesan;
-    }
-
-    public void setPesan(String pesan) {
-        this.pesan = pesan;
-    }
 
 }
