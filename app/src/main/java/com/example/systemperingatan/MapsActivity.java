@@ -719,15 +719,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(Call<Data> call, Response<Data> response) {
                 Data data = response.body();
-                if (data.getResult() != null){
-                    number = data.getResult().get(0).getNumbers();
-                    latitude = Double.parseDouble(data.getResult().get(0).getLatitude());
-                    longitude = Double.parseDouble(data.getResult().get(0).getLongitude());
-                    expires = Long.parseLong(data.getResult().get(0).getExpires());
-                    Toast.makeText(MapsActivity.this, response.message(), Toast.LENGTH_SHORT).show();
-                    addMarker(number, new LatLng(latitude, longitude));
-                }else {
-                    Toast.makeText(MapsActivity.this, "data kososng", Toast.LENGTH_SHORT).show();
+                for (int i = 0 ; i < data.getResult().size(); i++){
+                    if (data.getResult() != null){
+                        number = data.getResult().get(i).getNumbers();
+                        latitude = Double.parseDouble(data.getResult().get(i).getLatitude());
+                        longitude = Double.parseDouble(data.getResult().get(i).getLongitude());
+                        expires = Long.parseLong(data.getResult().get(i).getExpires());
+                        Toast.makeText(MapsActivity.this, response.message(), Toast.LENGTH_SHORT).show();
+                        addMarker(number, new LatLng(latitude, longitude));
+                    }else {
+                        Toast.makeText(MapsActivity.this, "data kososng", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 Log.d("test data", "latitude =" + latitude + "longitude =" + longitude + "expires =" + expires);
