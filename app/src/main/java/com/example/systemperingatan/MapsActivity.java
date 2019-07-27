@@ -18,6 +18,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -111,6 +113,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     double latitude;
     double longitude;
     long expires;
+    String area;
+
     //Retrofit
     Api api = NetworkConfig.getClient().create(Api.class);
 
@@ -122,9 +126,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setupFirebase();
         setUpLocation();
         seekbarFunction();
-        // setupSpinner();
-        clickStart();
-        clickRemove();
+//        clickStart();
+      //  clickRemove();
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
         mpendingIntent = null;
     }
@@ -218,7 +221,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    private void clickRemove() {
+ /*   private void clickRemove() {
         Button removeGeo = findViewById(R.id.removeGeofence);
         removeGeo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -227,7 +230,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
-
+*/
     private void removeGeofence() {
         Log.d("", "clearGeofence()");
         LocationServices.GeofencingApi.removeGeofences(
@@ -254,7 +257,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void clickStart() {
+  /*  private void clickStart() {
         Button startGeo = (Button) findViewById(R.id.startGeofence);
         startGeo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -262,7 +265,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startGeofence();
             }
         });
-    }
+    }*/
 
     //add gps location now
     private void displayLocation() {
@@ -382,12 +385,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mGoogleApiClient.connect();
     }
 
-    private void setupSpinner() {
+  /*  private void setupSpinner( ) {
         spName = (Spinner) findViewById(R.id.spinner);
+        ArrayAdapter<CharSequence> charSequenceArrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_method_geofence, R.layout.support_simple_spinner_dropdown_item);
+        charSequenceArrayAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+        spName.setAdapter(charSequenceArrayAdapter);
+        spName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String text = parent.getItemAtPosition(position).toString();
+                if (position == 0 ) {
+                    Toast.makeText(MapsActivity.this, text, Toast.LENGTH_SHORT).show();
+                } else if (position == 1) {
+                    Toast.makeText(MapsActivity.this, text, Toast.LENGTH_SHORT).show();
+                } else if (position == 2) {
+                    Toast.makeText(MapsActivity.this, text, Toast.LENGTH_SHORT).show();
+                }
+            }
 
-    }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }*/
 
     private void setupFirebase() {
+        String array[] = {"", ""};
         ref = FirebaseDatabase.getInstance().getReference("MyLocation");
         geofire = new GeoFire(ref);
     }
@@ -515,18 +539,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapClick(LatLng latLng) {
         Log.d("", "onMapClick(" + latLng + ")");
         markerForGeofence(latLng);
+     //   setupSpinner();
     }
 
     private void markerForGeofence(final LatLng latLng) {
-        String ff = String.valueOf(latLng.latitude);
-
         if (!mGoogleApiClient.isConnected()) {
             Toast.makeText(this, "Google Api not connected!", Toast.LENGTH_SHORT).show();
             return;
         }
         final String key = getNewGeofenceNumber() + "";
         final long expTime = System.currentTimeMillis() + GEOFENCE_EXPIRATION_IN_MILLISECONDS;
-        //add marker
         addMarker(key, latLng);
         Geofence geofence = new Geofence.Builder()
                 .setRequestId(key)
@@ -626,8 +648,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 params.put("expires", String.valueOf(expTime));
                                 return params;
                             }
-
-
                         };
 
                         // Adding request to request queue
@@ -666,14 +686,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .radius(GEOFENCE_RADIUS_IN_METERS)
                 .strokeColor(Color.RED)
                 .fillColor(Color.parseColor("#80ff0000")));
-        /*LatLng tes = new LatLng(-7, 122);
-        LatLng kes = new LatLng(-8, 123);
-        mMap.addPolygon(new PolygonOptions()
-                .add(latLng)
-                .fillColor(Color.parseColor("#000000"))
-                .fillColor(Color.RED)
-                .add(kes).add(tes)
-        );*/
     }
 
     @Override
@@ -719,15 +731,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(Call<Data> call, Response<Data> response) {
                 Data data = response.body();
-                for (int i = 0 ; i < data.getResult().size(); i++){
-                    if (data.getResult() != null){
+                for (int i = 0; i < data.getResult().size(); i++) {
+                    if (data.getResult() != null) {
                         number = data.getResult().get(i).getNumbers();
                         latitude = Double.parseDouble(data.getResult().get(i).getLatitude());
                         longitude = Double.parseDouble(data.getResult().get(i).getLongitude());
                         expires = Long.parseLong(data.getResult().get(i).getExpires());
                         Toast.makeText(MapsActivity.this, response.message(), Toast.LENGTH_SHORT).show();
                         addMarker(number, new LatLng(latitude, longitude));
-                    }else {
+                    } else {
                         Toast.makeText(MapsActivity.this, "data kososng", Toast.LENGTH_SHORT).show();
                     }
                 }

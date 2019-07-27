@@ -4,10 +4,14 @@
     <string name="channel_name">default</string>
     <string name="channel_description">testChannel</string>
     <string name="kml_url">http://googlemaps.github.io/kml-samples/morekml/Polygons/Polygons.Google_Campus.kml</string>
+
     <string-array name="spinner_method_geofence">
         <item>Cirlce</item>
         <item>Polygon</item>
         <item>Line</item>
     </string-array>
+
+
+
     <string name="title_activity_user">Map</string>
 </resources>

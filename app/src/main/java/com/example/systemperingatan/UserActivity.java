@@ -261,16 +261,6 @@ public class UserActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    // Add the created GeofenceRequest to the device's monitoring list
-    private void addGeofence(GeofencingRequest request) {
-        Log.d("LOG", "addGeofence");
-        if (checkPermission())
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
-                    request,
-                    createGeofencePendingIntent()
-            ).setResultCallback(this);
-    }
 
     private PendingIntent createGeofencePendingIntent() {
         Log.d("LOGCREATEPENDING INTENT", "createGeofencePendingIntent");
@@ -424,24 +414,36 @@ public class UserActivity extends FragmentActivity implements OnMapReadyCallback
     //select all from db
     private void reloadMapMarkers() {
         mMap.clear();
-        try (Cursor cursor = GeofenceStorage.getCursor()) {
-            while (cursor.moveToNext()) {
-                long expiresSQL = Long.parseLong(cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES)));
-                if (System.currentTimeMillis() < expiresSQL) {
-                    //ngambil data di sq lite
-                    String key = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_KEY));
-                    double lat = Double.parseDouble(cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT)));
-                    double lng = Double.parseDouble(cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG)));
-
-
-
-                    addMarker(key, new LatLng(latitude, longitude));
+        api.getAllData().enqueue(new Callback<Data>() {
+            @Override
+            public void onResponse(Call<Data> call, Response<Data> response) {
+                Data data = response.body();
+                for (int i = 0 ; i < data.getResult().size(); i++){
+                    if (data.getResult() != null){
+                        number = data.getResult().get(i).getNumbers();
+                        latitude = Double.parseDouble(data.getResult().get(i).getLatitude());
+                        longitude = Double.parseDouble(data.getResult().get(i).getLongitude());
+                        expires = Long.parseLong(data.getResult().get(i).getExpires());
+                        Toast.makeText(UserActivity.this, response.message(), Toast.LENGTH_SHORT).show();
+                        addMarker(number, new LatLng(latitude, longitude));
+                    }else {
+                        Toast.makeText(UserActivity.this, "data kososng", Toast.LENGTH_SHORT).show();
+                    }
                 }
+
+                Log.d("test data", "latitude =" + latitude + "longitude =" + longitude + "expires =" + expires);
             }
-        } catch (Exception e) {
-            e.getStackTrace();
-        }
+
+            @Override
+            public void onFailure(Call<Data> call, Throwable t) {
+                Log.d("gagal", "gagal =" + t.getLocalizedMessage());
+                Toast.makeText(UserActivity.this, "gagal =" + t.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
     }
+
 
 
     @Override
