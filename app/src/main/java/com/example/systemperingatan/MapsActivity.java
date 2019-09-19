@@ -14,15 +14,18 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.NetworkResponse;
@@ -114,10 +117,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     double longitude;
     long expires;
     String area;
-
+    LinearLayout linearLayout;
+    SeekBar radius;
+    TextView textRadius, textMeter;
+    FloatingActionButton add;
     //Retrofit
     Api api = NetworkConfig.getClient().create(Api.class);
-
+    private FloatingActionButton fab_main, fab1_mail, fab2_share;
+    private Animation fab_open, fab_close, fab_clock, fab_anticlock;
+    TextView textview_mail, textview_share;
+    Boolean isOpen = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,11 +135,77 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setupFirebase();
         setUpLocation();
         seekbarFunction();
-//        clickStart();
-      //  clickRemove();
+        //  clickStart();
+        //  clickRemove();
+        linearLayout = (LinearLayout) findViewById(R.id.collapse);
+        radius = (SeekBar) findViewById(R.id.seekbar);
+
+        spName = (Spinner) findViewById(R.id.spinner);
+        textRadius = (TextView) findViewById(R.id.radius);
+        textMeter = (TextView) findViewById(R.id.meter);
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
         mpendingIntent = null;
+
+
+        fab_main = findViewById(R.id.fab);
+        fab1_mail = findViewById(R.id.fab1);
+        fab2_share = findViewById(R.id.fab2);
+        fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
+        fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
+        fab_clock = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_fab_clock);
+        fab_anticlock = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_rotate_anticlock);
+
+        textview_mail = (TextView) findViewById(R.id.textview_mail);
+        textview_share = (TextView) findViewById(R.id.textview_share);
+
+        fab_main.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (isOpen) {
+                    textview_mail.setVisibility(View.INVISIBLE);
+                    textview_share.setVisibility(View.INVISIBLE);
+                    fab2_share.startAnimation(fab_close);
+                    fab1_mail.startAnimation(fab_close);
+                    fab_main.startAnimation(fab_anticlock);
+                    fab2_share.setClickable(false);
+                    fab1_mail.setClickable(false);
+                    isOpen = false;
+                } else {
+                    textview_mail.setVisibility(View.VISIBLE);
+                    textview_share.setVisibility(View.VISIBLE);
+                    fab2_share.startAnimation(fab_open);
+                    fab1_mail.startAnimation(fab_open);
+                    fab_main.startAnimation(fab_clock);
+                    fab2_share.setClickable(true);
+                    fab1_mail.setClickable(true);
+                    isOpen = true;
+                }
+
+            }
+        });
+
+
+        fab2_share.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Toast.makeText(getApplicationContext(), "Share", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+        fab1_mail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "Email", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
     }
+
+
 
     private void initMap() {
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -221,16 +296,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
- /*   private void clickRemove() {
-        Button removeGeo = findViewById(R.id.removeGeofence);
-        removeGeo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                removeGeofence();
-            }
-        });
-    }
-*/
+    /*   private void clickRemove() {
+           Button removeGeo = findViewById(R.id.removeGeofence);
+           removeGeo.setOnClickListener(new View.OnClickListener() {
+               @Override
+               public void onClick(View v) {
+                   removeGeofence();
+               }
+           });
+       }
+   */
     private void removeGeofence() {
         Log.d("", "clearGeofence()");
         LocationServices.GeofencingApi.removeGeofences(
@@ -386,7 +461,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
   /*  private void setupSpinner( ) {
-        spName = (Spinner) findViewById(R.id.spinner);
+
         ArrayAdapter<CharSequence> charSequenceArrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_method_geofence, R.layout.support_simple_spinner_dropdown_item);
         charSequenceArrayAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
         spName.setAdapter(charSequenceArrayAdapter);
@@ -538,8 +613,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //when click the map
     public void onMapClick(LatLng latLng) {
         Log.d("", "onMapClick(" + latLng + ")");
+      //  linearLayout.setVisibility(View.VISIBLE);
+        textMeter.setVisibility(View.VISIBLE);
+        radius.setVisibility(View.VISIBLE);
+        textMeter.setVisibility(View.VISIBLE);
+        spName.setVisibility(View.GONE);
         markerForGeofence(latLng);
-     //   setupSpinner();
+        //  setupSpinner();
     }
 
     private void markerForGeofence(final LatLng latLng) {
@@ -557,6 +637,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         latLng.longitude,
                         GEOFENCE_RADIUS_IN_METERS
                 )
+
                 .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
                         Geofence.GEOFENCE_TRANSITION_EXIT)
@@ -574,19 +655,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         //    drawGeofence();
                         GeofenceDbHelper.saveToDb(key, latLng.latitude, latLng.longitude, expTime);
                         Log.d("__DEBUG", "key :" + key + " Latitude :" + latLng.latitude + " Longitude :" + latLng.longitude + " expTime:" + expTime);
-                 /*       api.addData(key, latLng.latitude, latLng.longitude, expTime).enqueue(new Callback<Data>() {
-                            @Override
-                            public void onResponse(Call<Data> call, Response<Data> response) {
-                                Toast.makeText(MapsActivity.this, "added data succes", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onFailure(Call<Data> call, Throwable t) {
-                                Toast.makeText(MapsActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });*/
-
-                        //pake volley
                         String tag_string_req = "req_postdata";
                         StringRequest strReq = new StringRequest(Request.Method.POST,
                                 NetworkConfig.post, response -> {
@@ -601,13 +669,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         Gson gson = new Gson();
                                         JsonParser parser = new JsonParser();
                                         JsonElement mJson = parser.parse(jData.toString());
-
-                                             /* Data pr = gson.fromJson(mJson, Data.class);
-                                                kablist.add(pr.getName());
-                                                kabupaten.add(pr);*/
-
                                     }
-
 
                                 } else {
 
@@ -688,6 +750,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .fillColor(Color.parseColor("#80ff0000")));
     }
 
+
+    //info from marker
     @Override
     public void onInfoWindowClick(Marker marker) {
         final String requestId = marker.getTitle().split(":")[1];
@@ -697,11 +761,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         try {
             List<String> idList = new ArrayList<>();
+            // perlu dikembangkan
             idList.add(requestId);
+            Log.d("idlist = ",idList.toString());
             LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, idList).setResultCallback(new ResultCallback<Status>() {
                 @Override
                 public void onResult(@NonNull Status status) {
                     if (status.isSuccess()) {
+                        //remove from db
                         GeofenceStorage.removeGeofence(requestId);
                         Log.d("REMOVE", "key = " + requestId);
                         Toast.makeText(MapsActivity.this, "Geofence removed!", Toast.LENGTH_SHORT).show();
@@ -724,7 +791,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    //select all from db
+    //load from db
     private void reloadMapMarkers() {
         mMap.clear();
         api.getAllData().enqueue(new Callback<Data>() {
@@ -740,7 +807,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Toast.makeText(MapsActivity.this, response.message(), Toast.LENGTH_SHORT).show();
                         addMarker(number, new LatLng(latitude, longitude));
                     } else {
-                        Toast.makeText(MapsActivity.this, "data kososng", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MapsActivity.this, response.message(), Toast.LENGTH_SHORT).show();
                     }
                 }
 
