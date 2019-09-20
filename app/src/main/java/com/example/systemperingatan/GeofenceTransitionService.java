@@ -82,6 +82,7 @@ public class GeofenceTransitionService extends IntentService {
             status = "Entering ";
         else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT)
             status = "Exiting ";
+
         return status + TextUtils.join(", ", triggeringGeofencesList);
     }
 
@@ -102,7 +103,8 @@ public class GeofenceTransitionService extends IntentService {
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
-            mChannel.setDescription(Description);
+            mChannel.setDescription(msg);
+            mChannel.setDescription(msg);
             mChannel.enableLights(true);
             mChannel.setLightColor(Color.RED);
             mChannel.enableVibration(true);
