@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.database.Cursor
 import android.database.SQLException
 import android.graphics.Color
 import android.location.Location
@@ -16,21 +15,12 @@ import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.FragmentActivity
 import android.util.Log
-import android.view.View
-import android.widget.Button
-import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.Toast
-
-import com.android.volley.NetworkResponse
-import com.android.volley.Request
-import com.android.volley.VolleyError
-import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.Api
 import com.example.systemperingatan.API.Data
 import com.example.systemperingatan.API.NetworkConfig
 import com.example.systemperingatan.API.Result
-import com.example.systemperingatan.SQLite.GeofenceContract
 import com.example.systemperingatan.SQLite.GeofenceDbHelper
 import com.example.systemperingatan.SQLite.GeofenceStorage
 import com.firebase.geofire.GeoFire
@@ -39,78 +29,34 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.common.api.Status
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.LocationListener
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdate
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.Circle
-import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.JsonParser
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-
-import java.util.ArrayList
-import java.util.HashMap
-
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
-    private var mMap: GoogleMap? = null
-    //sharedpref
-    private var mSharedPreferences: SharedPreferences? = null
-    private val KEY_GEOFENCE_LAT = "GEOFENCE LATITUDE"
-    private val KEY_GEOFENCE_LON = "GEOFENCE LONGITUDE"
 
-    // Draw Geofence circle on GoogleMap
-    private val geoFenceLimits: Circle? = null
-    private var mLocationRequest: LocationRequest? = null
-    private var mGoogleApiClient: GoogleApiClient? = null
-    private var mLastLocation: Location? = null
-    private var mpendingIntent: PendingIntent? = null
-    internal var ref: DatabaseReference? = null
-    internal var geofire: GeoFire? = null
-    private var locationMarker: Marker? = null
-    internal var geofenceDbHelper: GeofenceDbHelper? = null
-    internal var mSeekbar: VerticalSeekBar? = null
-    //spinner
-    private val spName: Spinner? = null
-    internal var number: String? = null
-    internal var latitude: Double = 0.toDouble()
-    internal var longitude: Double = 0.toDouble()
-    internal var expires: Long = 0
+   // private val preferences = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
     //Retrofit
     internal var api = NetworkConfig.client.create(Api::class.java)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user)
         initMap()
         setUpLocation()
-        //       seekbarFunction();
-        //    setupSpinner();
-
-        mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+        preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         mpendingIntent = null
-
+        Log.d("dataGet = ", get("test").toString())
     }
 
     private fun initMap() {
@@ -371,9 +317,11 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private//select all from db
     fun reloadMapMarkers() {
         mMap!!.clear()
-        api.allData.enqueue(object : Callback<Data> {
+        api.allData().enqueue(object : Callback<Data> {
             override fun onResponse(call: Call<Data>, response: Response<Data>) {
                 val data = response.body()
+                Log.d("responseBody= ", data.toString())
+
                 for (i in 0 until data!!.result!!.size) {
                     if (data.result != null) {
                         number = data.result!![i].numbers
@@ -382,21 +330,50 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         expires = java.lang.Long.parseLong(data.result!![i].expires!!)
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
                         addMarker(number, LatLng(latitude, longitude))
+
+                        if (!mGoogleApiClient!!.isConnected) {
+                            return
+                        }
+
+                        val geofence = Geofence.Builder()
+                                .setRequestId(number)
+                                .setCircularRegion(
+                                        latitude,
+                                        longitude,
+                                        MapsActivity.GEOFENCE_RADIUS_IN_METERS
+                                )
+                                .setExpirationDuration(MapsActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+                                .build()
+                        try {
+                            LocationServices.GeofencingApi.addGeofences(
+                                    mGoogleApiClient,
+                                    createGeofenceRequest(geofence),
+                                    createGeofencePendingIntent()
+                            )
+                        } catch (securityException: SecurityException) {
+                            logSecurityException(securityException)
+                        } catch (e: SQLException) {
+                            e.stackTrace
+                        }
+
                     } else {
-                        Toast.makeText(this@UserActivity, "data kososng", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@UserActivity, "data kosong", Toast.LENGTH_SHORT).show()
                     }
                 }
 
+                saveAll(data.result!!)
+
+                Log.d("dataSebernya = ", data.result.toString())
+                Log.d("dataSharedPref  = ",getAll().toString())
                 Log.d("test data", "latitude =" + latitude + "longitude =" + longitude + "expires =" + expires)
             }
 
             override fun onFailure(call: Call<Data>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
-                Toast.makeText(this@UserActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@UserActivity, "gagal = " + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
         })
-
-
     }
 
 
@@ -405,7 +382,62 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         return false
     }
 
+
     companion object {
+
+        fun getAll(): List<Result> {
+            if (preferences!!.contains(MAPS)) {
+                val remindersString = preferences!!.getString(MAPS, null)
+                val arrayOfReminders = gson.fromJson(remindersString, Array<Result>::class.java)
+                if (arrayOfReminders != null) {
+                    return arrayOfReminders.toList()
+                }
+                Log.d("shareppref= ",remindersString)
+            }
+            return listOf()
+        }
+        fun getLast() = getAll().lastOrNull()
+
+        fun get(requestId: String?) = getAll().firstOrNull {
+            it.numbers == requestId
+
+        }
+
+        private fun getFirstReminder(triggeringGeofences: List<Geofence>): Result? {
+            val firstGeofence = triggeringGeofences[0]
+            return UserActivity.get(firstGeofence.requestId)
+        }
+
+
+
+        private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
+            Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
+            return GeofencingRequest.Builder()
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                    .addGeofence(geofence)
+                    .build()
+        }
+
+        private fun saveAll(list: List<Result>) {
+            preferences!!.edit().putString(MAPS, gson.toJson(list)).apply()
+        }
+
+        private var mMap: GoogleMap? = null
+        //sharedpref
+        private var preferences: SharedPreferences? = null
+        private var mLocationRequest: LocationRequest? = null
+        private var mGoogleApiClient: GoogleApiClient? = null
+        private var mLastLocation: Location? = null
+        private var mpendingIntent: PendingIntent? = null
+        private var locationMarker: Marker? = null
+        //spinner
+        private val gson = Gson()
+        internal var number: String? = null
+        internal var latitude: Double = 0.toDouble()
+        internal var longitude: Double = 0.toDouble()
+        internal var expires: Long = 0
+        private  val PREFS_NAME = "pref2"
+        private  val MAPS = "mapsv3"
         val NEW_GEOFENCE_NUMBER = BuildConfig.APPLICATION_ID + ".NEW_GEOFENCE_NUMBER"
         private val MY_PERMISSION_REQUEST_CODE = 7192
         private val GEO_DURATION = (60 * 60 * 1000).toLong()

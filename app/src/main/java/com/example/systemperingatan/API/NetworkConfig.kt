@@ -11,14 +11,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object NetworkConfig {
-    private val base_url = "http://192.168.43.31/api/hakiki95tutorial/"
-    var post = "http://192.168.43.31/api/hakiki95tutorial/insert.php"
+    private val base_url = "http://192.168.1.26/api/hakiki95tutorial/"
+    var post = "http://192.168.1.26/api/hakiki95tutorial/insert.php"
 
     private var retrofit: Retrofit? = null
 
     val client: Retrofit
         get() {
-
             val interceptor = HttpLoggingInterceptor()
             interceptor.level = HttpLoggingInterceptor.Level.BODY
             val client = OkHttpClient.Builder()

@@ -19,12 +19,15 @@ import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.*
+import android.widget.SeekBar
+import android.widget.Spinner
+import android.widget.Toast
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.Api
 import com.example.systemperingatan.API.Data
 import com.example.systemperingatan.API.NetworkConfig
+import com.example.systemperingatan.API.Result
 import com.example.systemperingatan.SQLite.GeofenceDbHelper
 import com.example.systemperingatan.SQLite.GeofenceStorage
 import com.google.android.gms.common.ConnectionResult
@@ -47,35 +50,27 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
+import kotlin.collections.ArrayList
 
+@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
     private var mMap: GoogleMap? = null
     //sharedpref
     private var mSharedPreferences: SharedPreferences? = null
-    private val KEY_GEOFENCE_LAT = "GEOFENCE LATITUDE"
-    private val KEY_GEOFENCE_LON = "GEOFENCE LONGITUDE"
 
-    // Draw Geofence circle on GoogleMap
-    private var geoFenceLimits: Circle? = null
+
     private var mLocationRequest: LocationRequest? = null
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mLastLocation: Location? = null
     private var mpendingIntent: PendingIntent? = null
 
     private var locationMarker: Marker? = null
-    internal var geofenceDbHelper: GeofenceDbHelper? = null
-
-    //spinner
-    private var spName: Spinner? = null
 
     internal var latitude: Double = 0.toDouble()
     internal var longitude: Double = 0.toDouble()
     internal var expires: Long = 0
-    internal var area: String? = null
 
-    internal var add: FloatingActionButton? = null
-    //Retrofit
-    internal var api = NetworkConfig.client.create<Api>(Api::class.java!!)
+    internal var api = NetworkConfig.client.create<Api>(Api::class.java)
     private var fab_main: FloatingActionButton? = null
     private var fab1_mail: FloatingActionButton? = null
     private var fab2_share: FloatingActionButton? = null
@@ -83,11 +78,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private var fab_close: Animation? = null
     private var fab_clock: Animation? = null
     private var fab_anticlock: Animation? = null
+    val data = Result( null,  null, null,null,null)
 
     internal var isOpen: Boolean? = false
-
-    private//        int a[] = {1,2,3};
-    //        int number = Array.getInt(a, 1);
     val newGeofenceNumber: Int
         get() {
             val number = mSharedPreferences!!.getInt(NEW_GEOFENCE_NUMBER, 1)
@@ -103,16 +96,11 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         initMap()
         setUpLocation()
         seekbarFunction()
-        //  clickStart();
-        //  clickRemove();
 
 
-        spName = findViewById<View>(R.id.spinner) as Spinner
 
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
         mpendingIntent = null
-
-
         fab_main = findViewById(R.id.fab)
         fab1_mail = findViewById(R.id.fab1)
         fab2_share = findViewById(R.id.fab2)
@@ -232,49 +220,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     }
 
 
-    /*   private void clickRemove() {
-           Button removeGeo = findViewById(R.id.removeGeofence);
-           removeGeo.setOnClickListener(new View.OnClickListener() {
-               @Override
-               public void onClick(View v) {
-                   removeGeofence();
-               }
-           });
-       }
-   */
-    private fun removeGeofence() {
-        Log.d("", "clearGeofence()")
-        LocationServices.GeofencingApi.removeGeofences(
-                mGoogleApiClient,
-                createGeofencePendingIntent()
-        ).setResultCallback { status ->
-            if (status.isSuccess) {
-                // remove drawing
-                removeGeofenceDraw()
-            }
-        }
-    }
-
-    private fun removeGeofenceDraw() {
-        Log.d("", "removeGeofenceDraw()")
-        if (locationMarker != null) {
-            locationMarker!!.remove()
-        }
-        if (null != geoFenceLimits) {
-            geoFenceLimits!!.remove()
-        }
-    }
-
-    /*  private void clickStart() {
-        Button startGeo = (Button) findViewById(R.id.startGeofence);
-        startGeo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startGeofence();
-            }
-        });
-    }*/
-
     //add gps location now
     private fun displayLocation() {
         Log.d("Cek lokasi", "cek lokasi")
@@ -316,29 +261,8 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         }
     }
 
-    private fun startGeofence() {
-        Log.i("START GEOFENCE", "startGeofence()")
-        if (locationMarker != null) {
-            val geofence = createGeofence(locationMarker!!.position)
-            val geofenceRequest = createGeofenceRequest(geofence)
-            addGeofence(geofenceRequest)
-        } else {
-            Log.e("GEOFENCE MARKER NULL", "Geofence marker is null")
-        }
-    }
 
-    private fun createGeofence(latLng: LatLng): Geofence {
-        Log.d("CREATE GEOFENCE", "createGeofence")
-        return Geofence.Builder()
-                .setRequestId(GEOFENCE_REQ_ID)
-                .setCircularRegion(
-                        latLng.latitude,
-                        latLng.longitude,
-                        MapsActivity.GEOFENCE_RADIUS)
-                .setExpirationDuration(GEO_DURATION)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-                .build()
-    }
+
 
     // Create a Geofence Request
     private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
@@ -349,16 +273,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 .build()
     }
 
-    // Add the created GeofenceRequest to the device's monitoring list
-    private fun addGeofence(request: GeofencingRequest) {
-        Log.d("", "addGeofence")
-        if (checkPermission())
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
-                    request,
-                    createGeofencePendingIntent()
-            ).setResultCallback(this)
-    }
 
     private fun createGeofencePendingIntent(): PendingIntent {
         Log.d("CREATE PENDING INTENT", "createGeofencePendingIntent")
@@ -416,18 +330,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this)
     }
 
-    // Recovering last Geofence marker
-    private fun recoverlocationMarker() {
-        Log.d("", "recoverlocationMarker")
-        val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        if (sharedPref.contains(KEY_GEOFENCE_LAT) && sharedPref.contains(KEY_GEOFENCE_LON)) {
-            val lat = java.lang.Double.longBitsToDouble(sharedPref.getLong(KEY_GEOFENCE_LAT, -1))
-            val lon = java.lang.Double.longBitsToDouble(sharedPref.getLong(KEY_GEOFENCE_LON, -1))
-            val latLng = LatLng(lat, lon)
-            markerForGeofence(latLng)
-            drawGeofence()
-        }
-    }
 
     override fun onConnectionSuspended(i: Int) {
         mGoogleApiClient!!.connect()
@@ -463,29 +365,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
     }
 
-    private fun saveGeofence() {
-        Log.d("", "saveGeofence()")
-        val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        val editor = sharedPref.edit()
-        editor.putLong(KEY_GEOFENCE_LAT, java.lang.Double.doubleToRawLongBits(locationMarker!!.position.latitude))
-        editor.putLong(KEY_GEOFENCE_LON, java.lang.Double.doubleToRawLongBits(locationMarker!!.position.longitude))
-        editor.apply()
-    }
-
-    //add circle area
-    private fun drawGeofence() {
-        Log.d("", "drawGeofence()")
-        //remove last circle draw
-        if (geoFenceLimits != null)
-            geoFenceLimits!!.remove()
-
-        val circleOptions = CircleOptions()
-                .center(locationMarker!!.position)
-                .strokeColor(Color.argb(50, 70, 70, 70))
-                .fillColor(Color.argb(100, 150, 150, 150))
-                .radius(GEOFENCE_RADIUS.toDouble())
-        geoFenceLimits = mMap!!.addCircle(circleOptions)
-    }
 
     override//when click the map
     fun onMapClick(latLng: LatLng) {
@@ -494,9 +373,8 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         meter.visibility = View.VISIBLE
         radius.visibility = View.VISIBLE
         meter.visibility = View.VISIBLE
-        spName!!.visibility = View.GONE
         markerForGeofence(latLng)
-        //  setupSpinner();
+
     }
 
     private fun markerForGeofence(latLng: LatLng) {
@@ -505,6 +383,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             return
         }
         val key = newGeofenceNumber.toString() + ""
+
+        val list = ArrayList<Result>()
+        var data2 = list.addAll(listOf(data))
         val expTime = System.currentTimeMillis() + GEOFENCE_EXPIRATION_IN_MILLISECONDS
         addMarker(key, latLng)
         val geofence = Geofence.Builder()
@@ -536,13 +417,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                             val jObj = JSONObject(response)
                             val status1 = jObj.getString("status")
                             if (status1.contains("200")) {
-                                val jArray = jObj.getJSONArray("data")
-                                for (i in 0 until jArray.length()) {
-                                    val jData = jArray.getJSONObject(i)
-                                    val gson = Gson()
-                                    val parser = JsonParser()
-                                    val mJson = parser.parse(jData.toString())
-                                }
+                             Toast.makeText(this,"sukses",Toast.LENGTH_SHORT).show()
 
                             } else {
 
@@ -557,11 +432,11 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
                     }, { error ->
                         Log.d("CLOG", "verespon: $error")
-                        var json: String? = null
+                        val json: String?
                         val response = error.networkResponse
                         if (response != null && response.data != null) {
                             json = String(response.data)
-                            var jObj: JSONObject? = null
+                            val jObj: JSONObject?
                             try {
                                 jObj = JSONObject(json)
                                 val msg = jObj.getString("message")
@@ -584,11 +459,10 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                             return params
                         }
                     }
+                    data.id = key
 
                     // Adding request to request queue
                     App.instance?.addToRequestQueue(strReq, tag_string_req)
-
-
                     Log.d("SAVE", "key = " + key + " lat = " + latLng.latitude + " long = " + latLng.longitude + " exp = " + expTime)
                     Toast.makeText(this@MapsActivity, "Geofence Added!", Toast.LENGTH_SHORT).show()
                 } else {
@@ -655,18 +529,17 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         } catch (e: SQLException) {
             e.stackTrace
         }
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private//load from db
     fun reloadMapMarkers() {
         mMap!!.clear()
-        api.allData.enqueue(object : Callback<Data> {
+        api.allData().enqueue(object : Callback<Data> {
             override fun onResponse(call: Call<Data>, response: Response<Data>) {
                 val data = response.body()
                 for (i in 0 until data!!.result!!.size) {
-                    if (data!!.result != null) {
+                    if (data.result != null) {
                         val number = data.result?.get(i)?.numbers
                         latitude = java.lang.Double.parseDouble(data.result?.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.result?.get(i)?.longitude)
@@ -686,8 +559,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 Toast.makeText(this@MapsActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
         })
-
-
     }
 
 

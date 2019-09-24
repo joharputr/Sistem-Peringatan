@@ -14,9 +14,9 @@ import retrofit2.http.Query
 
 interface Api {
 
-    @get:GET("read.php")
-    @get:Headers("Content-Type: application/json")
-    val allData: Call<Data>
+    @GET("read.php")
+    @Headers("Content-Type: application/json")
+    fun allData(): Call<Data>
 
     @DELETE("kontak/{id}")
     @Headers("Content-Type: application/json")
