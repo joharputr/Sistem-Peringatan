@@ -1,14 +1,16 @@
-package com.example.systemperingatan
+package com.example.systemperingatan.Notification
 
 import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.support.v4.app.NotificationCompat
 import android.text.TextUtils
 import android.util.Log
-import com.example.systemperingatan.API.Result
+import com.example.systemperingatan.API.DataItem
+import com.example.systemperingatan.Admin.MapsActivity
+import com.example.systemperingatan.R
+import com.example.systemperingatan.User.UserActivity
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
@@ -44,7 +46,7 @@ class GeofenceTransitionService : IntentService(TAG) {
         }
     }
 
-    private fun getFirstReminder(triggeringGeofences: List<Geofence>): Result? {
+    private fun getFirstReminder(triggeringGeofences: List<Geofence>): DataItem? {
         val firstGeofence = triggeringGeofences[0]
         return UserActivity.get(firstGeofence.requestId)
     }

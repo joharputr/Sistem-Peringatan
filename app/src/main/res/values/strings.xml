@@ -5,13 +5,21 @@
     <string name="channel_description">testChannel</string>
     <string name="kml_url">http://googlemaps.github.io/kml-samples/morekml/Polygons/Polygons.Google_Campus.kml</string>
 
+    <string name="title_activity_user">Map</string>
+
+
+    <string name="title_activity_add_new_map">Map</string>
+    <string name="marker_content_description">mark the location</string>
+    <string name="instruction_where_description">letakan titik lokasi</string>
+    <string name="message_hint">Nama Titik</string>
+    <string name="continue_description">Selanjutnya</string>
+    <string name="radius_description">%1$s meters</string>
+    <string name="instruction_radius_description">tentukan radius</string>
+    <string name="instruction_message_description">tulis Nama Location</string>
+    <string name="error_required">Isi Nama Lokasi</string>
     <string-array name="spinner_method_geofence">
         <item>Cirlce</item>
         <item>Polygon</item>
         <item>Line</item>
     </string-array>
-
-
-
-    <string name="title_activity_user">Map</string>
 </resources>

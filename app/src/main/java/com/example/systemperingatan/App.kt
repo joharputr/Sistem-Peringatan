@@ -11,6 +11,7 @@ import com.android.volley.toolbox.Volley
 
 import com.android.volley.VolleyLog.TAG
 import com.example.systemperingatan.API.Api
+import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.NetworkConfig
 
 class App : Application() {
@@ -30,8 +31,8 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        api = NetworkConfig.client.create<Api>(Api::class.java)
-
+    //    api = NetworkConfig.client.create<Api>(Api::class.java)
+        api = NetworkAPI.getRetrofit().create(Api::class.java)
     }
 
     fun <T> addToRequestQueue(req: Request<T>, tag: String) {

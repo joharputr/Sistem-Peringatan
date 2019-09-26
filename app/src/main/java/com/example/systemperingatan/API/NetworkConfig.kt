@@ -11,8 +11,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object NetworkConfig {
-    private val base_url = "http://192.168.1.26/api/hakiki95tutorial/"
-    var post = "http://192.168.1.26/api/hakiki95tutorial/insert.php"
+    private val base_url = "http://192.168.1.20/api/hakiki95tutorial/"
+    var post = "http://192.168.1.20/ci-restserver/Api/tambah"
 
     private var retrofit: Retrofit? = null
 

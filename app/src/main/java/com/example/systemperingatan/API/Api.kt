@@ -14,22 +14,22 @@ import retrofit2.http.Query
 
 interface Api {
 
-    @GET("read.php")
+    @GET("lihat")
     @Headers("Content-Type: application/json")
-    fun allData(): Call<Data>
+    fun allData(): Call<Response>
 
     @DELETE("kontak/{id}")
     @Headers("Content-Type: application/json")
-    fun deleteItem(@Path("id") itemId: Int, callback: Callback<Data>): Void
+    fun deleteItem(@Path("id") itemId: Int, callback: Callback<Response>): Void
 
-    @POST("insert.php")
+    @POST("tambah")
     @Headers("Content-Type: application/json")
     fun addData(@Query("numbers") numbers: String,
                 @Query("latitude") latitiude: String,
                 @Query("longitude") longitude: String,
-                @Query("expires") expires: String): Call<Data>
+                @Query("expires") expires: String): Call<Response>
 
     @PUT("kontak/")
     @Headers("Content-Type: application/json")
-    fun updateItem(@Path("id") id: Int, @Body data: Map<String, String>): Call<Data>
+    fun updateItem(@Path("id") id: Int, @Body data: Map<String, String>): Call<Response>
 }
