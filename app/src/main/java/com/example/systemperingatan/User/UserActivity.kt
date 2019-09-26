@@ -266,7 +266,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private fun addMarker(radius: Double, key: String?, latLng: LatLng) {
         mMap!!.addMarker(MarkerOptions()
                 .title("G:" + key!!)
-                .snippet("Click here if you want delete this geofence")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(latLng))
         mMap!!.addCircle(CircleOptions()

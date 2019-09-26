@@ -295,7 +295,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         map!!.isMyLocationEnabled = true
         centerCamera()
 
-        showConfigureLocationStep(googleMap.cameraPosition.target)
+        showConfigureLocationStep()
     }
 
     private fun createGeofencePendingIntent(): PendingIntent {
@@ -317,7 +317,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
     }
 
     //step 1
-    private fun showConfigureLocationStep(latLng: LatLng) {
+    private fun showConfigureLocationStep() {
         marker.visibility = View.VISIBLE
         instructionTitle.visibility = View.VISIBLE
 
@@ -327,8 +327,9 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         instructionTitle.text = getString(R.string.instruction_where_description)
         next.setOnClickListener {
             reminder.latlang = map!!.cameraPosition.target
-            reminder.latitude = latLng.latitude.toString()
-            reminder.longitude = latLng.longitude.toString()
+            reminder.latitude = map!!.cameraPosition.target.latitude.toString()
+            reminder.longitude = map!!.cameraPosition.target.longitude.toString()
+            Log.d("CLOG","radiusku = "+reminder.latlang.toString())
             showConfigureRadiusStep()
         }
         showReminderUpdate()
