@@ -16,7 +16,11 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.app.FragmentActivity
 import android.util.Log
 import android.widget.Toast
+import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.DataItem
+import com.example.systemperingatan.API.NetworkAPI
+import com.example.systemperingatan.Admin.MapsActivity
+import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
 import com.example.systemperingatan.Notification.GeofenceTransitionService
@@ -34,9 +38,13 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.gson.Gson
+import com.google.maps.android.SphericalUtil
+import org.json.JSONException
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.HashMap
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
@@ -63,7 +71,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
     private fun setUpLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             //request runtime permission
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSION_REQUEST_CODE)
 
@@ -83,7 +90,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             } else {
                 permissionDenied()
             }
-
         }
     }
 
@@ -158,8 +164,16 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private fun markerLocation(latLng: LatLng) {
         Log.i("LOG TLOCATION", "markerLocation($latLng)")
         val title = latLng.latitude.toString() + ", " + latLng.longitude
+        val lat = latLng.latitude
+        val long = latLng.longitude
+        val latLng = "$lat,$long".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val latitude = java.lang.Double.parseDouble(latLng[0])
+        val longitude = java.lang.Double.parseDouble(latLng[1])
+        val location = LatLng(latitude, longitude)
+       titikGps = location
+        Log.d("titik gps = ", titikGps.toString())
         val markerOptions = MarkerOptions()
-                .position(latLng)
+                .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
                 .title("lokasi saya = $title")
         if (mMap != null) {
@@ -168,7 +182,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 locationMarker!!.remove()
             locationMarker = mMap!!.addMarker(markerOptions)
             val zoom = 14f
-            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom)
+            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, zoom)
             mMap!!.animateCamera(cameraUpdate)
         }
     }
@@ -325,6 +339,24 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         addMarker(radiusMeter, number!!, LatLng(latitude, longitude))
 
+                        val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        val latlang = LatLng(lat, lang)
+
+                        Log.d("CLOG = ", "data latLang array ke $i = " + latlang.toString())
+
+                        val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
+                        Log.d("CLOG = ", "distance = " + distance.toString())
+
+                        val list: ArrayList<Double> = ArrayList()
+                        list.add(distance)
+                        println(list)
+
+                        val min = list.min() ?: 0
+                        Log.d("CLOG = ", "arraylist = " + list.toString())
+                        Log.d("CLOG","number = "+number)
+                        updateData(number,distance)
+
                         val geofence = Geofence.Builder()
                                 .setRequestId(number)
                                 .setCircularRegion(
@@ -362,6 +394,65 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 Toast.makeText(this@UserActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    private fun updateData(number: String, distance : Double) {
+        val tag_string_req = "req_postdata"
+        val strReq = object : StringRequest(Method.POST,
+                NetworkAPI.edit+"/$number", { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+                val jObj = JSONObject(response)
+                val status1 = jObj.getString("status")
+                Log.d("status post  = ", status1)
+                if (status1.contains("200")) {
+                    Toast.makeText(this, "Geofence Added!", Toast.LENGTH_SHORT).show()
+                } else {
+
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("error catch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+
+        }) {
+            override fun getParams(): Map<String, String> {
+                // Posting parameters to login url
+                val params = HashMap<String, String>()
+
+
+                params["distance"] = distance.toString()
+                return params
+            }
+
+       /*     override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                   headers["number"] = number
+                return headers
+            }*/
+
+        }
+
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
     }
 
 
@@ -404,6 +495,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             preferences!!.edit().putString(MAPS, gson.toJson(list)).apply()
 
         }
+        lateinit var titikGps: LatLng
 
         private var mMap: GoogleMap? = null
         //sharedpref

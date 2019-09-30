@@ -37,6 +37,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.maps.android.SphericalUtil
 import kotlinx.android.synthetic.main.activity_maps.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -134,7 +135,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 reloadMapMarkers()
             }
         }
-
     }
 
 
@@ -242,9 +242,19 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     //move camera to current gps location
     private fun markerLocation(latLng: LatLng) {
         Log.i("MARKER CURRENT LOCATION", "markerLocation($latLng)")
+
         val title = latLng.latitude.toString() + ", " + latLng.longitude
+        val lat = latLng.latitude
+        val long = latLng.longitude
+        val latLng = "$lat,$long".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val latitude = java.lang.Double.parseDouble(latLng[0])
+        val longitude = java.lang.Double.parseDouble(latLng[1])
+        val location = LatLng(latitude, longitude)
+        titikGps = location
+        Log.d("titik gps = ", titikGps.toString())
+
         val markerOptions = MarkerOptions()
-                .position(latLng)
+                .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
                 .title(title)
         if (mMap != null) {
@@ -253,7 +263,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 locationMarker!!.remove()
             locationMarker = mMap!!.addMarker(markerOptions)
             val zoom = 14f
-            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom)
+            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, zoom)
             mMap!!.animateCamera(cameraUpdate)
         }
     }
@@ -384,7 +394,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     override fun onResumeFragments() {
         super.onResumeFragments()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            reloadMapMarkers()
+            //   reloadMapMarkers()
         }
     }
 
@@ -494,7 +504,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         Log.e("ERROR PERMISSION", "Invalid location permission. " + "You need to use ACCESS_FINE_LOCATION with geofences", securityException)
     }
 
-    private fun addMarker(message : String,radius: Double, key: String, latitude: Double, longitude: Double) {
+    private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
 
         val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val latitude = java.lang.Double.parseDouble(latLng[0])
@@ -555,22 +565,37 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Response> {
             override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
                 val data = response.body()
-                Log.d("dataAPi = ", data.toString())
+
                 for (i in 0 until data!!.data!!.size) {
                     if (data.data != null) {
-                        val number = data.data?.get(i)?.number
-                        latitude = java.lang.Double.parseDouble(data.data?.get(i)?.latitude)
-                        longitude = java.lang.Double.parseDouble(data.data?.get(i)?.longitude)
-                        expires = java.lang.Long.parseLong(data.data?.get(i)?.expires)
-                        radiusMeter = java.lang.Double.parseDouble(data.data?.get(i)?.radius)
+                        val number = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         message = data.data.get(i)?.message.toString()
                         Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()
-                        addMarker(message,radiusMeter, number!!, latitude, longitude)
+                        addMarker(message, radiusMeter, number!!, latitude, longitude)
+
+                        val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        val latlang = LatLng(lat, lang)
+
+                        Log.d("CLOG = ", "data latLang array ke $i = " + latlang.toString())
+
+                        val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
+                        Log.d("CLOG = ", "distance = " + distance.toString())
+
+                        val list: ArrayList<Double> = ArrayList()
+                        list.add(distance)
+                        println(list)
+
+                        val min = list.min() ?: 0
+                        Log.d("CLOG = ", "arraylist = " + list.toString())
                     } else {
                         Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
                 }
-                Log.d("test data", "latitude =" + latitude + "longitude =" + longitude + "expires =" + expires)
             }
 
             override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
@@ -586,8 +611,15 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         return false
     }
 
-    companion object {
 
+    fun MarkerWith() {
+
+        //    val distance = SphericalUtil.computeDistanceBetween(mMarkerA.getPosition(), mMarkerB.getPosition())
+
+    }
+
+    companion object {
+        lateinit var titikGps: LatLng
         private const val NEW_REMINDER_REQUEST_CODE = 330
         val NEW_GEOFENCE_NUMBER = BuildConfig.APPLICATION_ID + ".NEW_GEOFENCE_NUMBER"
         private val MY_PERMISSION_REQUEST_CODE = 7192

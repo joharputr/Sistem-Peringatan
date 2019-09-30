@@ -1,6 +1,9 @@
 package com.example.systemperingatan.API
 
 import com.google.gson.annotations.SerializedName
+import android.R
+
+
 
 
 data class Response(
@@ -14,3 +17,5 @@ data class Response(
         @field:SerializedName("status")
         val status: Int? = null
 )
+
+

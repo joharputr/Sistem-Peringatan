@@ -9,7 +9,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object NetworkAPI {
+    var post = "http://192.168.1.20/ci-restserver/Api/tambah"
+    var edit = "http://192.168.1.20/ci-restserver/Api/edit/"
     private val base_url = "http://192.168.1.20/ci-restserver/Api/"
+
     fun getRetrofit(): Retrofit {
         return  Retrofit.Builder()
                 .baseUrl(base_url)

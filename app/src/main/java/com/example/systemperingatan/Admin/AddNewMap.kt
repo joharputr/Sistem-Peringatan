@@ -20,6 +20,7 @@ import android.widget.SeekBar
 import android.widget.Toast
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.DataItem
+import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.NetworkConfig
 import com.example.systemperingatan.Admin.MapsActivity.Companion.GEOFENCE_EXPIRATION_IN_MILLISECONDS
 import com.example.systemperingatan.App
@@ -46,7 +47,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
 
     private var mSharedPreferences: SharedPreferences? = null
 
-    private var reminder = DataItem(null, null, null, null, null, null, null, null, null)
+    private var reminder = DataItem(null, null,null, null, null, null, null, null, null, null)
     val newGeofenceNumber: Int
         get() {
             val number = mSharedPreferences!!.getInt(MapsActivity.NEW_GEOFENCE_NUMBER, 1)
@@ -419,7 +420,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         val key = newGeofenceNumber.toString() + ""
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
-                NetworkConfig.post, { response ->
+                NetworkAPI.post, { response ->
             Log.d("CLOG", "responh: $response")
             try {
                 val jObj = JSONObject(response)
@@ -470,6 +471,14 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
             }
         }
 
+
+        // Adding request to request queue
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+        Log.d("CLOG", "number = " + key + " lat = " + reminder.latitude.toString() + " long = " +
+                reminder.longitude.toString() + " exp = " + expTime + "radius = " + reminder.radius +
+                " message = " + reminder.message + " latlang = " + reminder.latlang)
+
+
         val geofence = Geofence.Builder()
                 .setRequestId(key)
                 .setCircularRegion(
@@ -492,11 +501,6 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
             e.stackTrace
         }
 
-        // Adding request to request queue
-        App.instance?.addToRequestQueue(strReq, tag_string_req)
-        Log.d("CLOG", "number = " + key + " lat = " + reminder.latitude.toString() + " long = " +
-                reminder.longitude.toString() + " exp = " + expTime + "radius = " + reminder.radius +
-                " message = " + reminder.message + " latlang = " + reminder.latlang)
 
 
         setResult(Activity.RESULT_OK)

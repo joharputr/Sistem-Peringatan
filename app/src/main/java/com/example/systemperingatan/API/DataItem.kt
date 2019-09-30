@@ -31,5 +31,8 @@ data class DataItem(
         var longitude: String? = null,
 
         @field:SerializedName("radius")
-        var radius: String? = null
+        var radius: String? = null,
+
+        @field:SerializedName("distance")
+        var distance: String? = null
 )
