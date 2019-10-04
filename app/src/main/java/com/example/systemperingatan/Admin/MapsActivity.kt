@@ -21,6 +21,10 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
+import com.android.volley.toolbox.StringRequest
+import com.example.systemperingatan.API.DataItem
+import com.example.systemperingatan.API.NetworkAPI
+import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
 import com.example.systemperingatan.Notification.GeofenceTransitionService
@@ -39,9 +43,12 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_maps.*
+import org.json.JSONException
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.HashMap
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
@@ -334,6 +341,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         if (mGoogleApiClient != null) {
             mGoogleApiClient!!.connect()
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
     }
 
     override fun onStart() {
@@ -555,39 +565,39 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
     private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
         mMap!!.addMarker(MarkerOptions()
-                .title("G:$number area = $message")
+                .title("G:$number Nama Area Evakuasi = $message")
                 .snippet("Click here if you want delete this geofence")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(latLng))
     }
 
+
     //info from marker
     override fun onInfoWindowClick(marker: Marker) {
         val requestId = marker.title.split(":".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1]
-        Log.d("CLOGrequestId = ", "id=" + requestId)
+        val substring = requestId.split(" ")
+
+        Log.d("CLogSubs","data= "+substring[0])
+        Log.d("CLOGrequestId = ", "id=" +requestId)
         if (!mGoogleApiClient!!.isConnected) {
             Toast.makeText(this, "GeoFence Not connected!", Toast.LENGTH_SHORT).show()
             return
         }
         try {
             val idList = ArrayList<String>()
-            // perlu dikembangkan
-            idList.add(requestId)
+            idList.add(substring[0])
             Log.d("idlist = ", idList.toString())
+            deleteData(substring[0])
             LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, idList).setResultCallback { status ->
                 if (status.isSuccess) {
                     //remove from db
-                    GeofenceStorage.removeGeofence(requestId)
-                    Log.d("REMOVE", "key = $requestId")
-                    Toast.makeText(this@MapsActivity, "Geofence removed!", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this,MapsActivity::class.java))
+                    Log.d("CLOGREMOVE", "sukses key = $requestId")
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                         reloadMapMarkers()
                     }
                 } else {
-                    // Get the status code for the error and log it using a UserActivity-friendly message.
-                    //   val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
-
-                    //    Log.e("ERROR WINDOW CLICK", errorMessage)
+                    Log.e("CLOGREMOVE","ERROR WINDOW CLICK")
                 }
             }
 
@@ -633,6 +643,79 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
                 Toast.makeText(this@MapsActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun deleteData(number: String) {
+        val tag_string_req = "req_postdata"
+        Log.d("CLOG", "deleteId:$number")
+        val strReq = object : StringRequest(Method.DELETE,
+                NetworkAPI.delete + "/$number", { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+                val jObj = JSONObject(response)
+                val status1 = jObj.getString("status")
+                Log.d("status post  = ", status1)
+                if (status1.contains("200")) {
+                    Toast.makeText(this, "id = $number Geofence Remove!", Toast.LENGTH_SHORT).show()
+                } else {
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("error catch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+
+        }) {
+            override fun getParams(): Map<String, String> {
+                // Posting parameters to login url
+                val params = HashMap<String, String>()
+          //      params["distance"] = distance.toString()
+                return params
+            }
+
+        }
+
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
+    }
+
+    private fun DeleteDataRetrofit(number: String){
+        api.deleteData(number).enqueue(object : Callback<com.example.systemperingatan.API.Response> {
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
+              Toast.makeText(this@MapsActivity,t.localizedMessage,Toast.LENGTH_SHORT).show()
+                Log.d("CLOG", "verespon: ${t.localizedMessage}")
+            }
+
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
+
+                if (response.body()?.status == 200) {
+                    Toast.makeText(this@MapsActivity,"sukses delete data $number",Toast.LENGTH_SHORT).show()
+                    Log.d("CLOG", "verespon: ${response}")
+                } else {
+                    Toast.makeText(this@MapsActivity,"gagal delete data $number",Toast.LENGTH_SHORT).show()
+                    Log.d("CLOG", "verespon: ${response}")
+                }
             }
         })
     }

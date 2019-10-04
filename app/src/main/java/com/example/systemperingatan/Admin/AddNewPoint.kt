@@ -326,6 +326,7 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
 
     private fun markerForGeofence(latLng: LatLng) {
         if (!mGoogleApiClient!!.isConnected) {
+
             Toast.makeText(this, "Google Api not connected!", Toast.LENGTH_SHORT).show()
             return
         }

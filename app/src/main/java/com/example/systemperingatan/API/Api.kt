@@ -18,9 +18,8 @@ interface Api {
     @Headers("Content-Type: application/json")
     fun allData(): Call<Response>
 
-    @DELETE("kontak/{id}")
-    @Headers("Content-Type: application/json")
-    fun deleteItem(@Path("id") itemId: Int, callback: Callback<Response>): Void
+    @DELETE("hapus/{number}")
+    fun deleteData(@Path("number") number: String): Call<Response>
 
     @POST("tambah")
     @Headers("Content-Type: application/json")

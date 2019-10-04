@@ -422,7 +422,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
-
                 }
                 Log.d("test data", "latitude =" + latitude + "longitude =" + longitude + "expires =" + expires)
             }
