@@ -26,6 +26,7 @@ import com.example.systemperingatan.BuildConfig
 import com.example.systemperingatan.Notification.GeofenceTransitionService
 import com.example.systemperingatan.R
 import com.example.systemperingatan.SQLite.GeofenceStorage
+import com.example.systemperingatan.User.UserActivity
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
@@ -63,6 +64,8 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private var fab_main: FloatingActionButton? = null
     private var fab1_mail: FloatingActionButton? = null
     private var fab2_share: FloatingActionButton? = null
+    private var fab3_titik: FloatingActionButton? = null
+    private var fab4_user: FloatingActionButton? = null
     private var fab_open: Animation? = null
     private var fab_close: Animation? = null
     private var fab_clock: Animation? = null
@@ -93,6 +96,8 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         fab_main = findViewById(R.id.fab)
         fab1_mail = findViewById(R.id.fab1)
         fab2_share = findViewById(R.id.fab2)
+        fab3_titik = findViewById(R.id.fab2_titik)
+        fab4_user = findViewById(R.id.fab2_User)
         fab_close = AnimationUtils.loadAnimation(applicationContext, R.anim.fab_close)
         fab_open = AnimationUtils.loadAnimation(applicationContext, R.anim.fab_open)
         fab_clock = AnimationUtils.loadAnimation(applicationContext, R.anim.rotate_fab_clock)
@@ -103,30 +108,37 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             if (isOpen!!) {
                 textview_mail.visibility = View.INVISIBLE
                 textview_share.visibility = View.INVISIBLE
+                textview_titik.visibility =View.INVISIBLE
+                textview_User.visibility = View.INVISIBLE
+
                 fab2_share!!.startAnimation(fab_close)
                 fab1_mail!!.startAnimation(fab_close)
+                fab3_titik!!.startAnimation(fab_close)
+                fab4_user!!.startAnimation(fab_close)
                 fab_main!!.startAnimation(fab_anticlock)
+
                 fab2_share!!.isClickable = false
                 fab1_mail!!.isClickable = false
+                fab3_titik!!.isClickable = false
+                fab4_user!!.isClickable = false
                 isOpen = false
             } else {
                 textview_mail.visibility = View.VISIBLE
                 textview_share.visibility = View.VISIBLE
+                textview_titik.visibility = View.VISIBLE
+                textview_User.visibility = View.VISIBLE
+
                 fab2_share!!.startAnimation(fab_open)
                 fab1_mail!!.startAnimation(fab_open)
+                fab2_titik!!.startAnimation(fab_open)
+                fab4_user!!.startAnimation(fab_open)
                 fab_main!!.startAnimation(fab_clock)
+
                 fab2_share!!.isClickable = true
                 fab1_mail!!.isClickable = true
+                fab2_titik!!.isClickable = true
+                fab4_user!!.isClickable = true
                 isOpen = true
-            }
-        }
-
-
-        fab2_share!!.setOnClickListener {
-            mMap?.run {
-                val intent = AddNewMap.newIntent(this@MapsActivity, cameraPosition.target, cameraPosition.zoom)
-
-                startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
         }
 
@@ -135,6 +147,23 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 reloadMapMarkers()
             }
         }
+
+        fab2_share!!.setOnClickListener {
+            mMap?.run {
+                val intent = AddNewMap.newIntent(this@MapsActivity, cameraPosition.target, cameraPosition.zoom)
+                startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
+            }
+        }
+        fab3_titik!!.setOnClickListener {
+            mMap?.run {
+                val intent = AddNewPoint.newIntent(this@MapsActivity, cameraPosition.target, cameraPosition.zoom)
+                startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
+            }
+        }
+        fab4_user!!.setOnClickListener {
+            startActivity(Intent(this,UserActivity::class.java))
+        }
+
     }
 
 
@@ -250,9 +279,12 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         val latitude = java.lang.Double.parseDouble(latLng[0])
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
-        titikGps = location
-        Log.d("titik gps = ", titikGps.toString())
-
+        try {
+            titikGps = location
+            Log.d("titikgps = ", titikGps.toString())
+        }catch (e : NullPointerException){
+           Log.d("CLOG","error = "+e.localizedMessage)
+        }
         val markerOptions = MarkerOptions()
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
@@ -267,7 +299,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             mMap!!.animateCamera(cameraUpdate)
         }
     }
-
 
     // Create a Geofence Request
     private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
@@ -394,7 +425,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     override fun onResumeFragments() {
         super.onResumeFragments()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            //   reloadMapMarkers()
+               reloadMapMarkers()
         }
     }
 
@@ -505,13 +536,12 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     }
 
     private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
-
         val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val latitude = java.lang.Double.parseDouble(latLng[0])
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
         mMap!!.addMarker(MarkerOptions()
-                .title("G:$message")
+                .title("G:$key pesan =  $message")
                 .snippet("Click here if you want delete this geofence")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(location))
@@ -525,6 +555,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     //info from marker
     override fun onInfoWindowClick(marker: Marker) {
         val requestId = marker.title.split(":".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1]
+        Log.d("CLOGrequestId = ","id="+requestId)
         if (!mGoogleApiClient!!.isConnected) {
             Toast.makeText(this, "GeoFence Not connected!", Toast.LENGTH_SHORT).show()
             return
@@ -567,7 +598,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 val data = response.body()
 
                 for (i in 0 until data!!.data!!.size) {
-                    if (data.data != null) {
+                    if (data.data != null && data.data.get(i)?.type == "circle") {
                         val number = data.data.get(i)?.number
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
@@ -577,21 +608,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()
                         addMarker(message, radiusMeter, number!!, latitude, longitude)
 
-                        val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
-                        val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
-                        val latlang = LatLng(lat, lang)
-
-                        Log.d("CLOG = ", "data latLang array ke $i = " + latlang.toString())
-
-                        val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
-                        Log.d("CLOG = ", "distance = " + distance.toString())
-
-                        val list: ArrayList<Double> = ArrayList()
-                        list.add(distance)
-                        println(list)
-
-                        val min = list.min() ?: 0
-                        Log.d("CLOG = ", "arraylist = " + list.toString())
                     } else {
                         Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
@@ -611,12 +627,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         return false
     }
 
-
-    fun MarkerWith() {
-
-        //    val distance = SphericalUtil.computeDistanceBetween(mMarkerA.getPosition(), mMarkerB.getPosition())
-
-    }
 
     companion object {
         lateinit var titikGps: LatLng

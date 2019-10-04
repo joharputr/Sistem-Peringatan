@@ -9,40 +9,46 @@ import android.text.TextUtils
 import android.util.Log
 import com.example.systemperingatan.API.DataItem
 import com.example.systemperingatan.Admin.MapsActivity
-import com.example.systemperingatan.R
 import com.example.systemperingatan.User.UserActivity
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
 import java.util.*
 
+
 class GeofenceTransitionService : IntentService(TAG) {
     internal var CHANNEL_ID = "my_channel_01"
     internal var name: CharSequence = "my_channel"
-    internal var Description = "This is my channel"
 
     override fun onHandleIntent(intent: Intent?) {
+        Log.d("datanotif = ", "masuk")
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         // Handling errors
         if (geofencingEvent.hasError()) {
             val errorMsg = getErrorString(geofencingEvent.errorCode)
+            Log.d("datanotif = ", "error" + errorMsg)
             Log.e(TAG, errorMsg)
             return
         }
         val geoFenceTransition = geofencingEvent.geofenceTransition
 
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            val triggeringGeofences = geofencingEvent.triggeringGeofences
-            val geofenceTransitionDetails = getGeofenceTrasitionDetails(geoFenceTransition, triggeringGeofences)
-          //  sendNotification(geofenceTransitionDetails)
+            //    val triggeringGeofences = geofencingEvent.triggeringGeofences
+            //   val geofenceTransitionDetails = getGeofenceTrasitionDetails(geoFenceTransition, triggeringGeofences)
+            //  sendNotification(geofenceTransitionDetails)
 
-            val reminder = getFirstReminder(geofencingEvent.triggeringGeofences)
-            val message = reminder?.message
-            val latLng = reminder?.longitude
-            Log.d("datareminder = ", reminder.toString())
+            Log.d("datanotif = ", "masuk2")
+            val data = getFirstReminder(geofencingEvent.triggeringGeofences)
+            val message = data?.message
+            val latLng = data?.longitude
+            val minim_distance = data?.minim_distance
+
+            Log.d("datanotif = ", data.toString())
             if (message != null) {
-                sendNotification(message)
+                sendNotification(message, minim_distance!!)
             }
+        } else {
+            Log.d("datanotif = ", "gagal")
         }
     }
 
@@ -50,8 +56,6 @@ class GeofenceTransitionService : IntentService(TAG) {
         val firstGeofence = triggeringGeofences[0]
         return UserActivity.get(firstGeofence.requestId)
     }
-
-
 
     private fun getGeofenceTrasitionDetails(geoFenceTransition: Int, triggeringGeofences: List<Geofence>): String {
         // get the ID of each geofence triggered
@@ -69,7 +73,7 @@ class GeofenceTransitionService : IntentService(TAG) {
         return status!! + TextUtils.join(", ", triggeringGeofencesList)
     }
 
-    private fun sendNotification(msg: String) {
+    private fun sendNotification(msg: String, minim_distance: String) {
         Log.i(TAG, "sendNotification: $msg")
 
         // Intent to start the main Activity
@@ -85,8 +89,7 @@ class GeofenceTransitionService : IntentService(TAG) {
 
             val importance = NotificationManager.IMPORTANCE_HIGH
             val mChannel = NotificationChannel(CHANNEL_ID, name, importance)
-            mChannel.description = msg
-            mChannel.description = msg
+
             mChannel.enableLights(true)
             mChannel.lightColor = Color.RED
             mChannel.enableVibration(true)
@@ -94,25 +97,30 @@ class GeofenceTransitionService : IntentService(TAG) {
             mChannel.setShowBadge(false)
             notificatioMng.createNotificationChannel(mChannel)
         }
+
+        val random = Random()
+        val randomInt = random.nextInt(9999 - 1000) + 1000
+
         notificatioMng.notify(
-                GEOFENCE_NOTIFICATION_ID,
-                createNotification(msg, notificationPendingIntent))
+                randomInt,
+                createNotification(msg, minim_distance, notificationPendingIntent))
     }
 
     // Create notification
-    private fun createNotification(msg: String, notificationPendingIntent: PendingIntent): Notification {
+    private fun createNotification(msg: String, minim_distance: String, notificationPendingIntent: PendingIntent): Notification {
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
         notificationBuilder
-                .setSmallIcon(R.drawable.cast_ic_notification_pause)
+                .setSmallIcon(com.example.systemperingatan.R.drawable.cast_ic_notification_pause)
                 .setColor(Color.RED)
-                .setContentTitle(msg)
-                .setContentText("Geofence Notification!")
+                .setStyle(NotificationCompat.BigTextStyle()
+                        .bigText("Anda Berada di " + msg + ", zona evakuasi terdekat adalah  " + minim_distance))
+                .setContentText("Anda Berada di " + msg + ", zona evakuasi terdekat adalah  " + minim_distance)
+                .setContentTitle("Geofence Notification!")
                 .setContentIntent(notificationPendingIntent)
                 .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
                 .setAutoCancel(true)
         return notificationBuilder.build()
     }
-
 
     companion object {
 

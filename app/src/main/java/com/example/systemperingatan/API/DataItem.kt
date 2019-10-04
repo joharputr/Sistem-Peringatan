@@ -34,5 +34,9 @@ data class DataItem(
         var radius: String? = null,
 
         @field:SerializedName("distance")
-        var distance: String? = null
+        var distance: String? = null,
+
+        @field:SerializedName("minim_distance")
+        var minim_distance: String? = null
+
 )

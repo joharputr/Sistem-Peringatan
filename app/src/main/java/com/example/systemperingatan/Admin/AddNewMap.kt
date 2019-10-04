@@ -2,14 +2,15 @@ package com.example.systemperingatan.Admin
 
 import android.Manifest
 import android.app.Activity
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.database.SQLException
+import android.graphics.Color
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
+import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
@@ -21,15 +22,15 @@ import android.widget.Toast
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.DataItem
 import com.example.systemperingatan.API.NetworkAPI
-import com.example.systemperingatan.API.NetworkConfig
-import com.example.systemperingatan.Admin.MapsActivity.Companion.GEOFENCE_EXPIRATION_IN_MILLISECONDS
+import com.example.systemperingatan.API.Response
 import com.example.systemperingatan.App
-import com.example.systemperingatan.Notification.GeofenceTransitionService
 import com.example.systemperingatan.R
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.*
+import com.google.android.gms.location.LocationListener
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -38,16 +39,22 @@ import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_add_new_map.*
 import org.json.JSONException
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
 import java.util.*
 import kotlin.math.roundToInt
 
 class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private var mGoogleApiClient: GoogleApiClient? = null
-
+    internal var latitude: Double = 0.toDouble()
+    internal var longitude: Double = 0.toDouble()
+    internal var expires: Long = 0
+    lateinit var messages: String
+    internal var radiusMeter: Double = 0.toDouble()
     private var mSharedPreferences: SharedPreferences? = null
 
-    private var reminder = DataItem(null, null,null, null, null, null, null, null, null, null)
+    private var reminder = DataItem(null, null, null, null, null, null, null, null, null, null)
     val newGeofenceNumber: Int
         get() {
             val number = mSharedPreferences!!.getInt(MapsActivity.NEW_GEOFENCE_NUMBER, 1)
@@ -70,6 +77,9 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
             updateRadiusWithProgress(progress)
             showReminderUpdate()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                reloadMapMarkers()
+            }
         }
     }
 
@@ -81,17 +91,14 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
 
     companion object {
         private var map: GoogleMap? = null
-        val GEOFENCE_RADIUS_IN_METERS = 100f // 100 m
-        val GEOFENCE_EXPIRATION_IN_HOURS: Long = 12
-
         private var mLocationRequest: LocationRequest? = null
         private val MY_PERMISSION_REQUEST_CODE = 7192
         private var mLastLocation: Location? = null
-        private var mpendingIntent: PendingIntent? = null
         private var locationMarker: Marker? = null
         private const val EXTRA_LAT_LNG = "EXTRA_LAT_LNG"
         private const val EXTRA_ZOOM = "EXTRA_ZOOM"
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
+
         fun newIntent(context: Context, latLng: LatLng, zoom: Float): Intent {
             val intent = Intent(context, AddNewMap::class.java)
             intent.putExtra(EXTRA_LAT_LNG, latLng).putExtra(EXTRA_ZOOM, zoom)
@@ -115,6 +122,9 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         mSharedPreferences = getSharedPreferences(MapsActivity.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setUpLocation()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
     }
 
     override fun onStop() {
@@ -126,6 +136,9 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         super.onResume()
         if (mGoogleApiClient != null) {
             mGoogleApiClient!!.connect()
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
         }
     }
 
@@ -145,6 +158,9 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                 buildGoogleApiClient()
                 createLocationRequest()
                 displayLocation()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    reloadMapMarkers()
+                }
             }
         }
     }
@@ -211,7 +227,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
             locationMarker = map!!.addMarker(markerOptions)
             val zoom = 14f
             val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom)
-        //    map!!.animateCamera(cameraUpdate)
+            //    map!!.animateCamera(cameraUpdate)
         }
     }
 
@@ -276,14 +292,6 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         return true
     }
 
-    private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
-        Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
-        return GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-                .addGeofence(geofence)
-                .build()
-    }
-
 
     override fun onSupportNavigateUp(): Boolean {
         finish()
@@ -295,21 +303,12 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         map!!.uiSettings.isMapToolbarEnabled = false
         map!!.isMyLocationEnabled = true
         centerCamera()
-
         showConfigureLocationStep()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
     }
 
-    private fun createGeofencePendingIntent(): PendingIntent {
-        Log.d("LOGCREATEPENDING INTENT", "createGeofencePendingIntent")
-        if (mpendingIntent != null) {
-            Log.d("Pending gagal", "pending ggagal")
-            return mpendingIntent as PendingIntent
-        }
-        val intent = Intent(this, GeofenceTransitionService::class.java)
-        Log.d("LOG Pending test", "pending test")
-        val GEOFENCE_REQ_CODE = 0
-        return PendingIntent.getService(this, GEOFENCE_REQ_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-    }
 
     private fun centerCamera() {
         val latLng = intent.extras.get(EXTRA_LAT_LNG) as LatLng
@@ -321,16 +320,16 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
     private fun showConfigureLocationStep() {
         marker.visibility = View.VISIBLE
         instructionTitle.visibility = View.VISIBLE
-
         radiusBar.visibility = View.GONE
         radiusDescription.visibility = View.GONE
         message.visibility = View.GONE
+
         instructionTitle.text = getString(R.string.instruction_where_description)
         next.setOnClickListener {
             reminder.latlang = map!!.cameraPosition.target
             reminder.latitude = map!!.cameraPosition.target.latitude.toString()
             reminder.longitude = map!!.cameraPosition.target.longitude.toString()
-            Log.d("CLOG","radiusku = "+reminder.latlang.toString())
+            Log.d("CLOG", "radiusku = " + reminder.latlang.toString())
             showConfigureRadiusStep()
         }
         showReminderUpdate()
@@ -338,6 +337,9 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
 
     //step 2
     private fun showConfigureRadiusStep() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
         marker.visibility = View.GONE
         instructionTitle.visibility = View.VISIBLE
 
@@ -378,7 +380,6 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
 
         }
         // message.requestFocusWithKeyboard()
-
     }
 
     fun hideKeyboard(context: Context, view: View) {
@@ -402,7 +403,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
             marker.tag = reminder.id
             if (reminder.radius != null) {
-                val radius = java.lang.Double.parseDouble(reminder.radius)
+                val radius = java.lang.Double.parseDouble(reminder.radius!!)
                 map.addCircle(CircleOptions()
                         .center(reminder.latlang)
                         .radius(radius)
@@ -429,6 +430,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                 if (status1.contains("200")) {
                     Toast.makeText(this, "Geofence Added!", Toast.LENGTH_SHORT).show()
                 } else {
+
 
                     val msg = jObj.getString("message")
                     Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
@@ -471,39 +473,63 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
             }
         }
 
-
         // Adding request to request queue
         App.instance?.addToRequestQueue(strReq, tag_string_req)
         Log.d("CLOG", "number = " + key + " lat = " + reminder.latitude.toString() + " long = " +
                 reminder.longitude.toString() + " exp = " + expTime + "radius = " + reminder.radius +
                 " message = " + reminder.message + " latlang = " + reminder.latlang)
 
-
-        val geofence = Geofence.Builder()
-                .setRequestId(key)
-                .setCircularRegion(
-                        java.lang.Double.parseDouble(reminder.latitude),
-                        java.lang.Double.parseDouble(reminder.longitude),
-                        java.lang.Float.parseFloat(reminder.radius)
-                )
-                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                .setTransitionTypes( Geofence.GEOFENCE_TRANSITION_EXIT)
-                .build()
-        try {
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
-                    createGeofenceRequest(geofence),
-                    createGeofencePendingIntent()
-            )
-        } catch (securityException: SecurityException) {
-            logSecurityException(securityException)
-        } catch (e: SQLException) {
-            e.stackTrace
-        }
-
-
-
         setResult(Activity.RESULT_OK)
         finish()
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    //load from db
+    fun reloadMapMarkers() {
+        //   mMap!!.clear()
+        App.api.allData().enqueue(object : Callback<Response> {
+            override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>) {
+                val data = response.body()
+
+                for (i in 0 until data!!.data!!.size) {
+                    if (data.data != null) {
+                        val number = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
+                        messages = data.data.get(i)?.message.toString()
+                        Log.d("CLOG", "test response " + response.message())
+                        addMarker(messages, radiusMeter, number!!, latitude, longitude)
+
+                    } else {
+                        Toast.makeText(this@AddNewMap, response.message(), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<Response>, t: Throwable) {
+                Log.d("gagal", "gagal =" + t.localizedMessage)
+                Toast.makeText(this@AddNewMap, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
+
+        val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val latitude = java.lang.Double.parseDouble(latLng[0])
+        val longitude = java.lang.Double.parseDouble(latLng[1])
+        val location = LatLng(latitude, longitude)
+        map!!.addMarker(MarkerOptions()
+                .title("G:$message")
+                .snippet("Click here if you want delete this geofence")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .position(location))
+        map!!.addCircle(CircleOptions()
+                .center(location)
+                .radius(radius)
+                .strokeColor(R.color.wallet_holo_blue_light)
+                .fillColor(Color.parseColor("#80ff0000")))
     }
 }

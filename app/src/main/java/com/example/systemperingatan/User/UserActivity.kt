@@ -19,7 +19,6 @@ import android.widget.Toast
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.DataItem
 import com.example.systemperingatan.API.NetworkAPI
-import com.example.systemperingatan.Admin.MapsActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
@@ -44,7 +43,17 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.HashMap
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.dropLastWhile
+import kotlin.collections.firstOrNull
+import kotlin.collections.listOf
+import kotlin.collections.min
+import kotlin.collections.set
+import kotlin.collections.toList
+import kotlin.collections.toTypedArray
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
@@ -170,8 +179,8 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         val latitude = java.lang.Double.parseDouble(latLng[0])
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
-       titikGps = location
-        Log.d("titik gps = ", titikGps.toString())
+        titikGps = location
+        Log.d("titikGps = ", titikGps.toString())
         val markerOptions = MarkerOptions()
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
@@ -191,8 +200,10 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private fun createGeofencePendingIntent(): PendingIntent {
         Log.d("LOGCREATEPENDING INTENT", "createGeofencePendingIntent")
         if (mpendingIntent != null) {
-            Log.d("Pending gagal", "pending ggagal")
+            Log.d("LOGCREATEPENDING ", "pending isi")
             return mpendingIntent as PendingIntent
+        } else {
+            Log.d("LOGCREATEPENDING gagal", "pending null")
         }
         val intent = Intent(this, GeofenceTransitionService::class.java)
         Log.d("LOG Pending test", "pending test")
@@ -339,32 +350,42 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         addMarker(radiusMeter, number!!, LatLng(latitude, longitude))
 
+                        val radiusFloat = radiusMeter.toFloat();
+                        Log.d("CLOG = ", "radiusFloat = " + radiusFloat.toString())
                         val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         val latlang = LatLng(lat, lang)
 
                         Log.d("CLOG = ", "data latLang array ke $i = " + latlang.toString())
 
-                        val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
-                        Log.d("CLOG = ", "distance = " + distance.toString())
+                        try {
+                            val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
+                            Log.d("CLOG = ", "distance = " + distance.toString())
 
-                        val list: ArrayList<Double> = ArrayList()
-                        list.add(distance)
-                        println(list)
+                            val list: ArrayList<Double> = ArrayList()
+                            list.add(distance)
+                            println(list)
 
-                        val min = list.min() ?: 0
-                        Log.d("CLOG = ", "arraylist = " + list.toString())
-                        Log.d("CLOG","number = "+number)
-                        updateData(number,distance)
+                            val min = list.min() ?: 0
+                            Log.d("CLOG = ", "arraylist = " + list.toString())
+                            Log.d("CLOG", "number = " + number)
+
+                            //update distance
+                            updateData(number, distance)
+
+                        } catch (e: NullPointerException) {
+                            Log.d("CLOG", "NULL" + e.localizedMessage)
+                        }
+
 
                         val geofence = Geofence.Builder()
                                 .setRequestId(number)
                                 .setCircularRegion(
                                         latitude,
                                         longitude,
-                                        UserActivity.GEOFENCE_RADIUS_IN_METERS
+                                        radiusFloat
                                 )
-                                .setExpirationDuration(UserActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
                                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
                                 .build()
                         try {
@@ -396,10 +417,10 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         })
     }
 
-    private fun updateData(number: String, distance : Double) {
+    private fun updateData(number: String, distance: Double) {
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
-                NetworkAPI.edit+"/$number", { response ->
+                NetworkAPI.edit + "/$number", { response ->
             Log.d("CLOG", "responh: $response")
             try {
                 val jObj = JSONObject(response)
@@ -444,12 +465,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 return params
             }
 
-       /*     override fun getHeaders(): Map<String, String> {
-                val headers = HashMap<String, String>()
-                   headers["number"] = number
-                return headers
-            }*/
-
         }
 
         App.instance?.addToRequestQueue(strReq, tag_string_req)
@@ -472,8 +487,8 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                     return arrayOfReminders.toList()
                 }
                 Log.d("shareppref= ", remindersString)
-            }else{
-               Log.d("cekError","Error")
+            } else {
+                Log.d("cekError", "Error")
             }
             return listOf()
         }
@@ -495,6 +510,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             preferences!!.edit().putString(MAPS, gson.toJson(list)).apply()
 
         }
+
         lateinit var titikGps: LatLng
 
         private var mMap: GoogleMap? = null
