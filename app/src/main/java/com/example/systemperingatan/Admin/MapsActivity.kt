@@ -38,7 +38,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.maps.android.SphericalUtil
 import kotlinx.android.synthetic.main.activity_maps.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -108,7 +107,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             if (isOpen!!) {
                 textview_mail.visibility = View.INVISIBLE
                 textview_share.visibility = View.INVISIBLE
-                textview_titik.visibility =View.INVISIBLE
+                textview_titik.visibility = View.INVISIBLE
                 textview_User.visibility = View.INVISIBLE
 
                 fab2_share!!.startAnimation(fab_close)
@@ -122,6 +121,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 fab3_titik!!.isClickable = false
                 fab4_user!!.isClickable = false
                 isOpen = false
+
             } else {
                 textview_mail.visibility = View.VISIBLE
                 textview_share.visibility = View.VISIBLE
@@ -144,7 +144,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
         fab1_mail!!.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                reloadMapMarkers()
+                startActivity(Intent(this,MapsActivity::class.java))
             }
         }
 
@@ -161,7 +161,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             }
         }
         fab4_user!!.setOnClickListener {
-            startActivity(Intent(this,UserActivity::class.java))
+            startActivity(Intent(this, UserActivity::class.java))
         }
 
     }
@@ -282,13 +282,14 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         try {
             titikGps = location
             Log.d("titikgps = ", titikGps.toString())
-        }catch (e : NullPointerException){
-           Log.d("CLOG","error = "+e.localizedMessage)
+        } catch (e: NullPointerException) {
+            Log.d("CLOG", "error = " + e.localizedMessage)
         }
         val markerOptions = MarkerOptions()
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title(title)
+                .title("G:"+0+" Lokasi Saya")
+                .snippet(title)
         if (mMap != null) {
             // Remove the anterior marker
             if (locationMarker != null)
@@ -425,7 +426,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     override fun onResumeFragments() {
         super.onResumeFragments()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-               reloadMapMarkers()
+            reloadMapMarkers()
         }
     }
 
@@ -552,10 +553,18 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 .fillColor(Color.parseColor("#80ff0000")))
     }
 
+    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
+        mMap!!.addMarker(MarkerOptions()
+                .title("G:$number area = $message")
+                .snippet("Click here if you want delete this geofence")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .position(latLng))
+    }
+
     //info from marker
     override fun onInfoWindowClick(marker: Marker) {
         val requestId = marker.title.split(":".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1]
-        Log.d("CLOGrequestId = ","id="+requestId)
+        Log.d("CLOGrequestId = ", "id=" + requestId)
         if (!mGoogleApiClient!!.isConnected) {
             Toast.makeText(this, "GeoFence Not connected!", Toast.LENGTH_SHORT).show()
             return
@@ -607,6 +616,13 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         message = data.data.get(i)?.message.toString()
                         Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()
                         addMarker(message, radiusMeter, number!!, latitude, longitude)
+
+                    } else if (data.data != null && data.data.get(i)?.type == "point") {
+                        val numberPoint = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        message = data.data.get(i)?.message.toString()
+                        addMarkerPoint(LatLng(latitude, longitude),message, numberPoint!!)
 
                     } else {
                         Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()

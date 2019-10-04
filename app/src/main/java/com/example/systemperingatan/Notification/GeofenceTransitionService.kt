@@ -21,7 +21,7 @@ class GeofenceTransitionService : IntentService(TAG) {
     internal var name: CharSequence = "my_channel"
 
     override fun onHandleIntent(intent: Intent?) {
-        Log.d("datanotif = ", "masuk")
+
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         // Handling errors
         if (geofencingEvent.hasError()) {
@@ -37,14 +37,15 @@ class GeofenceTransitionService : IntentService(TAG) {
             //   val geofenceTransitionDetails = getGeofenceTrasitionDetails(geoFenceTransition, triggeringGeofences)
             //  sendNotification(geofenceTransitionDetails)
 
-            Log.d("datanotif = ", "masuk2")
+            Log.d("datanotif = ", "masuk ")
             val data = getFirstReminder(geofencingEvent.triggeringGeofences)
             val message = data?.message
             val latLng = data?.longitude
             val minim_distance = data?.minim_distance
 
             Log.d("datanotif = ", data.toString())
-            if (message != null) {
+            if (message != null ) {
+                Log.d("datanotif = ", "message = "+message+" minim = "+minim_distance)
                 sendNotification(message, minim_distance!!)
             }
         } else {
@@ -77,9 +78,9 @@ class GeofenceTransitionService : IntentService(TAG) {
         Log.i(TAG, "sendNotification: $msg")
 
         // Intent to start the main Activity
-        val notificationIntent = Intent(applicationContext, MapsActivity::class.java)
+        val notificationIntent = Intent(applicationContext, UserActivity::class.java)
         val stackBuilder = TaskStackBuilder.create(this)
-        stackBuilder.addParentStack(MapsActivity::class.java)
+        stackBuilder.addParentStack(UserActivity::class.java)
         stackBuilder.addNextIntent(notificationIntent)
         val notificationPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
 

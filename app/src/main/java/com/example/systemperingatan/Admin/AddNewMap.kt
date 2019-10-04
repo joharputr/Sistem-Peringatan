@@ -492,7 +492,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                 val data = response.body()
 
                 for (i in 0 until data!!.data!!.size) {
-                    if (data.data != null) {
+                    if (data.data != null && data.data.get(i)?.type == "circle") {
                         val number = data.data.get(i)?.number
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
@@ -501,6 +501,13 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                         messages = data.data.get(i)?.message.toString()
                         Log.d("CLOG", "test response " + response.message())
                         addMarker(messages, radiusMeter, number!!, latitude, longitude)
+
+                    } else if (data.data != null && data.data.get(i)?.type == "point") {
+                        val numberPoint = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        messages = data.data.get(i)?.message.toString()
+                        addMarkerPoint(LatLng(AddNewPoint.latitude, AddNewPoint.longitude), messages, numberPoint!!)
 
                     } else {
                         Toast.makeText(this@AddNewMap, response.message(), Toast.LENGTH_SHORT).show()
@@ -532,4 +539,14 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                 .strokeColor(R.color.wallet_holo_blue_light)
                 .fillColor(Color.parseColor("#80ff0000")))
     }
+
+    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
+        map!!.addMarker(MarkerOptions()
+                .title("G:$number area = $message")
+                .snippet("Click here if you want delete this geofence")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .position(latLng))
+    }
+
+
 }

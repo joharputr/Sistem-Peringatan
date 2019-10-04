@@ -45,21 +45,14 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.collections.dropLastWhile
-import kotlin.collections.firstOrNull
-import kotlin.collections.listOf
-import kotlin.collections.min
 import kotlin.collections.set
-import kotlin.collections.toList
-import kotlin.collections.toTypedArray
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
 
     // private val preferences = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     //Retrofit
+    private lateinit var titikGps: LatLng
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -288,17 +281,29 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         Log.e("LOG ERROR PERMISSION", "Invalid location permission. " + "You need to use ACCESS_FINE_LOCATION with geofences", securityException)
     }
 
-    private fun addMarker(radius: Double, key: String?, latLng: LatLng) {
+    private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
+        val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val latitude = java.lang.Double.parseDouble(latLng[0])
+        val longitude = java.lang.Double.parseDouble(latLng[1])
+        val location = LatLng(latitude, longitude)
         mMap!!.addMarker(MarkerOptions()
-                .title("G:" + key!!)
+                .title("G:$key pesan =  $message")
+                .snippet("Click here if you want delete this geofence")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .position(location))
+        mMap!!.addCircle(CircleOptions()
+                .center(location)
+                .radius(radius)
+                .strokeColor(R.color.wallet_holo_blue_light)
+                .fillColor(Color.parseColor("#80ff0000")))
+    }
+
+    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
+        mMap!!.addMarker(MarkerOptions()
+                .title("G:$number area = $message")
+                .snippet("Click here if you want delete this geofence")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(latLng))
-        mMap!!.addCircle(CircleOptions()
-                .center(latLng)
-                .radius(radius)
-                .strokeColor(Color.RED)
-                .fillColor(Color.parseColor("#80ff0000")))
-
     }
 
     override fun onInfoWindowClick(marker: Marker) {
@@ -342,13 +347,14 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 val data = response.body()
                 Log.d("dataAPi = ", data.toString())
                 for (i in 0 until data!!.data!!.size) {
-                    if (data.data != null) {
+                    if (data.data != null && data.data.get(i)?.type == "circle") {
                         val number = data.data.get(i)?.number
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
-                        addMarker(radiusMeter, number!!, LatLng(latitude, longitude))
+                        message = data.data.get(i)?.message.toString()
+                        addMarker(message, radiusMeter, number!!, latitude, longitude)
 
                         val radiusFloat = radiusMeter.toFloat();
                         Log.d("CLOG = ", "radiusFloat = " + radiusFloat.toString())
@@ -358,7 +364,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
                         Log.d("CLOG = ", "data latLang array ke $i = " + latlang.toString())
 
-                        try {
+                        if (this@UserActivity::titikGps.isInitialized) {
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
                             Log.d("CLOG = ", "distance = " + distance.toString())
 
@@ -372,11 +378,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
                             //update distance
                             updateData(number, distance)
-
-                        } catch (e: NullPointerException) {
-                            Log.d("CLOG", "NULL" + e.localizedMessage)
                         }
-
 
                         val geofence = Geofence.Builder()
                                 .setRequestId(number)
@@ -402,6 +404,21 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         } catch (e: SQLException) {
                             e.stackTrace
                         }
+
+                    } else if (data.data != null && data.data.get(i)?.type == "point") {
+                        val numberPoint = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        message = data.data.get(i)?.message.toString()
+
+                        addMarkerPoint(LatLng(latitude, longitude), message, numberPoint!!)
+
+                        val latlang = LatLng(latitude, longitude)
+                        val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
+
+                        updateData(numberPoint, distance)
+                        Log.d("CLOGPOINT","number = "+numberPoint+" lat ="+ latitude+" long= "+ longitude)
+
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
@@ -459,8 +476,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             override fun getParams(): Map<String, String> {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
-
-
                 params["distance"] = distance.toString()
                 return params
             }
@@ -511,8 +526,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
         }
 
-        lateinit var titikGps: LatLng
-
+        lateinit var message: String
         private var mMap: GoogleMap? = null
         //sharedpref
         private var preferences: SharedPreferences? = null

@@ -1,9 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
+
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/map"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Admin.AddNewPoint" />
+    tools:context=".Admin.AddNewPoint">
+
+    <fragment
+        android:id="@+id/map_point"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+    <LinearLayout
+        android:id="@+id/container_point"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#ffffff"
+        android:orientation="vertical">
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/pointTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="4dp"
+            android:textColor="#000"
+            android:textSize="18sp"
+            tools:text="Tulis Nama Titik" />
+
+        <EditText
+            android:visibility="gone"
+            android:id="@+id/message_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="13dp"
+            android:layout_marginRight="13dp"
+            android:layout_marginBottom="8dp"
+            android:hint="nama titik"
+            android:imeOptions="actionDone"
+            android:inputType="textCapSentences"
+            android:maxLines="1" />
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/ok_title_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_button_bluelight"
+            android:text="OK"
+            android:textColor="@color/cardview_dark_background" />
+        <Button
+            android:id="@+id/next_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_button"
+            android:text="Klik disini jika sudah cukup"
+            android:textColor="@color/cardview_dark_background" />
+
+    </LinearLayout>
+
+</android.support.design.widget.CoordinatorLayout>

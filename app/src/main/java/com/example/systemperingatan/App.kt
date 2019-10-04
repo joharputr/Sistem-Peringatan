@@ -1,18 +1,14 @@
 package com.example.systemperingatan
 
 import android.app.Application
-import android.content.Context
 import android.text.TextUtils
-
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.RequestQueue
-import com.android.volley.toolbox.Volley
-
 import com.android.volley.VolleyLog.TAG
+import com.android.volley.toolbox.Volley
 import com.example.systemperingatan.API.Api
 import com.example.systemperingatan.API.NetworkAPI
-import com.example.systemperingatan.API.NetworkConfig
 
 class App : Application() {
     private var mRequestQueue: RequestQueue? = null
@@ -23,7 +19,6 @@ class App : Application() {
             if (mRequestQueue == null) {
                 mRequestQueue = Volley.newRequestQueue(applicationContext)
             }
-
             return mRequestQueue!!
         }
 
@@ -31,7 +26,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-    //    api = NetworkConfig.client.create<Api>(Api::class.java)
+        //    api = NetworkConfig.client.create<Api>(Api::class.java)
         api = NetworkAPI.getRetrofit().create(Api::class.java)
     }
 
@@ -47,7 +42,7 @@ class App : Application() {
 
     companion object {
 
-        lateinit var api:Api
+        lateinit var api: Api
         var instance: App? = null
             private set
     }
