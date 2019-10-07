@@ -9,10 +9,15 @@ object GeofenceContract {
         companion object {
             val _ID: String = "id"
             val TABLE_NAME = "geofences"
-            val COLUMN_NAME_KEY = "keys"
-            val COLUMN_NAME_LAT = "lat"
-            val COLUMN_NAME_LNG = "lng"
+            val COLUMN_NAME_NUMBERS = "numbers"
+            val COLUMN_NAME_LAT = "latitude"
+            val COLUMN_NAME_LNG = "longitude"
             val COLUMN_NAME_EXPIRES = "expires"
+            val COLUMN_NAME_MESSAGE = "messages"
+            val COLUMN_NAME_DISTANCE = "distances"
+            val COLUMN_NAME_TYPE = "type"
+            val COLUMN_NAME_MIN_DISTANCE = "minim_distance"
+
 
         }
     }

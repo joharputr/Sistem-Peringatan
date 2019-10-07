@@ -395,12 +395,14 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
                         override fun getParams(): Map<String, String> {
                             // Posting parameters to login url
                             val params = HashMap<String, String>()
+                            val radius = 10
                             params["number"] = key
                             params["latitude"] = latLng.latitude.toString()
                             params["longitude"] = latLng.longitude.toString()
                             params["expires"] = expTime.toString()
                             params["message"] = message_point.text.toString()
                             params["type"] = "point"
+                            params["radius"] = radius.toString()
 
                             return params
                         }

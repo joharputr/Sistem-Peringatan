@@ -2,20 +2,25 @@ package com.example.systemperingatan.SQLite
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
 import com.example.systemperingatan.App
 
-class GeofenceDbHelper private constructor(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(SQL_CREATE_ENTRIES)
+        val query = "CREATE TABLE Geofences(numbers INTEGER PRIMARY KEY AUTOINCREMENT,latitude TEXT,longitude TEXT,expires TEXT,messages TEXT,distances TEXT,type TEXT)"
+        db.execSQL(query)
+
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL(SQL_DELETE_ENTRIES)
+        val delete = "DROP TABLE IF EXISTS Geofences"
+        db.execSQL(delete)
         onCreate(db)
     }
 
@@ -25,31 +30,92 @@ class GeofenceDbHelper private constructor(context: Context) : SQLiteOpenHelper(
 
     companion object {
 
-        private val DATABASE_VERSION = 5
-        private val DATABASE_NAME = "geologi.db"
-        private val SQL_CREATE_ENTRIES = "CREATE TABLE " + GeofenceContract.GeofenceEntry.TABLE_NAME +
-                "(_ID INTEGER PRIMARY KEY AUTOINCREMENT, keys TEXT,lat TEXT,lng TEXT,expires TEXT)"
+        private val DATABASE_VERSION = 7
+        private val DATABASE_NAME = "Geofences.db"
 
-
-        private val SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + GeofenceContract.GeofenceEntry.TABLE_NAME
 
         fun get(): GeofenceDbHelper {
             return GeofenceDbHelper(App.instance!!)
         }
-
-        fun saveToDb(key: String, latitude: Double, longitude: Double, expires: Long) {
-            val helper = GeofenceDbHelper.get()
-
-            //save to db
-            val values = ContentValues()
-            values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_KEY, key)
-            values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES, expires.toString() + "")
-            values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT, latitude.toString() + "")
-            values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG, longitude.toString() + "")
-            helper.writableDatabase.insert(GeofenceContract.GeofenceEntry.TABLE_NAME, null, values)
-            Log.i("", "Row inserted id=$helper, ContentValues=$values")
-
-        }
     }
 
+    fun saveToDb(numbers: String, latitude: Double, longitude: Double, expires: Long, message: String, distance: Double, type : String?) {
+        val db = writableDatabase
+        val values = ContentValues()
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_NUMBERS, numbers)
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT, latitude.toString() + "")
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG, longitude.toString() + "")
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES, expires.toString() + "")
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_MESSAGE, message + "")
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE, distance.toString() + "")
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_TYPE, type + "")
+        db.insert("Geofences", null, values)
+        Log.d("CLOGsqlite", "data = " + values)
+
+        db.close()
+        Log.v("cekSQL ", " Record Inserted Sucessfully")
+    }
+
+    fun getCursor(): Cursor {
+        val columns = arrayOf<String>(
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_NUMBERS,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_MESSAGE,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_MIN_DISTANCE
+        )
+        val db = readableDatabase
+        val MY_QUERY = "SELECT *, ( SELECT b.messages FROM Geofences b  ORDER BY type desc, distances + 0 ASC LIMIT 1 ) AS 'minim_distance' FROM Geofences a"
+
+        /*  return db.query(
+                  "Geofences",
+                  columns,
+                  null,
+                  null,
+                  null,
+                  null,
+                  GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE+ " ASC"
+          )*/
+
+        return db.rawQuery(
+                MY_QUERY,
+                null
+        )
+    }
+
+    fun getCursorSQL(): Cursor {
+        val columns = arrayOf<String>(
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_NUMBERS,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_MESSAGE,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE,
+                GeofenceContract.GeofenceEntry.COLUMN_NAME_MIN_DISTANCE
+        )
+        val db = readableDatabase
+        val MY_QUERY = "SELECT *, ( SELECT b.messages FROM Geofences b  ORDER BY type desc, distances + 0 ASC LIMIT 1 ) AS 'minim_distance' FROM Geofences a"
+
+        /*  return db.query(
+                  "Geofences",
+                  columns,
+                  null,
+                  null,
+                  null,
+                  null,
+                  GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE+ " ASC"
+          )*/
+
+        return db.rawQuery(
+                MY_QUERY,
+                null
+        )
+    }
+
+    fun DeleteAll(){
+        val db = readableDatabase
+        db.execSQL("delete from Geofences");
+    }
 }
