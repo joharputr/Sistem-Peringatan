@@ -85,34 +85,7 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         )
     }
 
-    fun getCursorSQL(): Cursor {
-        val columns = arrayOf<String>(
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_NUMBERS,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_MESSAGE,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_MIN_DISTANCE
-        )
-        val db = readableDatabase
-        val MY_QUERY = "SELECT *, ( SELECT b.messages FROM Geofences b  ORDER BY type desc, distances + 0 ASC LIMIT 1 ) AS 'minim_distance' FROM Geofences a"
 
-        /*  return db.query(
-                  "Geofences",
-                  columns,
-                  null,
-                  null,
-                  null,
-                  null,
-                  GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE+ " ASC"
-          )*/
-
-        return db.rawQuery(
-                MY_QUERY,
-                null
-        )
-    }
 
     fun DeleteAll(){
         val db = readableDatabase

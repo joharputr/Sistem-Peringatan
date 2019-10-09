@@ -40,7 +40,6 @@ class GeofenceTransitionService : IntentService(TAG) {
             Log.d("datanotif = ", "masuk ")
             val data = getFirstReminder(geofencingEvent.triggeringGeofences)
             val message = data?.message
-            val latLng = data?.longitude
             val minim_distance = data?.minim_distance
 
             Log.d("datanotif = ", data.toString())

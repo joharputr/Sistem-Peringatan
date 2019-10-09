@@ -168,7 +168,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             }
         }
         fab4_user!!.setOnClickListener {
-            startActivity(Intent(this, UserActivity::class.java))
+            val intent  = Intent(this,UserActivity::class.java)
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(intent)
         }
 
     }
@@ -346,10 +348,10 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         }
     }
 
-    override fun onStart() {
+  /*  override fun onStart() {
         super.onStart()
         mGoogleApiClient!!.connect()
-    }
+    }*/
 
     override fun onMapReady(googleMap: GoogleMap) {
         Log.d("onMapReady", "onMapReady()")

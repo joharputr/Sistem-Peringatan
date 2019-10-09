@@ -22,6 +22,7 @@ import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
+import com.example.systemperingatan.Notification.GeofenceBroadcastReceiver
 import com.example.systemperingatan.Notification.GeofenceTransitionService
 import com.example.systemperingatan.R
 import com.example.systemperingatan.SQLite.GeofenceContract
@@ -63,7 +64,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         setUpLocation()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         mpendingIntent = null
-        Log.d("dataGet = ", get("test").toString())
+
 
     }
 
@@ -143,14 +144,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         return true
     }
 
-    /* override fun onResumeFragments() {
-         super.onResumeFragments()
-         mGoogleApiClient!!.connect()
-         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-             reloadMapMarkers()
-         }
-     }*/
-
     //add gps location now
     private fun displayLocation() {
         Log.d("LOG Cek lokasi", "cek lokasi")
@@ -200,7 +193,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         }
     }
 
-
     private fun createGeofencePendingIntent(): PendingIntent {
         Log.d("LOGCREATEPENDING INTENT", "createGeofencePendingIntent")
         if (mpendingIntent != null) {
@@ -209,10 +201,10 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         } else {
             Log.d("LOGCREATEPENDING gagal", "pending null")
         }
-        val intent = Intent(this, GeofenceTransitionService::class.java)
+        val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
         Log.d("LOG Pending test", "pending test")
         val GEOFENCE_REQ_CODE = 0
-        return PendingIntent.getService(this, GEOFENCE_REQ_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return PendingIntent.getBroadcast(this, GEOFENCE_REQ_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
     override fun onStop() {
@@ -229,7 +221,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
     override fun onStart() {
         super.onStart()
-        mGoogleApiClient!!.connect()
+        mGoogleApiClient?.connect()
     }
 
 
@@ -246,7 +238,9 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         mMap!!.setOnMarkerClickListener(this)
         mMap!!.setOnInfoWindowClickListener(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+
             reloadMapMarkers()
+
         }
     }
 
@@ -313,7 +307,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         mMap!!.addMarker(MarkerOptions()
                 .title("G:$number area = $message")
                 .snippet("Click here if you want delete this geofence")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
                 .position(latLng))
     }
 
@@ -332,7 +326,9 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                     Log.d("LOG REMOVE", "key = $requestId")
                     Toast.makeText(this@UserActivity, "Geofence removed!", Toast.LENGTH_SHORT).show()
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+
                         reloadMapMarkers()
+
                     }
                 } else {
                     // Get the status code for the error and log it using a UserActivity-friendly message.
@@ -354,7 +350,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     fun reloadMapMarkers() {
         //   mMap!!.clear()
         val dbHelper = GeofenceDbHelper(this)
-        GetDataSQLite()
         dbHelper.DeleteAll()
         api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Response> {
             override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
@@ -362,7 +357,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 Log.d("dataAPi = ", data.toString())
 
                 for (i in 0 until data!!.data!!.size) {
-                    if (data.data != null /*&& data.data.get(i)?.type == "circle"*/) {
+                    if (data.data != null) {
                         val number = data.data.get(i)?.number
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
@@ -370,7 +365,11 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         message = data.data.get(i)?.message.toString()
                         val type = data.data.get(i)?.type
-                        addMarker(message, radiusMeter, number!!, latitude, longitude)
+
+                        if (data.data.get(i)?.type == "circle")
+                            addMarker(message, radiusMeter, number!!, latitude, longitude)
+                        else
+                            addMarkerPoint(LatLng(latitude, longitude), message, number!!)
 
                         val radiusFloat = radiusMeter.toFloat();
                         Log.d("CLOG = ", "radiusFloat = " + radiusFloat.toString())
@@ -387,19 +386,9 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                             Log.d("CLOGlat", latitude.toString())
 
                             helper.saveToDb(number, latitude, longitude, expires, message, distance, type)
-
-                            val list: ArrayList<Double> = ArrayList()
-                            list.add(distance)
-                            println(list)
-
-                            val min = list.min() ?: 0
-                            Log.d("CLOG = ", "arraylist = " + list.toString())
-                            Log.d("CLOG", "number = " + number)
-
-                            //update distance
-                            updateData(number, distance)
+                            // updateData(number, distance)
                         }
-
+                        GetDataSQLite()
                         val geofence = Geofence.Builder()
                                 .setRequestId(number)
                                 .setCircularRegion(
@@ -424,20 +413,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         } catch (e: SQLException) {
                             e.stackTrace
                         }
-
-                    } else if (data.data != null && data.data.get(i)?.type == "point") {
-                        val numberPoint = data.data.get(i)?.number
-                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
-                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
-                        message = data.data.get(i)?.message.toString()
-
-                        addMarkerPoint(LatLng(latitude, longitude), message, numberPoint!!)
-
-                        val latlang = LatLng(latitude, longitude)
-                        val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
-
-                        updateData(numberPoint, distance)
-                        Log.d("CLOGPOINT", "number = " + numberPoint + " lat =" + latitude + " long= " + longitude)
 
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
@@ -475,7 +450,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         saveAll(arrayList)
         Log.d(" itemTest = ", "arraylist" + arrayList)
     }
-
 
     private fun updateData(number: String, distance: Double) {
         val tag_string_req = "req_postdata"
@@ -525,7 +499,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         }
         App.instance?.addToRequestQueue(strReq, tag_string_req)
     }
-
 
     override fun onMarkerClick(marker: Marker): Boolean {
 
