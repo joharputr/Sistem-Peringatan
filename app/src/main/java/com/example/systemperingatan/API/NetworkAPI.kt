@@ -9,10 +9,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object NetworkAPI {
-    var post = "http://10.100.53.222/ci-restserver/Api/tambah"
-    var edit = "http://10.100.53.222/ci-restserver/Api/edit/"
-    var delete = "http://10.100.53.222/ci-restserver/Api/hapus/"
-    private val base_url = "http://10.100.53.222/ci-restserver/Api/"
+    var post = "http://10.100.57.33/ci-restserver/Api/tambah"
+    var edit = "http://10.100.57.33/ci-restserver/Api/edit/"
+    var delete = "http://10.100.57.33/ci-restserver/Api/hapus/"
+    private val base_url = "http://10.100.57.33/ci-restserver/Api/"
 
     fun getRetrofit(): Retrofit {
         return  Retrofit.Builder()
@@ -31,7 +31,6 @@ object NetworkAPI {
                 .addInterceptor(getInterseptor())  //client butuh interseptor
                 .build()
     }
-
     //interseptor
     //muncul di logcat
     private fun getInterseptor(): Interceptor {
@@ -42,7 +41,6 @@ object NetworkAPI {
                 HttpLoggingInterceptor.Level.NONE
             }
         }
-
         //style java
         /*val interseptor = HttpLoggingInterceptor()
         interseptor.level =  if (BuildConfig.DEBUG){

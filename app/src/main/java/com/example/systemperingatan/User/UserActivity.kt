@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.database.SQLException
 import android.graphics.Color
 import android.location.Location
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.RequiresApi
@@ -41,6 +42,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.gson.Gson
 import com.google.maps.android.SphericalUtil
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
@@ -64,6 +67,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         setUpLocation()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         mpendingIntent = null
+
 
 
     }
@@ -231,6 +235,24 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
+        /*
+               val location1 = LatLng(13.0356745,77.5881522)
+               mMap!!.addMarker(MarkerOptions().position(location1).title("My Location"))
+               mMap!!.animateCamera(CameraUpdateFactory.newLatLngZoom(location1,5f))
+
+               Log.d("GoogleMap", "before location2")
+               val location2 = LatLng(9.89,78.11)
+               mMap!!.addMarker(MarkerOptions().position(location2).title("Madurai"))
+
+               Log.d("GoogleMap", "before location3")
+
+               val location3 = LatLng(13.029727,77.5933021)
+               mMap!!.addMarker(MarkerOptions().position(location3).title("Bangalore"))
+
+               Log.d("GoogleMap", "before URL")
+              val URL = getDirectionURL(location2,location3)
+               Log.d("GoogleMap", "URL : $URL")
+               GetDirection(URL).execute()*/
 
         //add gps logo
         mMap!!.isMyLocationEnabled = true
@@ -243,6 +265,9 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
         }
     }
+
+
+
 
     override fun onConnected(bundle: Bundle?) {
         displayLocation()
@@ -381,12 +406,20 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
                         if (this@UserActivity::titikGps.isInitialized) {
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
+
+                            //add route direction
+                            val URL = getDirectionURL(titikGps,latlang)
+                            Log.d("GoogleMap1", "URL : $URL")
+
+                            GetDirection(URL).execute()
                             Log.d("CLOG = ", "distance = " + distance.toString())
                             val helper = GeofenceDbHelper(this@UserActivity)
                             Log.d("CLOGlat", latitude.toString())
 
                             helper.saveToDb(number, latitude, longitude, expires, message, distance, type)
                             // updateData(number, distance)
+                        }else{
+                            Log.d("CLOG","titik gps tidak ada")
                         }
                         GetDataSQLite()
                         val geofence = Geofence.Builder()
@@ -504,6 +537,90 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
         return false
     }
+
+
+    fun getDirectionURL(origin:LatLng,dest:LatLng) : String{
+        return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving"
+    }
+
+    private inner class GetDirection(val url : String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
+        override fun doInBackground(vararg params: Void?): List<List<LatLng>> {
+            val client = OkHttpClient()
+            val request = Request.Builder().url(url).build()
+            val response = client.newCall(request).execute()
+            val data = response.body()!!.string()
+            Log.d("GoogleMap", " data : $data")
+            val result = ArrayList<List<LatLng>>()
+            try {
+                val respObj = Gson().fromJson(data, GoogleMapDTO::class.java)
+
+                val path = ArrayList<LatLng>()
+
+                for (i in 0..(respObj.routes[0].legs[0].steps.size - 1)) {
+//                    val startLatLng = LatLng(respObj.routes[0].legs[0].steps[i].start_location.lat.toDouble()
+//                            ,respObj.routes[0].legs[0].steps[i].start_location.lng.toDouble())
+//                    path.add(startLatLng)
+//                    val endLatLng = LatLng(respObj.routes[0].legs[0].steps[i].end_location.lat.toDouble()
+//                            ,respObj.routes[0].legs[0].steps[i].end_location.lng.toDouble())
+                    path.addAll(decodePolyline(respObj.routes[0].legs[0].steps[i].polyline.points))
+                }
+                result.add(path)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return result
+        }
+
+        override fun onPostExecute(result: List<List<LatLng>>) {
+            val lineoption = PolylineOptions()
+            for (i in result.indices){
+                lineoption.addAll(result[i])
+                lineoption.width(10f)
+                lineoption.color(Color.BLUE)
+                lineoption.geodesic(true)
+            }
+            mMap!!.addPolyline(lineoption)
+        }
+    }
+
+    public fun decodePolyline(encoded: String): List<LatLng> {
+
+        val poly = ArrayList<LatLng>()
+        var index = 0
+        val len = encoded.length
+        var lat = 0
+        var lng = 0
+
+        while (index < len) {
+            var b: Int
+            var shift = 0
+            var result = 0
+            do {
+                b = encoded[index++].toInt() - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lat += dlat
+
+            shift = 0
+            result = 0
+            do {
+                b = encoded[index++].toInt() - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lng += dlng
+
+            val latLng = LatLng((lat.toDouble() / 1E5),(lng.toDouble() / 1E5))
+            poly.add(latLng)
+        }
+
+        return poly
+    }
+
+
 
 
     companion object {
