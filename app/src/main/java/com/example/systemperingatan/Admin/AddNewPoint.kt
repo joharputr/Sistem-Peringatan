@@ -12,11 +12,12 @@ import android.graphics.Color
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AppCompatActivity
+
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.NetworkAPI
@@ -332,7 +333,7 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
         }
         val key = newGeofenceNumber.toString() + ""
         //   val list = ArrayList<Result>()
-        val expTime = System.currentTimeMillis() + MapsActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
+        val expTime = System.currentTimeMillis() + MapsAdminFragment.GEOFENCE_EXPIRATION_IN_MILLISECONDS
 
         addMarkerPoint(latLng, message_point.text.toString(), key)
         val geofence = Geofence.Builder()
@@ -342,7 +343,7 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
                         latLng.longitude,
                         100f
                 )
-                .setExpirationDuration(MapsActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                .setExpirationDuration(MapsAdminFragment.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
                 .build()
         try {

@@ -55,11 +55,11 @@
     </LinearLayout>-->
 
     <fragment
-        android:id="@+id/map"
+        android:id="@+id/mapAdmin"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".Admin.MapsActivity">
+        tools:context=".Admin.MapsAdminFragment">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -101,7 +101,7 @@
         android:textColor="#ffffff"
         android:visibility="invisible" />
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab2_User"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -116,7 +116,7 @@
         android:visibility="invisible"
         app:backgroundTint="#ffffff"
         app:pressedTranslationZ="12dp"
-        app:srcCompat="@drawable/button_action" />
+        app:srcCompat="@drawable/amu_bubble_mask" />
     <TextView
         android:id="@+id/textview_titik"
         android:layout_width="wrap_content"
@@ -131,7 +131,7 @@
         android:textColor="#ffffff"
         android:visibility="invisible" />
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab2_titik"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -146,7 +146,7 @@
         android:visibility="invisible"
         app:backgroundTint="#ffffff"
         app:pressedTranslationZ="12dp"
-        app:srcCompat="@drawable/button_action" />
+        app:srcCompat="@drawable/location_item" />
 
     <TextView
         android:id="@+id/textview_share"
@@ -162,7 +162,7 @@
         android:textColor="#ffffff"
         android:visibility="invisible" />
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -177,7 +177,7 @@
         android:visibility="invisible"
         app:backgroundTint="#ffffff"
         app:pressedTranslationZ="12dp"
-        app:srcCompat="@drawable/button_action" />
+        app:srcCompat="@drawable/bg_button" />
 
     <TextView
         android:id="@+id/textview_mail"
@@ -194,7 +194,7 @@
         android:visibility="invisible" />
 
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -209,9 +209,9 @@
         android:visibility="invisible"
         app:backgroundTint="#ffffff"
         app:pressedTranslationZ="12dp"
-        app:srcCompat="@drawable/button_action" />
+        app:srcCompat="@drawable/bg_button_bluelight" />
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -226,7 +226,7 @@
         android:visibility="visible"
         app:backgroundTint="#ffffff"
         app:pressedTranslationZ="12dp"
-        app:srcCompat="@drawable/button_action" />
+        app:srcCompat="@drawable/bg_button" />
 
 
 
@@ -248,11 +248,7 @@
             android:layout_marginLeft="10sp"
             android:text="Radius" />
 
-        <android.support.v7.widget.AppCompatSeekBar
-            android:id="@+id/seekbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp" />
+
 
         <TextView
 

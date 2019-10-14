@@ -10,15 +10,16 @@ import android.graphics.Color
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
+
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.DataItem
 import com.example.systemperingatan.API.NetworkAPI
@@ -28,6 +29,7 @@ import com.example.systemperingatan.R
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -36,6 +38,10 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import kotlinx.android.synthetic.main.activity_add_new_map.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -57,9 +63,9 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
     private var reminder = DataItem(null, null, null, null, null, null, null, null, null, null)
     val newGeofenceNumber: Int
         get() {
-            val number = mSharedPreferences!!.getInt(MapsActivity.NEW_GEOFENCE_NUMBER, 1)
+            val number = mSharedPreferences!!.getInt(MapsAdminFragment.NEW_GEOFENCE_NUMBER, 1)
             val editor = mSharedPreferences!!.edit()
-            editor.putInt(MapsActivity.NEW_GEOFENCE_NUMBER, number + 1)
+            editor.putInt(MapsAdminFragment.NEW_GEOFENCE_NUMBER, number + 1)
             editor.apply()
             return number
         }
@@ -119,12 +125,36 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         radiusBar.visibility = View.GONE
         radiusDescription.visibility = View.GONE
         message.visibility = View.GONE
-        mSharedPreferences = getSharedPreferences(MapsActivity.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+        mSharedPreferences = getSharedPreferences(MapsAdminFragment.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setUpLocation()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
         }
+
+
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyD3q1pDCz0Xl3OuwZmJZa7CfA_ZaG8Osqg")
+        }
+
+        // Initialize the AutocompleteSupportFragment.
+        val autocompleteFragment =
+                supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment?
+
+        autocompleteFragment?.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME))
+
+        autocompleteFragment?.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                //   val cameraUpdate = CameraUpdateFactory.newLatLngZoom(place.latLng, 14f)
+                //   map!!.animateCamera(cameraUpdate)
+                Log.d("PLACESTest", "Place: " + place.getName() + ", " + place.getId() + " Latitude = " + place.latLng?.latitude + " address =" + place.address)
+            }
+
+            override fun onError(status: Status) {
+                // TODO: Handle the error.
+                Log.d("PLACESTest", "An error occurred: $status")
+            }
+        })
     }
 
     override fun onStop() {
@@ -275,8 +305,8 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API).build()
         mGoogleApiClient!!.connect()
-
     }
+
 
     private fun checkPlayServices(): Boolean {
         val resultCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)
@@ -417,7 +447,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
     private fun addLocation() {
         map!!.clear()
 
-        val expTime = System.currentTimeMillis() + MapsActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
+        val expTime = System.currentTimeMillis() + MapsAdminFragment.GEOFENCE_EXPIRATION_IN_MILLISECONDS
         val key = newGeofenceNumber.toString() + ""
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,

@@ -12,11 +12,11 @@ import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.FragmentActivity
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.FragmentActivity
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.DataItem
 import com.example.systemperingatan.API.NetworkAPI
@@ -67,8 +67,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         setUpLocation()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         mpendingIntent = null
-
-
 
     }
 
@@ -267,8 +265,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     }
 
 
-
-
     override fun onConnected(bundle: Bundle?) {
         displayLocation()
         startLocationUpdates()
@@ -408,18 +404,18 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
 
                             //add route direction
-                            val URL = getDirectionURL(titikGps,latlang)
+                            val URL = getDirectionURL(titikGps, latlang)
                             Log.d("GoogleMap1", "URL : $URL")
-
                             GetDirection(URL).execute()
+
                             Log.d("CLOG = ", "distance = " + distance.toString())
                             val helper = GeofenceDbHelper(this@UserActivity)
                             Log.d("CLOGlat", latitude.toString())
 
                             helper.saveToDb(number, latitude, longitude, expires, message, distance, type)
                             // updateData(number, distance)
-                        }else{
-                            Log.d("CLOG","titik gps tidak ada")
+                        } else {
+                            Log.d("CLOG", "titik gps tidak ada")
                         }
                         GetDataSQLite()
                         val geofence = Geofence.Builder()
@@ -429,15 +425,22 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                                         longitude,
                                         radiusFloat
                                 )
-                                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                                .setExpirationDuration(expires)
                                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
                                 .build()
                         try {
-                            LocationServices.GeofencingApi.addGeofences(
-                                    mGoogleApiClient,
+                            val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
+                            geofencingClient.addGeofences(
                                     createGeofenceRequest(geofence),
                                     createGeofencePendingIntent()
-                            )
+                            ).run {
+                                addOnSuccessListener {
+                                    Log.d("CLOGsukses = ","sukses")
+                                }
+                                addOnFailureListener {
+                                    Log.d("CLOGerror = ", it.localizedMessage)
+                                }
+                            }
 
                             //  saveAll(response.body()!!.data)
 
@@ -539,11 +542,11 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     }
 
 
-    fun getDirectionURL(origin:LatLng,dest:LatLng) : String{
+    fun getDirectionURL(origin: LatLng, dest: LatLng): String {
         return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving"
     }
 
-    private inner class GetDirection(val url : String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
+    private inner class GetDirection(val url: String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
         override fun doInBackground(vararg params: Void?): List<List<LatLng>> {
             val client = OkHttpClient()
             val request = Request.Builder().url(url).build()
@@ -573,7 +576,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
         override fun onPostExecute(result: List<List<LatLng>>) {
             val lineoption = PolylineOptions()
-            for (i in result.indices){
+            for (i in result.indices) {
                 lineoption.addAll(result[i])
                 lineoption.width(10f)
                 lineoption.color(Color.BLUE)
@@ -613,14 +616,12 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
             lng += dlng
 
-            val latLng = LatLng((lat.toDouble() / 1E5),(lng.toDouble() / 1E5))
+            val latLng = LatLng((lat.toDouble() / 1E5), (lng.toDouble() / 1E5))
             poly.add(latLng)
         }
 
         return poly
     }
-
-
 
 
     companion object {
@@ -646,7 +647,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT)
                     .addGeofence(geofence)
                     .build()
         }

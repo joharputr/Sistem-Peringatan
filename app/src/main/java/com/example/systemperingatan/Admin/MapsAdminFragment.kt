@@ -1,0 +1,744 @@
+package com.example.systemperingatan.Admin
+
+import android.Manifest
+import android.app.Activity
+import android.app.PendingIntent
+import android.content.Intent
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.database.SQLException
+import android.graphics.Color
+import android.location.Location
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.widget.SeekBar
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import com.android.volley.toolbox.StringRequest
+import com.example.systemperingatan.API.NetworkAPI
+import com.example.systemperingatan.App
+import com.example.systemperingatan.App.Companion.api
+import com.example.systemperingatan.BaseActivity
+import com.example.systemperingatan.BuildConfig
+import com.example.systemperingatan.Notification.GeofenceTransitionService
+import com.example.systemperingatan.R
+import com.example.systemperingatan.User.UserActivity
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.ResultCallback
+import com.google.android.gms.common.api.Status
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.*
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.android.synthetic.main.activity_maps.*
+import org.json.JSONException
+import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.util.HashMap
+
+@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+class MapsAdminFragment : Fragment(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
+    private var mMap: GoogleMap? = null
+    //sharedpref
+    private var mSharedPreferences: SharedPreferences? = null
+    private var mLocationRequest: LocationRequest? = null
+    private var mGoogleApiClient: GoogleApiClient? = null
+    private var mLastLocation: Location? = null
+    private var mpendingIntent: PendingIntent? = null
+    lateinit var message: String
+    private var locationMarker: Marker? = null
+    internal var latitude: Double = 0.toDouble()
+    internal var longitude: Double = 0.toDouble()
+    internal var radiusMeter: Double = 0.toDouble()
+    internal var expires: Long = 0
+
+    //   internal var api = NetworkConfig.client.create<Api>(Api::class.java)
+
+    private var fab_open: Animation? = null
+    private var fab_close: Animation? = null
+    private var fab_clock: Animation? = null
+    private var fab_anticlock: Animation? = null
+
+    /*  val newGeofenceNumber: Int
+          get() {
+              val number = mSharedPreferences!!.getInt(NEW_GEOFENCE_NUMBER, 1)
+              val editor = mSharedPreferences!!.edit()
+              editor.putInt(NEW_GEOFENCE_NUMBER, number + 1)
+              editor.apply()
+              return number
+          }
+  */
+
+    internal var isOpen: Boolean? = false
+
+    override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.activity_maps, container, false)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        initMap()
+        setUpLocation()
+        seekbarFunction()
+        mpendingIntent = null
+
+        fab_close = AnimationUtils.loadAnimation(context, R.anim.fab_close)
+        fab_open = AnimationUtils.loadAnimation(context, R.anim.fab_open)
+        fab_clock = AnimationUtils.loadAnimation(context, R.anim.rotate_fab_clock)
+        fab_anticlock = AnimationUtils.loadAnimation(context, R.anim.fab_rotate_anticlock)
+
+        fab!!.setOnClickListener {
+            if (isOpen!!) {
+                textview_mail.visibility = View.INVISIBLE
+                textview_share.visibility = View.INVISIBLE
+                textview_titik.visibility = View.INVISIBLE
+                textview_User.visibility = View.INVISIBLE
+
+                fab2!!.startAnimation(fab_close)
+                fab1!!.startAnimation(fab_close)
+                fab2_titik!!.startAnimation(fab_close)
+                fab2_User!!.startAnimation(fab_close)
+                fab!!.startAnimation(fab_anticlock)
+
+                fab2!!.isClickable = false
+                fab1!!.isClickable = false
+                fab2_titik!!.isClickable = false
+                fab2_User!!.isClickable = false
+                isOpen = false
+
+            } else {
+                textview_mail.visibility = View.VISIBLE
+                textview_share.visibility = View.VISIBLE
+                textview_titik.visibility = View.VISIBLE
+                textview_User.visibility = View.VISIBLE
+
+                fab2!!.startAnimation(fab_open)
+                fab1!!.startAnimation(fab_open)
+                fab2_titik!!.startAnimation(fab_open)
+                fab2_User!!.startAnimation(fab_open)
+                fab!!.startAnimation(fab_clock)
+
+                fab2!!.isClickable = true
+                fab1!!.isClickable = true
+                fab2_titik!!.isClickable = true
+                fab2_User!!.isClickable = true
+                isOpen = true
+            }
+        }
+
+        fab1!!.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                val ft = fragmentManager?.beginTransaction()
+                if (Build.VERSION.SDK_INT >= 26) {
+                    ft?.setReorderingAllowed(false)
+                }
+                ft?.detach(this)?.attach(this)?.commit()
+            }
+        }
+
+        fab2!!.setOnClickListener {
+            mMap?.run {
+                val intent = AddNewMap.newIntent(context!!, cameraPosition.target, cameraPosition.zoom)
+                startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
+            }
+        }
+        fab2_titik!!.setOnClickListener {
+            mMap?.run {
+                val intent = AddNewPoint.newIntent(context!!, cameraPosition.target, cameraPosition.zoom)
+                startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
+            }
+        }
+        fab2_User!!.setOnClickListener {
+            val intent  = Intent(context,UserActivity::class.java)
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(intent)
+        }
+
+    }
+
+
+    private fun initMap() {
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        val mapFragment = (getChildFragmentManager().findFragmentById(R.id.mapAdmin) as SupportMapFragment?)
+        assert(mapFragment != null)
+        mapFragment!!.getMapAsync(this)
+    }
+
+    private fun setUpLocation() {
+        if (ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            //request runtime permission
+            ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSION_REQUEST_CODE)
+
+        } else {
+            if (checkPlayServices()) {
+                buildGoogleApiClient()
+                createLocationRequest()
+                displayLocation()
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == MY_PERMISSION_REQUEST_CODE) {
+            if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                setUpLocation()
+            } else {
+                permissionDenied()
+            }
+        }
+    }
+
+    private fun permissionDenied() {
+        Log.d("TEST", "permission denied")
+    }
+
+    private fun checkPermission(): Boolean {
+        return ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun askPermission() {
+        ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSION_REQUEST_CODE)
+    }
+
+    private fun createLocationRequest() {
+        mLocationRequest = LocationRequest()
+        val UPDATE_INTERVAL = 5000
+        mLocationRequest!!.interval = UPDATE_INTERVAL.toLong()
+        val FATEST_INTERVAL = 3000
+        mLocationRequest!!.fastestInterval = FATEST_INTERVAL.toLong()
+        mLocationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        val DISPLACEMENT = 10
+        mLocationRequest!!.smallestDisplacement = DISPLACEMENT.toFloat()
+    }
+
+    private fun buildGoogleApiClient() {
+        mGoogleApiClient = GoogleApiClient.Builder(context!!)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build()
+        mGoogleApiClient!!.connect()
+    }
+
+    private fun checkPlayServices(): Boolean {
+        val resultCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GoogleApiAvailability.getInstance().isUserResolvableError(resultCode))
+                GoogleApiAvailability.getInstance().getErrorDialog(context as Activity?, resultCode, PLAY_SERVICE_RESOLUTION_REQUEST).show()
+            else {
+                Toast.makeText(context, "This device not supported", Toast.LENGTH_SHORT).show()
+                activity?.finish()
+
+            }
+            return false
+        }
+        return true
+    }
+
+
+    //add gps location now
+    private fun displayLocation() {
+        Log.d("Cek lokasi", "cek lokasi")
+        if (mMap != null) {
+            if (checkPermission()) {
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient)
+                if (mLastLocation != null) {
+                    Log.i("LAST GPS LOCATION", "LasKnown location. " +
+                            "Long: " + mLastLocation!!.longitude +
+                            " | Lat: " + mLastLocation!!.latitude)
+                    //add gps location
+                    markerLocation(LatLng(mLastLocation!!.latitude, mLastLocation!!.longitude))
+                } else {
+                    Log.w("FAILED", "No location retrieved yet")
+                    //                startLocationUpdates();
+                }
+            } else {
+                askPermission()
+            }
+        }
+    }
+
+    //move camera to current gps location
+    private fun markerLocation(latLng: LatLng) {
+        Log.i("MARKER CURRENT LOCATION", "markerLocation($latLng)")
+
+        val title = latLng.latitude.toString() + ", " + latLng.longitude
+        val lat = latLng.latitude
+        val long = latLng.longitude
+        val latLng = "$lat,$long".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val latitude = java.lang.Double.parseDouble(latLng[0])
+        val longitude = java.lang.Double.parseDouble(latLng[1])
+        val location = LatLng(latitude, longitude)
+        try {
+            titikGps = location
+            Log.d("titikgps = ", titikGps.toString())
+        } catch (e: NullPointerException) {
+            Log.d("CLOG", "error = " + e.localizedMessage)
+        }
+        val markerOptions = MarkerOptions()
+                .position(location)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+                .title("G:"+0+" Lokasi Saya")
+                .snippet(title)
+        if (mMap != null) {
+            // Remove the anterior marker
+            if (locationMarker != null)
+                locationMarker!!.remove()
+            locationMarker = mMap!!.addMarker(markerOptions)
+            val zoom = 14f
+            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, zoom)
+            mMap!!.animateCamera(cameraUpdate)
+        }
+    }
+
+    // Create a Geofence Request
+    private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
+        Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
+        return GeofencingRequest.Builder()
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .addGeofence(geofence)
+                .build()
+    }
+
+
+    private fun createGeofencePendingIntent(): PendingIntent {
+
+        Log.d("CREATE PENDING INTENT", "createGeofencePendingIntent")
+        if (mpendingIntent != null) {
+            Log.d("Pending intent gagal", "pending gagal")
+            return mpendingIntent as PendingIntent
+        }
+        val intent = Intent(context, GeofenceTransitionService::class.java)
+        Log.d("Pending test", "pending test")
+        val GEOFENCE_REQ_CODE = 0
+        return PendingIntent.getService(context, GEOFENCE_REQ_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mGoogleApiClient!!.disconnect()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient!!.connect()
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
+    }
+
+  /*  override fun onStart() {
+        super.onStart()
+        mGoogleApiClient!!.connect()
+    }*/
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        Log.d("onMapReady", "onMapReady()")
+        mMap = googleMap
+        if (ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+        //add gps logo
+        mMap!!.isMyLocationEnabled = true
+        mMap!!.setOnMapClickListener(this)
+        mMap!!.setOnMarkerClickListener(this)
+        mMap!!.setOnInfoWindowClickListener(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
+    }
+
+    override fun onConnected(bundle: Bundle?) {
+        displayLocation()
+        startLocationUpdates()
+        //recoverlocationMarker();
+    }
+
+    private fun startLocationUpdates() {
+        if (checkPermission())
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this)
+    }
+
+
+    override fun onConnectionSuspended(i: Int) {
+        mGoogleApiClient!!.connect()
+    }
+
+    override fun onConnectionFailed(connectionResult: ConnectionResult) {
+        Log.d("ONConnection failed", "failed status code = " + connectionResult.errorMessage!!)
+    }
+
+    override fun onLocationChanged(location: Location) {
+        mLastLocation = location
+        displayLocation()
+    }
+
+    private fun seekbarFunction() {
+
+        verticalSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                mMap!!.animateCamera(CameraUpdateFactory.zoomTo(progress.toFloat()), 2000, null)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+
+            }
+        })
+    }
+
+    override fun onResult(status: Status) {
+
+    }
+
+    override//when click the map
+    fun onMapClick(latLng: LatLng) {
+        Log.d("", "onMapClick($latLng)")
+        //  linearLayout.setVisibility(View.VISIBLE);
+        meter.visibility = View.VISIBLE
+        radius.visibility = View.VISIBLE
+        meter.visibility = View.VISIBLE
+        //  markerForGeofence(latLng)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == NEW_REMINDER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                reloadMapMarkers()
+                Toast.makeText(context, "sukses menambahkan lokasi", Toast.LENGTH_SHORT).show()
+            }
+
+        }
+    }
+
+
+    /* private fun markerForGeofence(latLng: LatLng) {
+         if (!mGoogleApiClient!!.isConnected) {
+             Toast.makeText(this, "Google Api not connected!", Toast.LENGTH_SHORT).show()
+             return
+         }
+         val key = newGeofenceNumber.toString() + ""
+
+         val list = ArrayList<Result>()
+         val expTime = System.currentTimeMillis() + GEOFENCE_EXPIRATION_IN_MILLISECONDS
+        // addMarker(key, latLng)
+         val geofence = Geofence.Builder()
+                 .setRequestId(key)
+                 .setCircularRegion(
+                         latLng.latitude,
+                         latLng.longitude,
+                         GEOFENCE_RADIUS_IN_METERS
+                 )
+                 .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+                 .build()
+         try {
+             LocationServices.GeofencingApi.addGeofences(
+                     mGoogleApiClient,
+                     createGeofenceRequest(geofence),
+                     createGeofencePendingIntent()
+             ).setResultCallback { status ->
+                 if (status.isSuccess) {
+                     //    saveGeofence();
+                     //    drawGeofence();
+                     GeofenceDbHelper.saveToDb(key, latLng.latitude, latLng.longitude, expTime)
+                     Log.d("__DEBUG", "key :" + key + " Latitude :" + latLng.latitude + " Longitude :" + latLng.longitude + " expTime:" + expTime)
+
+                     val tag_string_req = "req_postdata"
+                     val strReq = object : StringRequest(Request.Method.POST,
+                             NetworkConfig.post, { response ->
+                         Log.d("CLOG", "responh: $response")
+                         try {
+                             val jObj = JSONObject(response)
+                             val status1 = jObj.getString("status")
+                             if (status1.contains("200")) {
+                                 Toast.makeText(this, "sukses", Toast.LENGTH_SHORT).show()
+
+                             } else {
+
+                                 val msg = jObj.getString("message")
+                                 Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                             }
+
+                         } catch (e: JSONException) {
+                             e.printStackTrace()
+                         }
+
+
+                     }, { error ->
+                         Log.d("CLOG", "verespon: $error")
+                         val json: String?
+                         val response = error.networkResponse
+                         if (response != null && response.data != null) {
+                             json = String(response.data)
+                             val jObj: JSONObject?
+                             try {
+                                 jObj = JSONObject(json)
+                                 val msg = jObj.getString("message")
+                                 Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                             } catch (e: JSONException) {
+                                 e.printStackTrace()
+                             }
+
+                         }
+
+                     }) {
+                         override fun getParams(): Map<String, String> {
+                             // Posting parameters to login url
+                             val params = HashMap<String, String>()
+                             params["number"] = key
+                             params["latitude"] = latLng.latitude.toString()
+                             params["longitude"] = latLng.longitude.toString()
+                             params["expires"] = expTime.toString()
+                             params["message"] = "dfdfdf"
+                             params["type"] = "circle"
+
+                             return params
+                         }
+                     }
+
+
+                     // Adding request to request queue
+                     App.instance?.addToRequestQueue(strReq, tag_string_req)
+                     Log.d("SAVE", "key = " + key + " lat = " + latLng.latitude + " long = " + latLng.longitude + " exp = " + expTime)
+                     Toast.makeText(this@MapsAdminFragment, "Geofence Added!", Toast.LENGTH_SHORT).show()
+                 } else {
+                     val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
+                     Log.e("ERROR MESSAGE", errorMessage)
+                 }
+             }
+         } catch (securityException: SecurityException) {
+             logSecurityException(securityException)
+         } catch (e: SQLException) {
+             e.stackTrace
+         }
+     }*/
+
+    private fun logSecurityException(securityException: SecurityException) {
+        Log.e("ERROR PERMISSION", "Invalid location permission. " + "You need to use ACCESS_FINE_LOCATION with geofences", securityException)
+    }
+
+    private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
+        val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val latitude = java.lang.Double.parseDouble(latLng[0])
+        val longitude = java.lang.Double.parseDouble(latLng[1])
+        val location = LatLng(latitude, longitude)
+        mMap!!.addMarker(MarkerOptions()
+                .title("G:$key pesan =  $message")
+                .snippet("Click here if you want delete this geofence")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .position(location))
+        mMap!!.addCircle(CircleOptions()
+                .center(location)
+                .radius(radius)
+                .strokeColor(R.color.wallet_holo_blue_light)
+                .fillColor(Color.parseColor("#80ff0000")))
+    }
+
+    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
+        mMap!!.addMarker(MarkerOptions()
+                .title("G:$number Nama Area Evakuasi = $message")
+                .snippet("Click here if you want delete this geofence")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .position(latLng))
+    }
+
+
+    //info from marker
+    override fun onInfoWindowClick(marker: Marker) {
+        val requestId = marker.title.split(":".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1]
+        val substring = requestId.split(" ")
+
+        Log.d("CLogSubs","data= "+substring[0])
+        Log.d("CLOGrequestId = ", "id=" +requestId)
+        if (!mGoogleApiClient!!.isConnected) {
+            Toast.makeText(context, "GeoFence Not connected!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            val idList = ArrayList<String>()
+            idList.add(substring[0])
+            Log.d("idlist = ", idList.toString())
+            deleteData(substring[0])
+            LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, idList).setResultCallback { status ->
+                if (status.isSuccess) {
+                    //remove from db
+                    startActivity(Intent(context,MapsAdminFragment::class.java))
+                    Log.d("CLOGREMOVE", "sukses key = $requestId")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        reloadMapMarkers()
+                    }
+                } else {
+                    Log.e("CLOGREMOVE","ERROR WINDOW CLICK")
+                }
+            }
+
+        } catch (e: SecurityException) {
+            e.localizedMessage
+        } catch (e: SQLException) {
+            e.stackTrace
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    //load from db
+    fun reloadMapMarkers() {
+        //   mMap!!.clear()
+        api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Response> {
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
+                val data = response.body()
+
+                for (i in 0 until data!!.data!!.size) {
+                    if (data.data != null && data.data.get(i)?.type == "circle") {
+                        val number = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
+                        message = data.data.get(i)?.message.toString()
+                        Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+                        addMarker(message, radiusMeter, number!!, latitude, longitude)
+
+                    } else if (data.data != null && data.data.get(i)?.type == "point") {
+                        val numberPoint = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        message = data.data.get(i)?.message.toString()
+                        addMarkerPoint(LatLng(latitude, longitude),message, numberPoint!!)
+
+                    } else {
+                        Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
+                Log.d("gagal", "gagal =" + t.localizedMessage)
+                Toast.makeText(context, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun deleteData(number: String) {
+        val tag_string_req = "req_postdata"
+        Log.d("CLOG", "deleteId:$number")
+        val strReq = object : StringRequest(Method.DELETE,
+                NetworkAPI.delete + "/$number", { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+                val jObj = JSONObject(response)
+                val status1 = jObj.getString("status")
+                Log.d("status post  = ", status1)
+                if (status1.contains("200")) {
+                    Toast.makeText(context, "id = $number Geofence Remove!", Toast.LENGTH_SHORT).show()
+                } else {
+                    val msg = jObj.getString("message")
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("error catch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+
+        }) {
+            override fun getParams(): Map<String, String> {
+                // Posting parameters to login url
+                val params = HashMap<String, String>()
+          //      params["distance"] = distance.toString()
+                return params
+            }
+
+        }
+
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
+        }
+    }
+
+    private fun DeleteDataRetrofit(number: String){
+        api.deleteData(number).enqueue(object : Callback<com.example.systemperingatan.API.Response> {
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
+              Toast.makeText(context,t.localizedMessage,Toast.LENGTH_SHORT).show()
+                Log.d("CLOG", "verespon: ${t.localizedMessage}")
+            }
+
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
+
+                if (response.body()?.status == 200) {
+                    Toast.makeText(context,"sukses delete data $number",Toast.LENGTH_SHORT).show()
+                    Log.d("CLOG", "verespon: ${response}")
+                } else {
+                    Toast.makeText(context,"gagal delete data $number",Toast.LENGTH_SHORT).show()
+                    Log.d("CLOG", "verespon: ${response}")
+                }
+            }
+        })
+    }
+
+
+
+    override fun onMarkerClick(marker: Marker): Boolean {
+
+        return false
+    }
+
+
+    companion object {
+
+        val newInstance = MapsAdminFragment()
+        lateinit var titikGps: LatLng
+        private const val NEW_REMINDER_REQUEST_CODE = 330
+        val NEW_GEOFENCE_NUMBER = BuildConfig.APPLICATION_ID + ".NEW_GEOFENCE_NUMBER"
+        private val MY_PERMISSION_REQUEST_CODE = 7192
+        private val GEO_DURATION = (60 * 60 * 1000).toLong()
+        private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
+        private val GEOFENCE_RADIUS = 1000.0f // in meters
+        private val GEOFENCE_REQ_ID = "My Geofence"
+        val GEOFENCE_RADIUS_IN_METERS = 100f // 100 m
+        val GEOFENCE_EXPIRATION_IN_HOURS: Long = 12
+        val GEOFENCE_EXPIRATION_IN_MILLISECONDS = GEOFENCE_EXPIRATION_IN_HOURS * 60 * 1000
+        val SHARED_PREFERENCES_NAME = BuildConfig.APPLICATION_ID + ".SHARED_PREFERENCES_NAME"
+    }
+}
