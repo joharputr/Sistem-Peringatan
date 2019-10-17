@@ -1,4 +1,4 @@
-package com.example.systemperingatan.API
+package com.example.systemperingatan.API.Pojo
 
 
 import com.google.android.gms.maps.model.LatLng

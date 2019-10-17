@@ -1,15 +1,15 @@
-package com.example.systemperingatan.Notification
+package com.example.systemperingatan.User.Notification
 
 import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.support.v4.app.NotificationCompat
+
 import android.text.TextUtils
 import android.util.Log
-import com.example.systemperingatan.API.DataItem
-import com.example.systemperingatan.Admin.MapsActivity
-import com.example.systemperingatan.User.UserActivity
+import androidx.core.app.NotificationCompat
+import com.example.systemperingatan.API.Pojo.DataItem
+import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
@@ -110,7 +110,7 @@ class GeofenceTransitionService : IntentService(TAG) {
     private fun createNotification(msg: String, minim_distance: String, notificationPendingIntent: PendingIntent): Notification {
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
         notificationBuilder
-                .setSmallIcon(com.example.systemperingatan.R.drawable.cast_ic_notification_pause)
+                .setSmallIcon(com.example.systemperingatan.R.drawable.common_google_signin_btn_icon_dark)
                 .setColor(Color.RED)
                 .setStyle(NotificationCompat.BigTextStyle()
                         .bigText("Anda Berada di " + msg + ", zona evakuasi terdekat adalah  " + minim_distance))

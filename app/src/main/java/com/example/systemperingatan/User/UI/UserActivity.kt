@@ -1,4 +1,4 @@
-package com.example.systemperingatan.User
+package com.example.systemperingatan.User.UI
 
 import android.Manifest
 import android.app.PendingIntent
@@ -12,23 +12,24 @@ import android.location.Location
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.FragmentActivity
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.android.volley.toolbox.StringRequest
-import com.example.systemperingatan.API.DataItem
+import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
-import com.example.systemperingatan.Notification.GeofenceBroadcastReceiver
-import com.example.systemperingatan.Notification.GeofenceTransitionService
+import com.example.systemperingatan.User.Notification.GeofenceBroadcastReceiver
+import com.example.systemperingatan.User.Notification.GeofenceTransitionService
 import com.example.systemperingatan.R
-import com.example.systemperingatan.SQLite.GeofenceContract
-import com.example.systemperingatan.SQLite.GeofenceDbHelper
-import com.example.systemperingatan.SQLite.GeofenceStorage
+import com.example.systemperingatan.User.Helper.GoogleMapDTO
+import com.example.systemperingatan.User.SQLite.GeofenceContract
+import com.example.systemperingatan.User.SQLite.GeofenceDbHelper
+import com.example.systemperingatan.User.SQLite.GeofenceStorage
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
@@ -54,7 +55,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.set
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
+class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
 
     // private val preferences = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     //Retrofit
@@ -67,9 +68,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         setUpLocation()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         mpendingIntent = null
-
-
-
     }
 
     private fun initMap() {
@@ -267,8 +265,6 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     }
 
 
-
-
     override fun onConnected(bundle: Bundle?) {
         displayLocation()
         startLocationUpdates()
@@ -376,8 +372,8 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         //   mMap!!.clear()
         val dbHelper = GeofenceDbHelper(this)
         dbHelper.DeleteAll()
-        api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Response> {
-            override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
+        api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
                 val data = response.body()
                 Log.d("dataAPi = ", data.toString())
 
@@ -408,18 +404,18 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
 
                             //add route direction
-                            val URL = getDirectionURL(titikGps,latlang)
+                            val URL = getDirectionURL(titikGps, latlang)
                             Log.d("GoogleMap1", "URL : $URL")
-
                             GetDirection(URL).execute()
+
                             Log.d("CLOG = ", "distance = " + distance.toString())
                             val helper = GeofenceDbHelper(this@UserActivity)
                             Log.d("CLOGlat", latitude.toString())
 
                             helper.saveToDb(number, latitude, longitude, expires, message, distance, type)
                             // updateData(number, distance)
-                        }else{
-                            Log.d("CLOG","titik gps tidak ada")
+                        } else {
+                            Log.d("CLOG", "titik gps tidak ada")
                         }
                         GetDataSQLite()
                         val geofence = Geofence.Builder()
@@ -429,15 +425,22 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                                         longitude,
                                         radiusFloat
                                 )
-                                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                                .setExpirationDuration(expires)
                                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
                                 .build()
                         try {
-                            LocationServices.GeofencingApi.addGeofences(
-                                    mGoogleApiClient,
+                            val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
+                            geofencingClient.addGeofences(
                                     createGeofenceRequest(geofence),
                                     createGeofencePendingIntent()
-                            )
+                            ).run {
+                                addOnSuccessListener {
+                                    Log.d("CLOGsukses = ","sukses")
+                                }
+                                addOnFailureListener {
+                                    Log.d("CLOGerror = ", it.localizedMessage)
+                                }
+                            }
 
                             //  saveAll(response.body()!!.data)
 
@@ -454,7 +457,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                 Log.d("test data", "latitude =" + latitude + "longitude =" + longitude + "expires =" + expires)
             }
 
-            override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Pojo.Response>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
                 Toast.makeText(this@UserActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
@@ -539,11 +542,11 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     }
 
 
-    fun getDirectionURL(origin:LatLng,dest:LatLng) : String{
+    fun getDirectionURL(origin: LatLng, dest: LatLng): String {
         return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving"
     }
 
-    private inner class GetDirection(val url : String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
+    private inner class GetDirection(val url: String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
         override fun doInBackground(vararg params: Void?): List<List<LatLng>> {
             val client = OkHttpClient()
             val request = Request.Builder().url(url).build()
@@ -573,7 +576,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
         override fun onPostExecute(result: List<List<LatLng>>) {
             val lineoption = PolylineOptions()
-            for (i in result.indices){
+            for (i in result.indices) {
                 lineoption.addAll(result[i])
                 lineoption.width(10f)
                 lineoption.color(Color.BLUE)
@@ -613,14 +616,12 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
             lng += dlng
 
-            val latLng = LatLng((lat.toDouble() / 1E5),(lng.toDouble() / 1E5))
+            val latLng = LatLng((lat.toDouble() / 1E5), (lng.toDouble() / 1E5))
             poly.add(latLng)
         }
 
         return poly
     }
-
-
 
 
     companion object {
@@ -646,7 +647,7 @@ class UserActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT)
                     .addGeofence(geofence)
                     .build()
         }

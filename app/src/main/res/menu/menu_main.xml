@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_user"
+            android:icon="@drawable/location_item"
+            android:title="User View" />
+
+        <item
+            android:id="@+id/nav_area"
+            android:icon="@drawable/location_item"
+            android:title="Daftar Area " />
+
+    </group>
+</menu>

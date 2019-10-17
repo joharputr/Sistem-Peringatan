@@ -1,9 +1,7 @@
-package com.example.systemperingatan.API
+package com.example.systemperingatan.API.Pojo
 
 import com.google.gson.annotations.SerializedName
-import android.R
-
-
+import com.example.systemperingatan.API.Pojo.DataItem
 
 
 data class Response(

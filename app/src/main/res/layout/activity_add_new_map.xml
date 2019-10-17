@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Admin.AddNewMap">
+    tools:context=".Admin.UI.AddNewMap">
 
     <fragment
         android:id="@+id/maps"
@@ -14,6 +14,27 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <LinearLayout
+        android:background="@color/cardview_light_background"
+        android:visibility="visible"
+        android:layout_marginLeft="10dp"
+        android:layout_gravity="left"
+        android:layout_marginTop="13dp"
+        android:id="@+id/layout_panel"
+        android:orientation="horizontal"
+        android:layout_width="290dp"
+        android:layout_height="40dp">
+
+        <fragment
+            android:background="@android:color/white"
+            android:id="@+id/autocomplete_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+   />
+
+    </LinearLayout>
     <ImageView
         android:id="@+id/marker"
         android:layout_width="48dp"
@@ -94,4 +115,4 @@
 
     </LinearLayout>
 
-</android.support.design.widget.CoordinatorLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

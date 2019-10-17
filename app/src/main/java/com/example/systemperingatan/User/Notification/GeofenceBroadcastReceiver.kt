@@ -1,4 +1,4 @@
-package com.example.systemperingatan.Notification
+package com.example.systemperingatan.User.Notification
 
 import android.content.BroadcastReceiver
 import android.content.Context

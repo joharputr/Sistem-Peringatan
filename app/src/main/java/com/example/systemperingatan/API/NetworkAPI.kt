@@ -8,11 +8,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+
+
 object NetworkAPI {
-    var post = "http://10.100.57.33/ci-restserver/Api/tambah"
-    var edit = "http://10.100.57.33/ci-restserver/Api/edit/"
-    var delete = "http://10.100.57.33/ci-restserver/Api/hapus/"
-    private val base_url = "http://10.100.57.33/ci-restserver/Api/"
+    val url = "192.168.1.18"
+    var post = "http://$url/ci-restserver/Api/tambah"
+    var edit = "http://$url/ci-restserver/Api/edit/"
+    var delete = "http://$url/ci-restserver/Api/hapus/"
+    private val base_url = "http://$url/ci-restserver/Api/"
 
     fun getRetrofit(): Retrofit {
         return  Retrofit.Builder()

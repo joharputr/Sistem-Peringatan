@@ -1,4 +1,4 @@
-package com.example.systemperingatan.User
+package com.example.systemperingatan.User.Helper
 
 class GoogleMapDTO {
     var routes = ArrayList<Routes>()
@@ -13,7 +13,7 @@ class Legs {
     var duration = Duration()
     var end_address = ""
     var start_address = ""
-    var end_location =Location()
+    var end_location = Location()
     var start_location = Location()
     var steps = ArrayList<Steps>()
 }
@@ -23,7 +23,7 @@ class Steps {
     var duration = Duration()
     var end_address = ""
     var start_address = ""
-    var end_location =Location()
+    var end_location = Location()
     var start_location = Location()
     var polyline = PolyLine()
     var travel_mode = ""

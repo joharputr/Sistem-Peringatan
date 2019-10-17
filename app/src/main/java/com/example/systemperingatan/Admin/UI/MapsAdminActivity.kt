@@ -1,4 +1,4 @@
-package com.example.systemperingatan.Admin
+package com.example.systemperingatan.Admin.UI
 
 import android.Manifest
 import android.app.Activity
@@ -11,26 +11,28 @@ import android.graphics.Color
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
-import android.support.design.widget.FloatingActionButton
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.FragmentActivity
+import android.os.PersistableBundle
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.android.volley.toolbox.StringRequest
-import com.example.systemperingatan.API.DataItem
 import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
-import com.example.systemperingatan.Notification.GeofenceTransitionService
 import com.example.systemperingatan.R
-import com.example.systemperingatan.SQLite.GeofenceStorage
-import com.example.systemperingatan.User.UserActivity
+import com.example.systemperingatan.User.Notification.GeofenceTransitionService
+import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
@@ -42,16 +44,21 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_maps.*
 import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.HashMap
+import java.util.*
+import kotlin.collections.ArrayList
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
+class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
+
+
     private var mMap: GoogleMap? = null
     //sharedpref
     private var mSharedPreferences: SharedPreferences? = null
@@ -65,7 +72,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     internal var longitude: Double = 0.toDouble()
     internal var radiusMeter: Double = 0.toDouble()
     internal var expires: Long = 0
-
+    private lateinit var mDrawerLayout: DrawerLayout
     //   internal var api = NetworkConfig.client.create<Api>(Api::class.java)
     private var fab_main: FloatingActionButton? = null
     private var fab1_mail: FloatingActionButton? = null
@@ -76,6 +83,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private var fab_close: Animation? = null
     private var fab_clock: Animation? = null
     private var fab_anticlock: Animation? = null
+    private var navigationView: NavigationView? = null
 
     /*  val newGeofenceNumber: Int
           get() {
@@ -88,8 +96,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
   */
 
     internal var isOpen: Boolean? = false
-
-
+    var drawerToggle: ActionBarDrawerToggle? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -108,7 +115,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         fab_open = AnimationUtils.loadAnimation(applicationContext, R.anim.fab_open)
         fab_clock = AnimationUtils.loadAnimation(applicationContext, R.anim.rotate_fab_clock)
         fab_anticlock = AnimationUtils.loadAnimation(applicationContext, R.anim.fab_rotate_anticlock)
-
 
         fab_main!!.setOnClickListener {
             if (isOpen!!) {
@@ -151,35 +157,102 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
 
         fab1_mail!!.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                startActivity(Intent(this,MapsActivity::class.java))
+                startActivity(Intent(this, MapsAdminActivity::class.java))
             }
         }
 
         fab2_share!!.setOnClickListener {
             mMap?.run {
-                val intent = AddNewMap.newIntent(this@MapsActivity, cameraPosition.target, cameraPosition.zoom)
+                val intent = AddNewMap.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
                 startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
         }
+
         fab3_titik!!.setOnClickListener {
             mMap?.run {
-                val intent = AddNewPoint.newIntent(this@MapsActivity, cameraPosition.target, cameraPosition.zoom)
+                val intent = AddNewPoint.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
                 startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
         }
+
         fab4_user!!.setOnClickListener {
-            val intent  = Intent(this,UserActivity::class.java)
+            val intent = Intent(this, UserActivity::class.java)
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             startActivity(intent)
         }
 
+
+        setSupportActionBar(toolbarAdmin)
+        val actionBar = supportActionBar
+        // Set toolbar title/app title
+        actionBar?.title = "Admin"
+        actionBar?.elevation = 4.0F
+        actionBar?.setDisplayHomeAsUpEnabled(true);
+        initDrawer()
+        nav_view.setNavigationItemSelectedListener(this)
+
     }
 
+    private fun initDrawer() {
+    val  drawerToggle = ActionBarDrawerToggle(
+                this,
+                drawerLayout,
+                toolbarAdmin,
+                R.string.drawer_open,
+                R.string.drawer_close
+        )
+        drawerLayout?.addDrawerListener(drawerToggle)
+        drawerToggle.syncState()
+    }
+
+    /*   override fun onCreateOptionsMenu(menu: Menu): Boolean {
+           // Inflate the menu to use in the action bar
+           val inflater = menuInflater
+           inflater.inflate(R.menu.menu_main, menu)
+           return super.onCreateOptionsMenu(menu)
+       }*/
+
+    /* override fun onOptionsItemSelected(item: MenuItem): Boolean {
+         // Handle presses on the action bar menu items
+         when (item.itemId) {
+             R.id.nav_user -> {
+                 val intent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                 startActivity(intent)
+                 return true
+             }
+
+         }
+         return super.onOptionsItemSelected(item)
+     }
+ */
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        // Handle navigation view item clicks here.
+        val id = item.getItemId()
+
+        if (id == R.id.nav_user) {
+            startActivity(Intent(this, UserActivity::class.java))
+
+        }
+
+        item.setChecked(true)
+         drawerLayout.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        initDrawer()
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        super.onPostCreate(savedInstanceState, persistentState)
+        drawerToggle?.syncState()
+    }
 
     private fun initMap() {
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment?
+                .findFragmentById(R.id.mapAdmin) as SupportMapFragment?
         assert(mapFragment != null)
         mapFragment!!.getMapAsync(this)
     }
@@ -254,7 +327,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         return true
     }
 
-
     //add gps location now
     private fun displayLocation() {
         Log.d("Cek lokasi", "cek lokasi")
@@ -297,7 +369,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         val markerOptions = MarkerOptions()
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title("G:"+0+" Lokasi Saya")
+                .title("G:" + 0 + " Lokasi Saya")
                 .snippet(title)
         if (mMap != null) {
             // Remove the anterior marker
@@ -346,12 +418,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
         }
+        initDrawer()
     }
 
-  /*  override fun onStart() {
-        super.onStart()
-        mGoogleApiClient!!.connect()
-    }*/
 
     override fun onMapReady(googleMap: GoogleMap) {
         Log.d("onMapReady", "onMapReady()")
@@ -418,10 +487,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     override//when click the map
     fun onMapClick(latLng: LatLng) {
         Log.d("", "onMapClick($latLng)")
-        //  linearLayout.setVisibility(View.VISIBLE);
-        meter.visibility = View.VISIBLE
-        radius.visibility = View.VISIBLE
-        meter.visibility = View.VISIBLE
+
         //  markerForGeofence(latLng)
     }
 
@@ -531,7 +597,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                      // Adding request to request queue
                      App.instance?.addToRequestQueue(strReq, tag_string_req)
                      Log.d("SAVE", "key = " + key + " lat = " + latLng.latitude + " long = " + latLng.longitude + " exp = " + expTime)
-                     Toast.makeText(this@MapsActivity, "Geofence Added!", Toast.LENGTH_SHORT).show()
+                     Toast.makeText(this@MapsAdminActivity, "Geofence Added!", Toast.LENGTH_SHORT).show()
                  } else {
                      val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
                      Log.e("ERROR MESSAGE", errorMessage)
@@ -547,6 +613,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     private fun logSecurityException(securityException: SecurityException) {
         Log.e("ERROR PERMISSION", "Invalid location permission. " + "You need to use ACCESS_FINE_LOCATION with geofences", securityException)
     }
+
 
     private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
         val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -579,8 +646,8 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         val requestId = marker.title.split(":".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1]
         val substring = requestId.split(" ")
 
-        Log.d("CLogSubs","data= "+substring[0])
-        Log.d("CLOGrequestId = ", "id=" +requestId)
+        Log.d("CLogSubs", "data= " + substring[0])
+        Log.d("CLOGrequestId = ", "id=" + requestId)
         if (!mGoogleApiClient!!.isConnected) {
             Toast.makeText(this, "GeoFence Not connected!", Toast.LENGTH_SHORT).show()
             return
@@ -593,13 +660,13 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, idList).setResultCallback { status ->
                 if (status.isSuccess) {
                     //remove from db
-                    startActivity(Intent(this,MapsActivity::class.java))
+                    startActivity(Intent(this, MapsAdminActivity::class.java))
                     Log.d("CLOGREMOVE", "sukses key = $requestId")
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                         reloadMapMarkers()
                     }
                 } else {
-                    Log.e("CLOGREMOVE","ERROR WINDOW CLICK")
+                    Log.e("CLOGREMOVE", "ERROR WINDOW CLICK")
                 }
             }
 
@@ -614,8 +681,8 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
     //load from db
     fun reloadMapMarkers() {
         //   mMap!!.clear()
-        api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Response> {
-            override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
+        api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
                 val data = response.body()
 
                 for (i in 0 until data!!.data!!.size) {
@@ -626,7 +693,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         message = data.data.get(i)?.message.toString()
-                        Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MapsAdminActivity, response.message(), Toast.LENGTH_SHORT).show()
                         addMarker(message, radiusMeter, number!!, latitude, longitude)
 
                     } else if (data.data != null && data.data.get(i)?.type == "point") {
@@ -634,17 +701,17 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         message = data.data.get(i)?.message.toString()
-                        addMarkerPoint(LatLng(latitude, longitude),message, numberPoint!!)
+                        addMarkerPoint(LatLng(latitude, longitude), message, numberPoint!!)
 
                     } else {
-                        Toast.makeText(this@MapsActivity, response.message(), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MapsAdminActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
-            override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Pojo.Response>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
-                Toast.makeText(this@MapsActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MapsAdminActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -690,7 +757,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
             override fun getParams(): Map<String, String> {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
-          //      params["distance"] = distance.toString()
+                //      params["distance"] = distance.toString()
                 return params
             }
 
@@ -702,20 +769,20 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleApiClient.Con
         }
     }
 
-    private fun DeleteDataRetrofit(number: String){
-        api.deleteData(number).enqueue(object : Callback<com.example.systemperingatan.API.Response> {
-            override fun onFailure(call: Call<com.example.systemperingatan.API.Response>, t: Throwable) {
-              Toast.makeText(this@MapsActivity,t.localizedMessage,Toast.LENGTH_SHORT).show()
+    private fun DeleteDataRetrofit(number: String) {
+        api.deleteData(number).enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Pojo.Response>, t: Throwable) {
+                Toast.makeText(this@MapsAdminActivity, t.localizedMessage, Toast.LENGTH_SHORT).show()
                 Log.d("CLOG", "verespon: ${t.localizedMessage}")
             }
 
-            override fun onResponse(call: Call<com.example.systemperingatan.API.Response>, response: Response<com.example.systemperingatan.API.Response>) {
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
 
                 if (response.body()?.status == 200) {
-                    Toast.makeText(this@MapsActivity,"sukses delete data $number",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MapsAdminActivity, "sukses delete data $number", Toast.LENGTH_SHORT).show()
                     Log.d("CLOG", "verespon: ${response}")
                 } else {
-                    Toast.makeText(this@MapsActivity,"gagal delete data $number",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MapsAdminActivity, "gagal delete data $number", Toast.LENGTH_SHORT).show()
                     Log.d("CLOG", "verespon: ${response}")
                 }
             }

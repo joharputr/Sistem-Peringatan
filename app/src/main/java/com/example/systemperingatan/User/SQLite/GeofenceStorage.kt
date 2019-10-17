@@ -1,4 +1,4 @@
-package com.example.systemperingatan.SQLite
+package com.example.systemperingatan.User.SQLite
 
 import android.database.Cursor
 import android.util.Log
