@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -41,11 +42,8 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.android.libraries.places.widget.Autocomplete
-import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import kotlinx.android.synthetic.main.activity_add_new_map.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -133,10 +131,15 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         mSharedPreferences = getSharedPreferences(MapsAdminActivity.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setUpLocation()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
         }
 
+        SearchPlace()
+    }
+
+    private fun SearchPlace() {
 
         if (!Places.isInitialized()) {
             Places.initialize(applicationContext, "AIzaSyCRK_C8YiQf46yeP6Usf-_Cqrg2a5-OMuM")
@@ -145,16 +148,17 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         placesClient = Places.createClient(this)
 
         // Initialize the AutocompleteSupportFragment.
-        val autocompleteFragment =
-                supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment?
+        val autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment?
 
-        autocompleteFragment?.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+        autocompleteFragment?.setPlaceFields(Arrays.asList(Place.Field.ID,
+                Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS))
 
         autocompleteFragment?.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
-                 val cameraUpdate = CameraUpdateFactory.newLatLngZoom(place.latLng, 14f)
-                 map!!.animateCamera(cameraUpdate)
-                Log.d("PLACESTest", "Place: " + place.getName() + ", " + place.getId() + " Latitude = " + place.latLng?.latitude + " address =" + place.address)
+                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(place.latLng, 14f)
+                map!!.animateCamera(cameraUpdate)
+                Log.d("PLACESTest", "Place: " + place.getName() + ", " + place.getId() +
+                        " Latitude = " + place.latLng?.latitude + " address =" + place.address)
             }
 
             override fun onError(status: Status) {
@@ -163,9 +167,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
             }
         })
 
-
     }
-
 
 
     override fun onStop() {
@@ -367,13 +369,19 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
 
         instructionTitle.text = getString(R.string.instruction_where_description)
         next.setOnClickListener {
+
+            val geocoder = Geocoder(this, Locale.getDefault())
+            val address = geocoder.getFromLocation(map!!.cameraPosition.target.latitude, map!!.cameraPosition.target.longitude, 1)
+            Log.d("addressTEST = ", address.get(0).getAddressLine(0))
+
+
             reminder.latlang = map!!.cameraPosition.target
             reminder.latitude = map!!.cameraPosition.target.latitude.toString()
             reminder.longitude = map!!.cameraPosition.target.longitude.toString()
             Log.d("CLOG", "radiusku = " + reminder.latlang.toString())
             showConfigureRadiusStep()
         }
-        showReminderUpdate()
+        //   showReminderUpdate()
     }
 
     //step 2
@@ -381,22 +389,24 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
         }
+
         marker.visibility = View.GONE
         instructionTitle.visibility = View.VISIBLE
-
         radiusBar.visibility = View.VISIBLE
         radiusDescription.visibility = View.VISIBLE
         message.visibility = View.GONE
         instructionTitle.text = getString(R.string.instruction_radius_description)
-        next.setOnClickListener {
-            showConfigureMessageStep()
-        }
+
         radiusBar.setOnSeekBarChangeListener(radiusBarChangeListener)
         updateRadiusWithProgress(radiusBar.progress)
 
         map!!.animateCamera(CameraUpdateFactory.zoomTo(15f))
 
         showReminderUpdate()
+
+        next.setOnClickListener {
+            showConfigureMessageStep()
+        }
     }
 
     private fun getRadius(progress: Int) = 100 + (2 * progress.toDouble() + 1) * 100
@@ -433,16 +443,14 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         showReminderInMap(this, map!!, reminder)
     }
 
-    fun showReminderInMap(context: Context,
-                          map: GoogleMap,
-                          reminder: DataItem) {
+    fun showReminderInMap(context: Context, map: GoogleMap, reminder: DataItem) {
         if (reminder.latlang != null) {
             Log.d("CLOG", "latlang = " + reminder.latlang)
             val latLng = reminder.latlang as LatLng
             val marker = map.addMarker(MarkerOptions()
                     .position(latLng)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
-            marker.tag = reminder.id
+           // marker.tag = reminder.id
             if (reminder.radius != null) {
                 val radius = java.lang.Double.parseDouble(reminder.radius!!)
                 map.addCircle(CircleOptions()

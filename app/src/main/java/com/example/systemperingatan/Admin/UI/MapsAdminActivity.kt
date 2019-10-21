@@ -233,6 +233,9 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             startActivity(Intent(this, UserActivity::class.java))
 
         }
+        if (id == R.id.nav_list){
+            startActivity(Intent(this,ListDataArea::class.java))
+        }
 
         item.setChecked(true)
          drawerLayout.closeDrawer(GravityCompat.START)
@@ -768,27 +771,6 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             reloadMapMarkers()
         }
     }
-
-    private fun DeleteDataRetrofit(number: String) {
-        api.deleteData(number).enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
-            override fun onFailure(call: Call<com.example.systemperingatan.API.Pojo.Response>, t: Throwable) {
-                Toast.makeText(this@MapsAdminActivity, t.localizedMessage, Toast.LENGTH_SHORT).show()
-                Log.d("CLOG", "verespon: ${t.localizedMessage}")
-            }
-
-            override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
-
-                if (response.body()?.status == 200) {
-                    Toast.makeText(this@MapsAdminActivity, "sukses delete data $number", Toast.LENGTH_SHORT).show()
-                    Log.d("CLOG", "verespon: ${response}")
-                } else {
-                    Toast.makeText(this@MapsAdminActivity, "gagal delete data $number", Toast.LENGTH_SHORT).show()
-                    Log.d("CLOG", "verespon: ${response}")
-                }
-            }
-        })
-    }
-
 
     override fun onMarkerClick(marker: Marker): Boolean {
 

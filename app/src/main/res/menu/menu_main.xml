@@ -6,7 +6,7 @@
             android:title="User View" />
 
         <item
-            android:id="@+id/nav_area"
+            android:id="@+id/nav_list"
             android:icon="@drawable/location_item"
             android:title="Daftar Area " />
 

@@ -233,24 +233,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.Co
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
-        /*
-               val location1 = LatLng(13.0356745,77.5881522)
-               mMap!!.addMarker(MarkerOptions().position(location1).title("My Location"))
-               mMap!!.animateCamera(CameraUpdateFactory.newLatLngZoom(location1,5f))
-
-               Log.d("GoogleMap", "before location2")
-               val location2 = LatLng(9.89,78.11)
-               mMap!!.addMarker(MarkerOptions().position(location2).title("Madurai"))
-
-               Log.d("GoogleMap", "before location3")
-
-               val location3 = LatLng(13.029727,77.5933021)
-               mMap!!.addMarker(MarkerOptions().position(location3).title("Bangalore"))
-
-               Log.d("GoogleMap", "before URL")
-              val URL = getDirectionURL(location2,location3)
-               Log.d("GoogleMap", "URL : $URL")
-               GetDirection(URL).execute()*/
 
         //add gps logo
         mMap!!.isMyLocationEnabled = true
@@ -258,9 +240,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.Co
         mMap!!.setOnMarkerClickListener(this)
         mMap!!.setOnInfoWindowClickListener(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-
             reloadMapMarkers()
-
         }
     }
 
@@ -295,13 +275,11 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.Co
 
     }
 
-
     override//when click the map
     fun onMapClick(latLng: LatLng) {
         Log.d("LOG", "onMapClick($latLng)")
 
     }
-
 
     private fun logSecurityException(securityException: SecurityException) {
         Log.e("LOG ERROR PERMISSION", "Invalid location permission. " + "You need to use ACCESS_FINE_LOCATION with geofences", securityException)
@@ -392,7 +370,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.Co
                         else
                             addMarkerPoint(LatLng(latitude, longitude), message, number!!)
 
-                        val radiusFloat = radiusMeter.toFloat();
+                        val radiusFloat = radiusMeter.toFloat()
                         Log.d("CLOG = ", "radiusFloat = " + radiusFloat.toString())
                         val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
@@ -543,7 +521,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.Co
 
 
     fun getDirectionURL(origin: LatLng, dest: LatLng): String {
-        return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving"
+        return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving&key=AIzaSyBcgkU-gP-QU-53LmGoh4TQ87yMDLl2hXc"
     }
 
     private inner class GetDirection(val url: String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
@@ -586,7 +564,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.Co
         }
     }
 
-    public fun decodePolyline(encoded: String): List<LatLng> {
+    fun decodePolyline(encoded: String): List<LatLng> {
 
         val poly = ArrayList<LatLng>()
         var index = 0

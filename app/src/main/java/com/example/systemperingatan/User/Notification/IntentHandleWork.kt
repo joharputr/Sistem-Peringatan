@@ -102,7 +102,7 @@ class IntentHandleWork : JobIntentService() {
              bigText = "Anda Berada di " + msg + ", zona evakuasi terdekat adalah  " + minim_distance
         }
         else{
-            bigText = "Anda telah keluar dari $msg"
+            bigText = "Anda diluar $msg"
         }
         notificationBuilder
                 .setSmallIcon(com.example.systemperingatan.R.drawable.common_google_signin_btn_icon_dark)
