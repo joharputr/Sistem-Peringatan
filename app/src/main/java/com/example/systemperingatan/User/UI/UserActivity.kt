@@ -63,6 +63,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
     //Retrofit
 
     private lateinit var titikGps: LatLng
+    var shouldExecuteOnResume: Boolean? = null
 
     companion object {
         var user = "user"
@@ -333,11 +334,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
     }
 
+
+
     override fun onResume() {
         super.onResume()
         setUpLocation()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
+           reloadMapMarkersZona()
         }
     }
 
@@ -358,10 +362,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         mMap!!.setOnInfoWindowClickListener(this)
 
         setUpLocation()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            reloadMapMarkers()
-            reloadMapMarkersZona()
-        }
+        shouldExecuteOnResume = false
+
         //    percobaan()
     }
 
@@ -379,16 +381,16 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         val latitude = java.lang.Double.parseDouble(latLng[0])
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
+        val strokeColor = 0xffff0000.toInt(); //red outline
+        val shadeColor = 0x44ff0000; //opaque red fill
         mMap!!.addMarker(MarkerOptions()
                 .title("G:$key pesan =  $message")
-                .snippet("Click here if you want delete this geofence")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(location))
         mMap!!.addCircle(CircleOptions()
                 .center(location)
                 .radius(radius)
-                .strokeColor(R.color.wallet_holo_blue_light)
-                .fillColor(Color.parseColor("#80ff0000")))
+                .fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(2F))
     }
 
     private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
@@ -478,14 +480,13 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
                             val URL = getDirectionURL(titikGps, latlang)
                             Log.d("GoogleMap1", "URL : $URL")
-                            GetDirection(URL).execute()
+
 
                             Log.d("CLOG = ", "distance = " + distance.toString())
                             val helper = GeofenceDbHelper(this@UserActivity)
                             Log.d("CLOGlat", latitude.toString())
 
                             helper.saveToDb(number, latitude, longitude, expires, message!!, distance, type)
-
 
                             // updateData(number, distance)
                         } else {
@@ -576,7 +577,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                                 Log.d("CLOGaddress", address.toString())
 
                                 val dataZona = DataItem(number, null, null, latitude.toString(), null, message,
-                                        type, longitude.toString(), null, address, distance.toString(),null)
+                                        type, longitude.toString(), null, address, distance.toString(), null)
                                 Log.d("dataZONN = ", dataZona.toString())
                                 arrayListZona.addAll(listOf(dataZona))
                                 initRecyclerView()
