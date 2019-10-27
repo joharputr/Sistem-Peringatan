@@ -1,4 +1,4 @@
-package com.example.systemperingatan.Admin.UI
+package com.example.systemperingatan.Admin.UI.Activity
 
 import android.Manifest
 import android.app.Activity
@@ -49,10 +49,12 @@ import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
+import java.io.IOException
+import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.math.roundToInt
 
-class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+class AddNewMapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private var mGoogleApiClient: GoogleApiClient? = null
     internal var latitude: Double = 0.toDouble()
@@ -109,7 +111,7 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
 
         fun newIntent(context: Context, latLng: LatLng, zoom: Float): Intent {
-            val intent = Intent(context, AddNewMap::class.java)
+            val intent = Intent(context, AddNewMapActivity::class.java)
             intent.putExtra(EXTRA_LAT_LNG, latLng).putExtra(EXTRA_ZOOM, zoom)
             return intent
         }
@@ -371,9 +373,16 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         next.setOnClickListener {
 
             val geocoder = Geocoder(this, Locale.getDefault())
-            val address = geocoder.getFromLocation(map!!.cameraPosition.target.latitude, map!!.cameraPosition.target.longitude, 1)
-            Log.d("addressTEST = ", address.get(0).getAddressLine(0))
-
+            try {
+                val address = geocoder.getFromLocation(map!!.cameraPosition.target.latitude, map!!.cameraPosition.target.longitude, 1)
+                Log.d("addressTEST = ", address.get(0).getAddressLine(0))
+            }catch (e : IOException){
+                when{
+                    e.message == "grpc failed" -> {/* ignore */ }
+                    else -> throw e
+                }
+               Log.d("ErrorGocoder = ",e.localizedMessage)
+            }
 
             reminder.latlang = map!!.cameraPosition.target
             reminder.latitude = map!!.cameraPosition.target.latitude.toString()
@@ -539,7 +548,6 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
         App.api.allData().enqueue(object : Callback<Response> {
             override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>) {
                 val data = response.body()
-
                 for (i in 0 until data!!.data!!.size) {
                     if (data.data != null && data.data.get(i)?.type == "circle") {
                         val number = data.data.get(i)?.number
@@ -556,17 +564,17 @@ class AddNewMap : AppCompatActivity(), OnMapReadyCallback, LocationListener, Goo
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         messages = data.data.get(i)?.message.toString()
-                        addMarkerPoint(LatLng(AddNewPoint.latitude, AddNewPoint.longitude), messages, numberPoint!!)
+                        addMarkerPoint(LatLng(AddNewPointActivity.latitude, AddNewPointActivity.longitude), messages, numberPoint!!)
 
                     } else {
-                        Toast.makeText(this@AddNewMap, response.message(), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddNewMapActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
             override fun onFailure(call: Call<Response>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
-                Toast.makeText(this@AddNewMap, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AddNewMapActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
         })
     }

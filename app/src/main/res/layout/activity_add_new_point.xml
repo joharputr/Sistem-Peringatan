@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Admin.UI.AddNewPoint">
+    tools:context=".Admin.UI.Activity.AddNewPointActivity">
 
     <fragment
         android:id="@+id/map_point"
@@ -14,6 +14,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <ImageView
+        android:id="@+id/markerPoint"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="24dp"
+        android:contentDescription="@string/marker_content_description"
+        app:srcCompat="@drawable/location_item" />
 
     <LinearLayout
         android:id="@+id/container_point"
@@ -62,6 +70,32 @@
             android:layout_marginBottom="8dp"
             android:background="@drawable/bg_button_bluelight"
             android:text="OK"
+            android:textColor="@color/cardview_dark_background" />
+
+        <Button
+            android:id="@+id/addMarkerLocationPoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_button_blue"
+            android:text="Add Marker Point"
+            android:textColor="@color/cardview_dark_background" />
+
+        <Button
+            android:id="@+id/addNamePoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_button_blue"
+            android:text="Add Name Point"
             android:textColor="@color/cardview_dark_background" />
         <Button
             android:id="@+id/next_point"

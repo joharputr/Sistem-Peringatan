@@ -8,14 +8,18 @@ import com.bumptech.glide.Glide
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.item_view.view.*
+import kotlinx.android.synthetic.main.item_view.view.address
+import kotlinx.android.synthetic.main.item_view.view.area
+import kotlinx.android.synthetic.main.item_view_evacuation_zone.view.*
 
-class ListDataAreaAdapter(private val itemList: ArrayList<DataItem>,
-                          private val onClik: (DataItem) -> Unit) :
-        RecyclerView.Adapter<ListDataAreaAdapter.ViewHolder>() {
+
+class ListDataEvacuationZoneAdapter(private val itemList: ArrayList<DataItem>,
+                                    private val onClik: (DataItem) -> Unit) :
+        RecyclerView.Adapter<ListDataEvacuationZoneAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.item_view, parent, false)
+        val view = inflater.inflate(R.layout.item_view_evacuation_zone, parent, false)
         return ViewHolder(view)
     }
 
@@ -34,10 +38,8 @@ class ListDataAreaAdapter(private val itemList: ArrayList<DataItem>,
     class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
         fun bind(item: DataItem) = itemView.apply {
             area.text = item.message
-            address.text = item.message
-            Glide.with(image)
-                    .load(R.drawable.location_item)
-                    .into(image)
+            address.text = item.address
+            distance.text = item.distance+" Meter"
         }
     }
 

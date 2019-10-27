@@ -9,9 +9,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 
-
 object NetworkAPI {
-    val url = "10.100.55.226"
+    val url = "192.168.1.25"
     var post = "http://$url/ci-restserver/Api/tambah"
     var edit = "http://$url/ci-restserver/Api/edit/"
     var delete = "http://$url/ci-restserver/Api/hapus/"

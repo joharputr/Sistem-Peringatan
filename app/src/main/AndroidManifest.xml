@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.systemperingatan">
+
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
     <application
         android:name=".App"
@@ -11,8 +21,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true">
-        <activity android:name=".Admin.UI.ListDataArea"></activity>
+        android:usesCleartextTraffic="true"
+        tools:ignore="GoogleAppIndexingWarning"
+       >
+        <activity android:name=".Admin.UI.Activity.ListDataAreaActivity"></activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -21,7 +33,7 @@
              sign the APK for publishing.
              You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
-        <activity android:name=".Admin.UI.MapsAdminActivity">
+        <activity android:name=".Admin.UI.Activity.MapsAdminActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,14 +41,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Admin.UI.AddNewPoint"
+            android:name=".Admin.UI.Activity.AddNewPointActivity"
             android:label="@string/title_activity_add_new_point" />
         <activity
-            android:name=".Admin.UI.AddNewMap"
+            android:name=".Admin.UI.Activity.AddNewMapActivity"
             android:label="@string/title_activity_add_new_map" />
         <activity
             android:name=".User.UI.UserActivity"
-            android:label="@string/title_activity_user"></activity>
+            android:label="@string/title_activity_user">
+
+        </activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -56,12 +70,8 @@
             android:name=".User.Notification.GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
         </receiver>
 
-        <service android:name=".User.Notification.GeofenceTransitionService" />
         <service
             android:name=".User.Notification.IntentHandleWork"
             android:exported="true"
@@ -71,10 +81,6 @@
             android:name="org.apache.http.legacy"
             android:required="false" />
     </application>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 </manifest>

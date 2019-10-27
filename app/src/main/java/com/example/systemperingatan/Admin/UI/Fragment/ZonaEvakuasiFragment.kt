@@ -52,7 +52,7 @@ class ZonaEvakuasiFragment : Fragment() {
                 progressBar_circular.visibility = View.GONE
 
                 for (i in 0 until data!!.data!!.size) {
-                    if (data.data != null && data.data.get(i)?.type == "circle") {
+                    if (data.data != null && data.data.get(i)?.type == "point") {
                         val number = data.data.get(i)?.number
                         val latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         val longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)

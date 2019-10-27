@@ -1,4 +1,4 @@
-package com.example.systemperingatan.Admin.UI
+package com.example.systemperingatan.Admin.UI.Activity
 
 import android.Manifest
 import android.app.Activity
@@ -44,6 +44,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_maps.*
@@ -163,21 +164,20 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
 
         fab2_share!!.setOnClickListener {
             mMap?.run {
-                val intent = AddNewMap.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
+                val intent = AddNewMapActivity.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
                 startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
         }
 
         fab3_titik!!.setOnClickListener {
             mMap?.run {
-                val intent = AddNewPoint.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
+                val intent = AddNewPointActivity.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
                 startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
         }
 
         fab4_user!!.setOnClickListener {
             val intent = Intent(this, UserActivity::class.java)
-            intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             startActivity(intent)
         }
 
@@ -194,7 +194,7 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     }
 
     private fun initDrawer() {
-    val  drawerToggle = ActionBarDrawerToggle(
+        val drawerToggle = ActionBarDrawerToggle(
                 this,
                 drawerLayout,
                 toolbarAdmin,
@@ -233,12 +233,12 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             startActivity(Intent(this, UserActivity::class.java))
 
         }
-        if (id == R.id.nav_list){
-            startActivity(Intent(this,ListDataArea::class.java))
+        if (id == R.id.nav_list) {
+            startActivity(Intent(this, ListDataAreaActivity::class.java))
         }
 
         item.setChecked(true)
-         drawerLayout.closeDrawer(GravityCompat.START)
+        drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
 
@@ -335,17 +335,24 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         Log.d("Cek lokasi", "cek lokasi")
         if (mMap != null) {
             if (checkPermission()) {
-                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient)
-                if (mLastLocation != null) {
-                    Log.i("LAST GPS LOCATION", "LasKnown location. " +
-                            "Long: " + mLastLocation!!.longitude +
-                            " | Lat: " + mLastLocation!!.latitude)
-                    //add gps location
-                    markerLocation(LatLng(mLastLocation!!.latitude, mLastLocation!!.longitude))
-                } else {
-                    Log.w("FAILED", "No location retrieved yet")
-                    //                startLocationUpdates();
-                }
+                val mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+                mFusedLocationClient.lastLocation.addOnSuccessListener(object : OnSuccessListener<Location> {
+                    override fun onSuccess(location: Location) {
+                        markerLocation(LatLng(location.latitude, location.longitude))
+                    }
+                })
+                /*  mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient)
+                  if (mLastLocation != null) {
+                      Log.i("LAST GPS LOCATION", "LasKnown location. " +
+                              "Long: " + mLastLocation!!.longitude +
+                              " | Lat: " + mLastLocation!!.latitude)
+                      //add gps location
+                      markerLocation(LatLng(mLastLocation!!.latitude, mLastLocation!!.longitude))
+                  } else {
+                      Log.w("FAILED", "No location retrieved yet")
+                      //                startLocationUpdates();
+                  }
+             */
             } else {
                 askPermission()
             }
@@ -448,8 +455,14 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     }
 
     private fun startLocationUpdates() {
+        val mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         if (checkPermission())
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this)
+        //     LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this)
+         mFusedLocationClient.lastLocation.addOnSuccessListener(object : OnSuccessListener<Location> {
+            override fun onSuccess(location: Location) {
+                markerLocation(LatLng(location.latitude, location.longitude))
+            }
+        })
     }
 
 
@@ -660,18 +673,30 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             idList.add(substring[0])
             Log.d("idlist = ", idList.toString())
             deleteData(substring[0])
-            LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, idList).setResultCallback { status ->
-                if (status.isSuccess) {
-                    //remove from db
+            val geoClient = LocationServices.getGeofencingClient(this)
+            geoClient.removeGeofences(idList).addOnSuccessListener {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    reloadMapMarkers()
+                    Toast.makeText(this@MapsAdminActivity, "Success remove geofence!", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, MapsAdminActivity::class.java))
-                    Log.d("CLOGREMOVE", "sukses key = $requestId")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                        reloadMapMarkers()
-                    }
-                } else {
-                    Log.e("CLOGREMOVE", "ERROR WINDOW CLICK")
                 }
+            }.addOnFailureListener {
+                Log.e("LOG ERROR WINDOW CLICK", it.localizedMessage)
+                Toast.makeText(this@MapsAdminActivity, "Error when remove geofence!", Toast.LENGTH_SHORT).show()
+
             }
+            /*     LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, idList).setResultCallback { status ->
+                     if (status.isSuccess) {
+                         //remove from db
+                         startActivity(Intent(this, MapsAdminActivity::class.java))
+                         Log.d("CLOGREMOVE", "sukses key = $requestId")
+                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                             reloadMapMarkers()
+                         }
+                     } else {
+                         Log.e("CLOGREMOVE", "ERROR WINDOW CLICK")
+                     }
+                 }*/
 
         } catch (e: SecurityException) {
             e.localizedMessage
@@ -730,7 +755,7 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                 val status1 = jObj.getString("status")
                 Log.d("status post  = ", status1)
                 if (status1.contains("200")) {
-                    Toast.makeText(this, "id = $number Geofence Remove!", Toast.LENGTH_SHORT).show()
+                    //          Toast.makeText(this, "id = $number Geofence Remove!", Toast.LENGTH_SHORT).show()
                 } else {
                     val msg = jObj.getString("message")
                     Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()

@@ -61,16 +61,9 @@ class AreaFragment : Fragment() {
                         val message = data.data.get(i)?.message.toString()
                         Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
 
-
-                    } else if (data.data != null && data.data.get(i)?.type == "point") {
-                        val numberPoint = data.data.get(i)?.number
-                        val latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
-                        val longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
-                        val message = data.data.get(i)?.message.toString()
-
-                        val dataFav1 = DataItem(numberPoint, null, null, latitude.toString(),
+                        val dataFav1 = DataItem(number, null, null, latitude.toString(),
                                 null, message, null, null, null, null, null)
-                        Log.d("dataList = ", dataFav1.toString())
+                        Log.d("dataListArea = ", dataFav1.toString())
                         itemListArea.addAll(listOf(dataFav1))
                         initRecyclerView()
 

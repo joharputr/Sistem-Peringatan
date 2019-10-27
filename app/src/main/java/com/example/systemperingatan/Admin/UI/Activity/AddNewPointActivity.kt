@@ -1,4 +1,4 @@
-package com.example.systemperingatan.Admin.UI
+package com.example.systemperingatan.Admin.UI.Activity
 
 import android.Manifest
 import android.app.Activity
@@ -9,10 +9,10 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.SQLException
 import android.graphics.Color
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
-
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -21,11 +21,12 @@ import androidx.core.app.ActivityCompat
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.NetworkAPI
+import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.App
 import com.example.systemperingatan.BuildConfig
-import com.example.systemperingatan.User.Notification.GeofenceTransitionService
 import com.example.systemperingatan.R
+import com.example.systemperingatan.User.Notification.GeofenceTransitionService
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
@@ -40,13 +41,17 @@ import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
+import java.io.IOException
 import java.util.*
 
-class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     // private lateinit var map: GoogleMap
     private var mpendingIntent: PendingIntent? = null
     private var mGoogleApiClient: GoogleApiClient? = null
+
+    private var reminder = DataItem(null, null, null, null, null, null, null, null, null, null, null)
+
     val newGeofenceNumber: Int
         get() {
             val NEW_GEOFENCE_NUMBER_POINT = BuildConfig.APPLICATION_ID + ".NEW_GEOFENCE_NUMBER_POINT"
@@ -74,7 +79,7 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
 
         fun newIntent(context: Context, latLng: LatLng, zoom: Float): Intent {
-            val intent = Intent(context, AddNewPoint::class.java)
+            val intent = Intent(context, AddNewPointActivity::class.java)
             intent.putExtra(EXTRA_LAT_LNG, latLng).putExtra(EXTRA_ZOOM, zoom)
             return intent
         }
@@ -93,7 +98,16 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
         mpendingIntent = null
         reloadMapMarkers()
         finishAddPoint()
+
+        disableView()
     }
+
+    private fun AddPointLocation() {
+        addMarkerLocationPoint.setOnClickListener {
+            showConfigureLocationStep()
+        }
+    }
+
 
     private fun finishAddPoint() {
         next_point.setOnClickListener {
@@ -108,7 +122,7 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
         map!!.uiSettings.isMapToolbarEnabled = false
         map!!.isMyLocationEnabled = true
         centerCamera()
-        map!!.setOnMapClickListener(this)
+        AddPointLocation()
         reloadMapMarkers()
     }
 
@@ -270,16 +284,14 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
                         addMarkerPoint(LatLng(latitude, longitude), messages, numberPoint!!)
 
                     } else {
-                        Toast.makeText(this@AddNewPoint, response.message(), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddNewPointActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
                 }
-
-
             }
 
             override fun onFailure(call: Call<Response>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
-                Toast.makeText(this@AddNewPoint, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AddNewPointActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -292,21 +304,158 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
                 .position(latLng))
     }
 
-    override fun onMapClick(latLng: LatLng) {
-        Log.d("onMapClick", "map")
+    private fun disableView() {
+        addMarkerLocationPoint.visibility == View.VISIBLE
+        pointTitle.visibility = View.GONE
+        message_point.visibility = View.GONE
+        ok_title_point.visibility = View.GONE
+        next_point.visibility = View.VISIBLE
+        addNamePoint.visibility = View.GONE
+    }
+
+    //step 1
+    private fun showConfigureLocationStep() {
+        addMarkerLocationPoint.visibility = View.GONE
         pointTitle.visibility = View.VISIBLE
         message_point.visibility = View.VISIBLE
         ok_title_point.visibility = View.VISIBLE
         next_point.visibility = View.GONE
+        markerPoint.visibility = View.GONE
+        if (map != null) {
+            reminder.latlang = map?.cameraPosition?.target
+            reminder.latitude = map!!.cameraPosition.target.latitude.toString()
+            reminder.longitude = map!!.cameraPosition.target.longitude.toString()
+            Log.d("CLOG", "radiusku = " + reminder.latlang.toString())
 
-        ok_title_point.setOnClickListener {
-            markerForGeofence(latLng)
-            pointTitle.visibility = View.GONE
-            message_point.visibility = View.GONE
-            ok_title_point.visibility = View.GONE
-            next_point.visibility = View.VISIBLE
+            val geocoder = Geocoder(this, Locale.getDefault())
+
+            try {
+
+                val address = geocoder.getFromLocation(map!!.cameraPosition.target.latitude, map!!.cameraPosition.target.longitude, 1)
+                Log.d("addressTEST = ", address.get(0).getAddressLine(0))
+                reminder.address =address.get(0).getAddressLine(0)
+            } catch (e: IOException) {
+                when {
+                    e.message == "grpc failed" -> {/* ignore */
+                    }
+                    else -> throw e
+                }
+                Log.d("ErrorGocoder = ", e.localizedMessage)
+            }
+
+
+            if (!mGoogleApiClient!!.isConnected) {
+
+                Toast.makeText(this, "Google Api not connected!", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+
+            val key = newGeofenceNumber.toString() + ""
+            //   val list = ArrayList<Result>()
+            val expTime = System.currentTimeMillis() + MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
+
+            addMarkerPoint(reminder.latlang!!, message_point.text.toString(), key)
+            val geofence = Geofence.Builder()
+                    .setRequestId(key)
+                    .setCircularRegion(
+                            reminder.latitude!!.toDouble(),
+                            reminder.longitude!!.toDouble(),
+                            100f
+                    )
+                    .setExpirationDuration(MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+                    .build()
+
+
+            ok_title_point.setOnClickListener {
+                pointTitle.visibility = View.GONE
+                message_point.visibility = View.GONE
+                ok_title_point.visibility = View.GONE
+                next_point.visibility = View.VISIBLE
+
+                try {
+                    LocationServices.GeofencingApi.addGeofences(
+                            mGoogleApiClient,
+                            createGeofenceRequest(geofence),
+                            createGeofencePendingIntent()
+                    ).setResultCallback { status ->
+                        if (status.isSuccess) {
+                            Log.d("__DEBUG", "key :" + key + " Latitude :" + reminder.latitude + " Longitude :" + reminder.longitude + " expTime:" + expTime)
+
+                            val tag_string_req = "req_postdata"
+                            val strReq = object : StringRequest(Request.Method.POST,
+                                    NetworkAPI.post, { response ->
+                                Log.d("CLOG", "responh: $response")
+                                try {
+                                    val jObj = JSONObject(response)
+                                    val status1 = jObj.getString("status")
+                                    if (status1.contains("200")) {
+                                        Toast.makeText(this, "sukses", Toast.LENGTH_SHORT).show()
+
+                                    } else {
+                                        val msg = jObj.getString("message")
+                                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                    }
+
+                                } catch (e: JSONException) {
+                                    e.printStackTrace()
+                                }
+
+
+                            }, { error ->
+                                Log.d("CLOG", "verespon: $error")
+                                val json: String?
+                                val response = error.networkResponse
+                                if (response != null && response.data != null) {
+                                    json = String(response.data)
+                                    val jObj: JSONObject?
+                                    try {
+                                        jObj = JSONObject(json)
+                                        val msg = jObj.getString("message")
+                                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                    } catch (e: JSONException) {
+                                        e.printStackTrace()
+                                    }
+                                }
+
+                            }) {
+                                override fun getParams(): Map<String, String> {
+                                    // Posting parameters to login url
+                                    val params = HashMap<String, String>()
+                                    val radius = 10
+                                    params["number"] = key
+                                    params["latitude"] = reminder.latitude.toString()
+                                    params["longitude"] = reminder.longitude.toString()
+                                    params["expires"] = expTime.toString()
+                                    params["message"] = message_point.text.toString()
+                                    params["type"] = "point"
+                                    params["address"] = reminder.address.toString()
+                                    Log.d("CLOGAdress", "address = " + message_point.text.toString())
+                                    params["radius"] = radius.toString()
+
+                                    return params
+                                }
+                            }
+
+                            // Adding request to request queue
+                            App.instance?.addToRequestQueue(strReq, tag_string_req)
+                            Log.d("SAVE", "key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
+                            Toast.makeText(this@AddNewPointActivity, "Geofence Added!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
+                            Log.e("ERROR MESSAGE", errorMessage)
+                        }
+                    }
+                } catch (securityException: SecurityException) {
+                    logSecurityException(securityException)
+                } catch (e: SQLException) {
+                    e.stackTrace
+                }
+            }
         }
     }
+
 
     private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
         val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -325,105 +474,6 @@ class AddNewPoint : AppCompatActivity(), GoogleMap.OnMapClickListener, OnMapRead
                 .fillColor(Color.parseColor("#80ff0000")))
     }
 
-    private fun markerForGeofence(latLng: LatLng) {
-        if (!mGoogleApiClient!!.isConnected) {
-
-            Toast.makeText(this, "Google Api not connected!", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val key = newGeofenceNumber.toString() + ""
-        //   val list = ArrayList<Result>()
-        val expTime = System.currentTimeMillis() + MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
-
-        addMarkerPoint(latLng, message_point.text.toString(), key)
-        val geofence = Geofence.Builder()
-                .setRequestId(key)
-                .setCircularRegion(
-                        latLng.latitude,
-                        latLng.longitude,
-                        100f
-                )
-                .setExpirationDuration(MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-                .build()
-        try {
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
-                    createGeofenceRequest(geofence),
-                    createGeofencePendingIntent()
-            ).setResultCallback { status ->
-                if (status.isSuccess) {
-                    Log.d("__DEBUG", "key :" + key + " Latitude :" + latLng.latitude + " Longitude :" + latLng.longitude + " expTime:" + expTime)
-
-                    val tag_string_req = "req_postdata"
-                    val strReq = object : StringRequest(Request.Method.POST,
-                            NetworkAPI.post, { response ->
-                        Log.d("CLOG", "responh: $response")
-                        try {
-                            val jObj = JSONObject(response)
-                            val status1 = jObj.getString("status")
-                            if (status1.contains("200")) {
-                                Toast.makeText(this, "sukses", Toast.LENGTH_SHORT).show()
-
-                            } else {
-
-                                val msg = jObj.getString("message")
-                                Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                            }
-
-                        } catch (e: JSONException) {
-                            e.printStackTrace()
-                        }
-
-
-                    }, { error ->
-                        Log.d("CLOG", "verespon: $error")
-                        val json: String?
-                        val response = error.networkResponse
-                        if (response != null && response.data != null) {
-                            json = String(response.data)
-                            val jObj: JSONObject?
-                            try {
-                                jObj = JSONObject(json)
-                                val msg = jObj.getString("message")
-                                Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                            } catch (e: JSONException) {
-                                e.printStackTrace()
-                            }
-                        }
-
-                    }) {
-                        override fun getParams(): Map<String, String> {
-                            // Posting parameters to login url
-                            val params = HashMap<String, String>()
-                            val radius = 10
-                            params["number"] = key
-                            params["latitude"] = latLng.latitude.toString()
-                            params["longitude"] = latLng.longitude.toString()
-                            params["expires"] = expTime.toString()
-                            params["message"] = message_point.text.toString()
-                            params["type"] = "point"
-                            params["radius"] = radius.toString()
-
-                            return params
-                        }
-                    }
-
-                    // Adding request to request queue
-                    App.instance?.addToRequestQueue(strReq, tag_string_req)
-                    Log.d("SAVE", "key = " + key + " lat = " + latLng.latitude + " long = " + latLng.longitude + " exp = " + expTime)
-                    Toast.makeText(this@AddNewPoint, "Geofence Added!", Toast.LENGTH_SHORT).show()
-                } else {
-                    val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
-                    Log.e("ERROR MESSAGE", errorMessage)
-                }
-            }
-        } catch (securityException: SecurityException) {
-            logSecurityException(securityException)
-        } catch (e: SQLException) {
-            e.stackTrace
-        }
-    }
 
     private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
         Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
