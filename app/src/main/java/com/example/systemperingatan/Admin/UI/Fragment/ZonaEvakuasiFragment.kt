@@ -1,5 +1,7 @@
 package com.example.systemperingatan.Admin.UI.Fragment
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaAdapter
+import com.example.systemperingatan.Admin.UI.Activity.EditAreaActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.activity_list_data_area.*
@@ -20,13 +23,42 @@ import retrofit2.Callback
 
 class ZonaEvakuasiFragment : Fragment() {
     private var itemListArea = ArrayList<DataItem>()
-    val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick)
+    val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick,this::onLongClick)
+
+    private fun onLongClick(dataItem: DataItem) {
+        val options: Array<String> = arrayOf("Edit", "Hapus")
+        AlertDialog.Builder(context)
+                // whcih = index dar pilihan
+                .setItems(options) { dialog, which ->
+                    when (which) {
+                        0 -> {
+                            //edit
+                            editStudent(dataItem)
+
+                        }
+                        1 -> {
+                            //hapus
+                            //     askForDelete(dataItem)
+
+                        }
+                    }//menghilangkan dialog
+                    dialog.dismiss()
+                }
+                .show()
+    }
+
+    private fun editStudent(dataItem: DataItem) {
+        val intent = Intent(context, EditAreaActivity::class.java)
+        intent.putExtra("editArea", dataItem)
+        startActivity(intent)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.areafragment, container, false)
     }
 
     private fun initRecyclerView() {
+
         recyclerviewArea.run {
             adapter = adapterArea
             layoutManager = LinearLayoutManager(context)
@@ -39,11 +71,16 @@ class ZonaEvakuasiFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+     //   reloadMapMarkers()
+    }
+
+    override fun onResume() {
+        super.onResume()
         reloadMapMarkers()
     }
 
     fun reloadMapMarkers() {
-        //   mMap!!.clear()
+        itemListArea.clear()
         progressBar_circular.visibility = View.VISIBLE
         App.api.allData().enqueue(object : Callback<Response> {
             override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>) {

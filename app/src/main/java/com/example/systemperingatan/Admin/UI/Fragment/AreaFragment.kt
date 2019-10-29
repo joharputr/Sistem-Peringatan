@@ -1,5 +1,7 @@
 package com.example.systemperingatan.Admin.UI.Fragment
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,16 +13,58 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaAdapter
+import com.example.systemperingatan.Admin.UI.Activity.EditAreaActivity
+import com.example.systemperingatan.Admin.UI.Activity.EditRadius
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
-import kotlinx.android.synthetic.main.activity_list_data_area.*
 import kotlinx.android.synthetic.main.areafragment.*
 import retrofit2.Call
 import retrofit2.Callback
 
+@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class AreaFragment : Fragment() {
     private var itemListArea = ArrayList<DataItem>()
-    val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick)
+    val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick, this::onLongClick)
+
+    //long click
+    private fun onLongClick(dataItem: DataItem) {
+        val options: Array<String> = arrayOf("Edit Nama", "Edit Radius")
+        AlertDialog.Builder(context)
+                // whcih = index dar pilihan
+                .setItems(options) { dialog, which ->
+                    when (which) {
+                        0 -> {
+                            //edit
+                            editStudent(dataItem)
+
+                        }
+                        1 -> {
+                             editPosition(dataItem)
+
+                        }
+                    }//menghilangkan dialog
+                    dialog.dismiss()
+                }
+                .show()
+    }
+
+    private fun editStudent(dataItem: DataItem) {
+        val intent = Intent(context, EditAreaActivity::class.java)
+        intent.putExtra("editArea", dataItem)
+        startActivity(intent)
+    }
+
+    private fun editPosition(dataItem: DataItem) {
+        val intent = Intent(context, EditRadius::class.java)
+        intent.putExtra("editRadius", dataItem)
+        startActivity(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        itemListArea.clear()
+        reloadMapMarkers()
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.areafragment, container, false)
@@ -31,15 +75,16 @@ class AreaFragment : Fragment() {
             adapter = adapterArea
             layoutManager = LinearLayoutManager(context)
         }
+
     }
 
     private fun onClick(dataItem: DataItem) {
-
+        Log.d("testdata", dataItem.number)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        reloadMapMarkers()
+        // reloadMapMarkers()
     }
 
     fun reloadMapMarkers() {
@@ -62,9 +107,11 @@ class AreaFragment : Fragment() {
                         Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
 
                         val dataFav1 = DataItem(number, null, null, latitude.toString(),
-                                null, message, null, null, null, null, null)
+                                null, message, null, longitude.toString(), null, null, null)
                         Log.d("dataListArea = ", dataFav1.toString())
+
                         itemListArea.addAll(listOf(dataFav1))
+                        adapterArea.notifyDataSetChanged()
                         initRecyclerView()
 
                     } else {

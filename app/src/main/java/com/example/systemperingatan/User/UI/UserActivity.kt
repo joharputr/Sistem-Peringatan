@@ -334,14 +334,58 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
     }
 
+    private fun reloadMapMarkersZonaWithoutRecyclerView() {
+        api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
+                val data = response.body()
+                Log.d("dataAPi = ", data.toString())
 
+                for (i in 0 until data!!.data!!.size) {
+                    if (data.data != null) {
+                        val number = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
+                        message = data.data.get(i)?.message.toString()
+                        address = data.data.get(i)?.address.toString()
+                        val type = data.data.get(i)?.type
+
+                        if (data.data.get(i)?.type == "point") {
+                            val radiusFloat = radiusMeter.toFloat()
+                            Log.d("CLOG = ", "radiusFloat = " + radiusFloat.toString())
+                            val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                            val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                            val latlang = LatLng(lat, lang)
+
+                            if (this@UserActivity::titikGps.isInitialized) {
+                                val URL = getDirectionURL(titikGps, latlang)
+                                GetDirection(URL).execute()
+                            } else {
+                                Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+
+                    } else {
+                        Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Pojo.Response>, t: Throwable) {
+                Log.d("gagal", "gagal =" + t.localizedMessage)
+                Toast.makeText(this@UserActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
     override fun onResume() {
         super.onResume()
         setUpLocation()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
-           reloadMapMarkersZona()
+            reloadMapMarkersZonaWithoutRecyclerView()
         }
     }
 
@@ -363,7 +407,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
         setUpLocation()
         shouldExecuteOnResume = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 
+            reloadMapMarkersZona()
+        }
         //    percobaan()
     }
 

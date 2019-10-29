@@ -350,7 +350,6 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                 return
             }
 
-
             val key = newGeofenceNumber.toString() + ""
             //   val list = ArrayList<Result>()
             val expTime = System.currentTimeMillis() + MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS

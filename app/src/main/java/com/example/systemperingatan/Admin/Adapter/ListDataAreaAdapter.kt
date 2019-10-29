@@ -10,7 +10,8 @@ import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.item_view.view.*
 
 class ListDataAreaAdapter(private val itemList: ArrayList<DataItem>,
-                          private val onClik: (DataItem) -> Unit) :
+                          private val onClik: (DataItem) -> Unit,
+                          private val onLongClick: (dataitem : DataItem) -> Unit) :
         RecyclerView.Adapter<ListDataAreaAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,12 +30,18 @@ class ListDataAreaAdapter(private val itemList: ArrayList<DataItem>,
         holder.itemView.setOnClickListener {
             onClik(item)
         }
+        holder.itemView.setOnLongClickListener {
+            onLongClick(item)
+            return@setOnLongClickListener true
+        }
     }
 
     class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
         fun bind(item: DataItem) = itemView.apply {
             area.text = item.message
             address.text = item.message
+            longitude.text = item.longitude
+            latitude.text = item.latitude
             Glide.with(image)
                     .load(R.drawable.location_item)
                     .into(image)
