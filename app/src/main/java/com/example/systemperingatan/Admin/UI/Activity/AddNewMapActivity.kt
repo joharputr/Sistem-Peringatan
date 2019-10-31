@@ -372,18 +372,6 @@ class AddNewMapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListe
         instructionTitle.text = getString(R.string.instruction_where_description)
         next.setOnClickListener {
 
-            val geocoder = Geocoder(this, Locale.getDefault())
-            try {
-                val address = geocoder.getFromLocation(map!!.cameraPosition.target.latitude, map!!.cameraPosition.target.longitude, 1)
-                Log.d("addressTEST = ", address.get(0).getAddressLine(0))
-            }catch (e : IOException){
-                when{
-                    e.message == "grpc failed" -> {/* ignore */ }
-                    else -> throw e
-                }
-               Log.d("ErrorGocoder = ",e.localizedMessage)
-            }
-
             reminder.latlang = map!!.cameraPosition.target
             reminder.latitude = map!!.cameraPosition.target.latitude.toString()
             reminder.longitude = map!!.cameraPosition.target.longitude.toString()

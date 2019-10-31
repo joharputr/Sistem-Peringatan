@@ -16,7 +16,7 @@
     <string name="radius_description">%1$s meters</string>
     <string name="instruction_radius_description">tentukan radius</string>
     <string name="instruction_message_description">tulis Nama Location</string>
-    <string name="error_required">Isi Nama Lokasi</string>
+    <string name="error_required">field must not null</string>
     <string name="title_activity_add_new_point">Map</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="action_settings">Settings</string>

@@ -44,7 +44,7 @@ import java.io.IOException
 import java.util.*
 import kotlin.math.roundToInt
 
-class EditRadius : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private var mGoogleApiClient: GoogleApiClient? = null
     internal var latitude: Double = 0.toDouble()

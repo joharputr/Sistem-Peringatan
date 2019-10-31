@@ -15,6 +15,7 @@ import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import java.util.*
+
 private const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
 
 class IntentHandleWork : JobIntentService() {
@@ -24,7 +25,7 @@ class IntentHandleWork : JobIntentService() {
         if (geofencingEvent.hasError()) {
             val errorMessage = GeofenceErrorMessages.getErrorString(this,
                     geofencingEvent.errorCode)
-            sendNotification(3, errorMessage,"")
+            sendNotification(4, errorMessage, "")
             Log.e("ERRORGEOFENCE", errorMessage)
             return
         }
@@ -44,9 +45,18 @@ class IntentHandleWork : JobIntentService() {
             val message = data?.message
             val minim_distance = data?.minim_distance
 
-               if (message != null) {
-                   sendNotification(2, message, minim_distance!!)
+            if (message != null) {
+                sendNotification(2, message, minim_distance!!)
             }
+        } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
+            val data = getFirstReminder(geofencingEvent.triggeringGeofences)
+            val message = data?.message
+            val minim_distance = data?.minim_distance
+
+            if (message != null)
+                sendNotification(3, message, minim_distance!!)
+
+
         } else {
             Log.d("datanotif = ", "gagal")
         }
@@ -67,7 +77,6 @@ class IntentHandleWork : JobIntentService() {
         val notificationPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
         val notificatioMng = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
             val importance = NotificationManager.IMPORTANCE_HIGH
             val mChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID, "Geofence", importance)
             mChannel.enableLights(true)
@@ -91,9 +100,11 @@ class IntentHandleWork : JobIntentService() {
         val bigText: String
         if (id == 1) {
             bigText = "Anda Berada di " + msg + ", zona evakuasi terdekat adalah  " + minim_distance
-        } else if(id == 2) {
+        } else if (id == 2) {
             bigText = "Anda diluar $msg"
-        }else{
+        } else if (id == 3) {
+            bigText = "Anda sudah terlalu lama di $msg zona evakuasi terdekat adalah $minim_distance"
+        } else {
             bigText = "Error = $msg"
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

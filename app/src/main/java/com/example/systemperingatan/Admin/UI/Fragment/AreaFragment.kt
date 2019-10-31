@@ -14,7 +14,7 @@ import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaAdapter
 import com.example.systemperingatan.Admin.UI.Activity.EditAreaActivity
-import com.example.systemperingatan.Admin.UI.Activity.EditRadius
+import com.example.systemperingatan.Admin.UI.Activity.EditRadiusActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.areafragment.*
@@ -55,7 +55,7 @@ class AreaFragment : Fragment() {
     }
 
     private fun editPosition(dataItem: DataItem) {
-        val intent = Intent(context, EditRadius::class.java)
+        val intent = Intent(context, EditRadiusActivity::class.java)
         intent.putExtra("editRadius", dataItem)
         startActivity(intent)
     }

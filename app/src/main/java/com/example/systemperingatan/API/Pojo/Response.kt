@@ -16,4 +16,3 @@ data class Response(
         val status: Int? = null
 )
 
-

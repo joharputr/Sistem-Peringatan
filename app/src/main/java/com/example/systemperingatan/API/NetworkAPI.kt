@@ -10,8 +10,10 @@ import java.util.concurrent.TimeUnit
 
 
 object NetworkAPI {
-    val url = "192.168.1.13"
+    val url = "192.168.1.16"
     var post = "http://$url/ci-restserver/Api/tambah"
+    var RegisterUser = "http://$url/ci-restserver/Api/register"
+    var LoginUser = "http://$url/ci-restserver/Api/login"
     var edit = "http://$url/ci-restserver/Api/edit/"
     var delete = "http://$url/ci-restserver/Api/hapus/"
     private val base_url = "http://$url/ci-restserver/Api/"

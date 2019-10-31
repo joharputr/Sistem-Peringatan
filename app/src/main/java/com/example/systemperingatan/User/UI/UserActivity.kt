@@ -67,7 +67,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
     companion object {
         var user = "user"
-        var titikGPS2: String? = null
         fun getAll(): List<DataItem> {
             if (preferences!!.contains(MAPS)) {
                 val remindersString = preferences!!.getString(MAPS, null)
@@ -75,7 +74,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                 if (arrayOfReminders != null) {
                     return arrayOfReminders.toList()
                 }
-                Log.d("shareppref= ", remindersString)
+
             } else {
                 Log.d("cekError", "Error")
             }
@@ -89,7 +88,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER /*or GeofencingRequest.INITIAL_TRIGGER_EXIT*/)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_DWELL)
                     .addGeofence(geofence)
                     .build()
         }
@@ -444,7 +443,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         mMap!!.addMarker(MarkerOptions()
                 .title("G:$number area = $message")
                 .snippet("Click here if you want delete this geofence")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
     }
 
@@ -541,6 +540,20 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                         }
 
                         GetDataSQLite()
+
+                        val idList = ArrayList<String>()
+                        idList.add(number)
+                        Log.d("idlist = ", idList.toString())
+
+                        val geoClient = LocationServices.getGeofencingClient(this@UserActivity)
+                        geoClient.removeGeofences(idList).addOnSuccessListener {
+
+                        }.addOnFailureListener {
+                            Log.e("LOG ERROR WINDOW CLICK", it.localizedMessage)
+                            Toast.makeText(this@UserActivity, "Error when remove geofence!", Toast.LENGTH_SHORT).show()
+
+                        }
+
                         val geofence = Geofence.Builder()
                                 .setRequestId(number)
                                 .setCircularRegion(
@@ -548,29 +561,28 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                                         longitude,
                                         radiusFloat
                                 )
-                                .setExpirationDuration(expires)
-                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+                                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL or Geofence.GEOFENCE_TRANSITION_EXIT or
+                                        Geofence.GEOFENCE_TRANSITION_ENTER)
+                                .setLoiteringDelay(10000)
+                                //   .setNotificationResponsiveness(1000)
                                 .build()
-                        try {
-                            val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
-                            geofencingClient.addGeofences(
-                                    createGeofenceRequest(geofence),
-                                    createGeofencePendingIntent()
-                            ).run {
-                                addOnSuccessListener {
-                                    Log.d("CLOGsukses = ", "sukses = $it")
-                                }
-                                addOnFailureListener {
-                                    Log.d("CLOGerror = ", it.localizedMessage)
-                                }
-                            }
-                            //  saveAll(response.body()!!.data)
 
-                        } catch (securityException: SecurityException) {
-                            logSecurityException(securityException)
-                        } catch (e: SQLException) {
-                            e.stackTrace
+                        val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
+                        geofencingClient.addGeofences(
+                                createGeofenceRequest(geofence),
+                                createGeofencePendingIntent()
+                        ).run {
+                            addOnSuccessListener {
+                                Log.d("CLOGsukses = ", "sukses = $it")
+                            }
+                            addOnFailureListener {
+                                Log.d("CLOGerror = ", it.localizedMessage)
+                            }
                         }
+                        //  saveAll(response.body()!!.data)
+
+
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
