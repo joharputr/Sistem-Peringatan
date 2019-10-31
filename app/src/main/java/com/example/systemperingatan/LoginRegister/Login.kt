@@ -1,5 +1,7 @@
 package com.example.systemperingatan.LoginRegister
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -8,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
+import com.example.systemperingatan.User.UI.UserActivity
 import kotlinx.android.synthetic.main.activity_login.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -23,6 +26,25 @@ class Login : AppCompatActivity() {
             validateInput()
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        checklogin()
+    }
+
+    private fun checklogin() {
+        if (App.preferenceHelper.is_login == "1") {
+
+            AlertDialog.Builder(this)
+                    .setMessage("Anda Sudah login")
+                    .setPositiveButton("DONE") { dialogInterface, i ->
+                        startActivity(Intent(this, UserActivity::class.java))
+                    }
+                    .setCancelable(false)
+                    .show()
+        }
+    }
+
 
     private fun validateInput() {
         if (loginpassword.text.isNullOrEmpty()) {
@@ -52,8 +74,11 @@ class Login : AppCompatActivity() {
 
                     if (data != null) {
                         val jData = jObj.getJSONObject("data")
-                        val hp = jData.getString("hp")
-                        Log.d("dataUSERHP = ", hp.toString())
+                        App.preferenceHelper.is_login = jData.getString("is_login")
+                        val nama = jData.getString("nama")
+
+                        Log.d("dataUSERHP = ", App.preferenceHelper.is_login.toString())
+                        startActivity(Intent(this, UserActivity::class.java))
                     }
 
                 } else {

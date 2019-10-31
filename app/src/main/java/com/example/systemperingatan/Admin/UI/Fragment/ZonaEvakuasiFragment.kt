@@ -14,6 +14,7 @@ import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaAdapter
 import com.example.systemperingatan.Admin.UI.Activity.EditAreaActivity
+import com.example.systemperingatan.Admin.UI.Activity.EditLocationPointActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.activity_list_data_area.*
@@ -21,12 +22,13 @@ import kotlinx.android.synthetic.main.areafragment.*
 import retrofit2.Call
 import retrofit2.Callback
 
+@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class ZonaEvakuasiFragment : Fragment() {
     private var itemListArea = ArrayList<DataItem>()
     val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick,this::onLongClick)
 
     private fun onLongClick(dataItem: DataItem) {
-        val options: Array<String> = arrayOf("Edit", "Hapus")
+        val options: Array<String> = arrayOf("Edit Nama", "Edit Lokasi")
         AlertDialog.Builder(context)
                 // whcih = index dar pilihan
                 .setItems(options) { dialog, which ->
@@ -38,13 +40,19 @@ class ZonaEvakuasiFragment : Fragment() {
                         }
                         1 -> {
                             //hapus
-                            //     askForDelete(dataItem)
+                               editLocation(dataItem)
 
                         }
                     }//menghilangkan dialog
                     dialog.dismiss()
                 }
                 .show()
+    }
+
+    private fun editLocation(dataItem: DataItem) {
+        val intent = Intent(context, EditLocationPointActivity::class.java)
+        intent.putExtra("editLocationPoint", dataItem)
+        startActivity(intent)
     }
 
     private fun editStudent(dataItem: DataItem) {
@@ -99,7 +107,8 @@ class ZonaEvakuasiFragment : Fragment() {
                         Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
 
                         val dataFav1 = DataItem(number, null, null, latitude.toString(),
-                                null, message, null, null, null, null, null)
+                                null, message, null, longitude.toString(), null,
+                                null, null,null)
                         Log.d("dataList = ", dataFav1.toString())
                         itemListArea.addAll(listOf(dataFav1))
                         initRecyclerView()

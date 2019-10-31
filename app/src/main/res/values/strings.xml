@@ -45,4 +45,5 @@
     You have provided too many PendingIntents to the addGeofences() call.
   </string>
     <string name="title_activity_edit_radius">Edit Radius</string>
+    <string name="title_activity_edit_location_point">Map</string>
 </resources>

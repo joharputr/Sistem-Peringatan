@@ -9,6 +9,7 @@ import com.android.volley.VolleyLog.TAG
 import com.android.volley.toolbox.Volley
 import com.example.systemperingatan.API.Api
 import com.example.systemperingatan.API.NetworkAPI
+import com.example.systemperingatan.User.Helper.PreferenceHelper
 import com.example.systemperingatan.User.UI.UserActivity
 
 class App : Application() {
@@ -27,9 +28,9 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        //    api = NetworkConfig.client.create<Api>(Api::class.java)
         api = NetworkAPI.getRetrofit().create(Api::class.java)
         userActivity = UserActivity()
+        preferenceHelper = PreferenceHelper(this)
     }
 
     fun <T> addToRequestQueue(req: Request<T>, tag: String) {
@@ -46,7 +47,7 @@ class App : Application() {
         lateinit var userActivity: UserActivity
         lateinit var api: Api
         var instance: App? = null
-            private set
+        lateinit var preferenceHelper: PreferenceHelper
     }
 
 }

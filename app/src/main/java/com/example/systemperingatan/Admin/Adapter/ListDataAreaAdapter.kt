@@ -39,7 +39,6 @@ class ListDataAreaAdapter(private val itemList: ArrayList<DataItem>,
     class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
         fun bind(item: DataItem) = itemView.apply {
             area.text = item.message
-            address.text = item.message
             longitude.text = item.longitude
             latitude.text = item.latitude
             Glide.with(image)

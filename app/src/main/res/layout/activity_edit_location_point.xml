@@ -15,7 +15,7 @@
         android:layout_height="match_parent" />
 
     <ImageView
-        android:id="@+id/markerPoint"
+        android:id="@+id/markerPointEdit"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
@@ -24,7 +24,7 @@
         app:srcCompat="@drawable/location_item" />
 
     <LinearLayout
-        android:id="@+id/container_point"
+        android:id="@+id/container_pointEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
@@ -45,35 +45,10 @@
             android:textSize="18sp"
             tools:text="Tulis Nama Titik" />
 
-        <EditText
-            android:visibility="gone"
-            android:id="@+id/message_point"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="13dp"
-            android:layout_marginRight="13dp"
-            android:layout_marginBottom="8dp"
-            android:hint="nama titik"
-            android:imeOptions="actionDone"
-            android:inputType="textCapSentences"
-            android:maxLines="1" />
+
 
         <Button
-            android:visibility="gone"
-            android:id="@+id/ok_title_point"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_button_bluelight"
-            android:text="OK"
-            android:textColor="@color/cardview_dark_background" />
-
-        <Button
-            android:id="@+id/addMarkerLocationPoint"
+            android:id="@+id/addMarkerLocationPointEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -85,20 +60,8 @@
             android:text="Add Marker Point"
             android:textColor="@color/cardview_dark_background" />
 
-        <Button
-            android:id="@+id/addNamePoint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_button_blue"
-            android:text="Add Name Point"
-            android:textColor="@color/cardview_dark_background" />
-        <Button
-            android:id="@+id/next_point"
+  <Button
+            android:id="@+id/next_pointEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"

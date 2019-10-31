@@ -97,7 +97,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         private fun saveAll(list: ArrayList<DataItem>) {
             preferences?.edit()?.clear()?.apply()
             preferences!!.edit().putString(MAPS, gson.toJson(list)).apply()
-
         }
 
         var message: String? = null
@@ -319,19 +318,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-    override fun onStop() {
-        super.onStop()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        mMap?.clear()
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-
-    }
 
     private fun reloadMapMarkersZonaWithoutRecyclerView() {
         api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
