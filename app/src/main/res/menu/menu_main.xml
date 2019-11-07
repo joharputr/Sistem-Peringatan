@@ -3,12 +3,22 @@
         <item
             android:id="@+id/nav_user"
             android:icon="@drawable/location_item"
-            android:title="User View" />
+            android:title="Refresh" />
+
+        <item
+            android:id="@+id/nav_admin"
+            android:icon="@drawable/location_item"
+            android:title="Admin View" />
 
         <item
             android:id="@+id/nav_list"
             android:icon="@drawable/location_item"
             android:title="Daftar Area " />
+
+        <item
+            android:id="@+id/logout"
+            android:icon="@drawable/location_item"
+            android:title="Logout " />
 
     </group>
 </menu>

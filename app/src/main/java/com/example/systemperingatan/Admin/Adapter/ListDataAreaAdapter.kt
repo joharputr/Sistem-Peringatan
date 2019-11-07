@@ -20,6 +20,7 @@ class ListDataAreaAdapter(private val itemList: ArrayList<DataItem>,
         return ViewHolder(view)
     }
 
+
     override fun getItemCount(): Int {
         return itemList.size
     }

@@ -401,6 +401,7 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         }
     }
 
+
     private fun updateData(number: String) {
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,

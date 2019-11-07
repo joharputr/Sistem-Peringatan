@@ -19,7 +19,21 @@ class PreferenceHelper(app: Application) {
         set(value) = spe.putString("is_login", value).apply()
         get() = sp.getString("is_login", "") ?: ""
 
+    var nama: String
+        set(value) = spe.putString("nama", value).apply()
+        get() = sp.getString("nama", "") ?: ""
 
+    var tipe: String
+        set(value) = spe.putString("tipe", value).apply()
+        get() = sp.getString("tipe", "") ?: ""
+
+    var hp: String
+        set(value) = spe.putString("hp", value).apply()
+        get() = sp.getString("hp", "") ?: ""
+
+    var password: String
+        set(value) = spe.putString("password", value).apply()
+        get() = sp.getString("password", "") ?: ""
     fun logOut() {
         spe.clear().apply()
     }

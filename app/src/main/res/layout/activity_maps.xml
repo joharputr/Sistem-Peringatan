@@ -25,7 +25,6 @@
            />
 
 
-
         <fragment
             android:id="@+id/mapAdmin"
             android:name="com.google.android.gms.maps.SupportMapFragment"

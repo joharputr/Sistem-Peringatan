@@ -28,25 +28,28 @@ class ZonaEvakuasiFragment : Fragment() {
     val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick,this::onLongClick)
 
     private fun onLongClick(dataItem: DataItem) {
-        val options: Array<String> = arrayOf("Edit Nama", "Edit Lokasi")
-        AlertDialog.Builder(context)
-                // whcih = index dar pilihan
-                .setItems(options) { dialog, which ->
-                    when (which) {
-                        0 -> {
-                            //edit
-                            editStudent(dataItem)
+        if (App.preferenceHelper.tipe == "admin"){
+            val options: Array<String> = arrayOf("Edit Nama", "Edit Lokasi")
+            AlertDialog.Builder(context)
+                    // whcih = index dar pilihan
+                    .setItems(options) { dialog, which ->
+                        when (which) {
+                            0 -> {
+                                //edit
+                                editStudent(dataItem)
 
-                        }
-                        1 -> {
-                            //hapus
-                               editLocation(dataItem)
+                            }
+                            1 -> {
+                                //hapus
+                                editLocation(dataItem)
 
-                        }
-                    }//menghilangkan dialog
-                    dialog.dismiss()
-                }
-                .show()
+                            }
+                        }//menghilangkan dialog
+                        dialog.dismiss()
+                    }
+                    .show()
+        }
+
     }
 
     private fun editLocation(dataItem: DataItem) {

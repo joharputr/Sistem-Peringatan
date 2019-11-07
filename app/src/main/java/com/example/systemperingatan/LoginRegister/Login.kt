@@ -22,14 +22,23 @@ class Login : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(com.example.systemperingatan.R.layout.activity_login)
+        //delete All shared preference
+        App.preferenceHelper.logOut()
         loginbtn.setOnClickListener {
             validateInput()
         }
+        buatAkun.setOnClickListener {
+            startActivity(Intent(this, Register::class.java))
+        }
+
+
     }
 
     override fun onResume() {
         super.onResume()
         checklogin()
+        Log.d("dataUSERHP = ", App.preferenceHelper.is_login.toString())
+
     }
 
     private fun checklogin() {
@@ -75,10 +84,21 @@ class Login : AppCompatActivity() {
                     if (data != null) {
                         val jData = jObj.getJSONObject("data")
                         App.preferenceHelper.is_login = jData.getString("is_login")
-                        val nama = jData.getString("nama")
+                        App.preferenceHelper.nama = jData.getString("nama")
+                        App.preferenceHelper.tipe = jData.getString("tipe")
+                        App.preferenceHelper.hp = jData.getString("hp")
+                        App.preferenceHelper.password = jData.getString("password")
 
-                        Log.d("dataUSERHP = ", App.preferenceHelper.is_login.toString())
-                        startActivity(Intent(this, UserActivity::class.java))
+                        Log.d("dataUSERHP = ", "login = " + App.preferenceHelper.is_login + "" +
+                                " nama = " + App.preferenceHelper.nama +
+                                " tipe = " + App.preferenceHelper.tipe +
+                                " hp = " + App.preferenceHelper.hp +
+                                " password = " + App.preferenceHelper.password)
+                        val intent = Intent(this, UserActivity::class.java)
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        startActivity(intent)
                     }
 
                 } else {

@@ -4,11 +4,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.R
-import kotlinx.android.synthetic.main.item_view.view.*
-import kotlinx.android.synthetic.main.item_view.view.address
 import kotlinx.android.synthetic.main.item_view.view.area
 import kotlinx.android.synthetic.main.item_view_evacuation_zone.view.*
 
@@ -39,7 +36,7 @@ class ListDataEvacuationZoneAdapter(private val itemList: ArrayList<DataItem>,
         fun bind(item: DataItem) = itemView.apply {
             area.text = item.message
             address.text = item.address
-            distance.text = item.distance+" Meter"
+            distance.text = item.distance + " Meter"
         }
     }
 

@@ -128,6 +128,9 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
 
     override fun onResume() {
         super.onResume()
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient!!.connect()
+        }
         reloadMapMarkers()
     }
 
@@ -174,12 +177,12 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
     private fun createLocationRequest() {
         mLocationRequest = LocationRequest()
         val UPDATE_INTERVAL = 5000
-        mLocationRequest!!.interval = UPDATE_INTERVAL.toLong()
+        mLocationRequest?.interval = UPDATE_INTERVAL.toLong()
         val FATEST_INTERVAL = 3000
-        mLocationRequest!!.fastestInterval = FATEST_INTERVAL.toLong()
-        mLocationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest?.fastestInterval = FATEST_INTERVAL.toLong()
+        mLocationRequest?.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         val DISPLACEMENT = 10
-        mLocationRequest!!.smallestDisplacement = DISPLACEMENT.toFloat()
+        mLocationRequest?.smallestDisplacement = DISPLACEMENT.toFloat()
     }
 
     private fun displayLocation() {
@@ -343,9 +346,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                 Log.d("ErrorGocoder = ", e.localizedMessage)
             }
 
-
             if (!mGoogleApiClient!!.isConnected) {
-
                 Toast.makeText(this, "Google Api not connected!", Toast.LENGTH_SHORT).show()
                 return
             }
@@ -471,6 +472,8 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                 .strokeColor(R.color.wallet_holo_blue_light)
                 .fillColor(Color.parseColor("#80ff0000")))
     }
+
+
 
 
     private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {

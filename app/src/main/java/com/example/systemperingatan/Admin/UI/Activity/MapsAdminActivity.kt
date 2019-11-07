@@ -2,16 +2,22 @@ package com.example.systemperingatan.Admin.UI.Activity
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.SQLException
 import android.graphics.Color
+import android.location.Criteria
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.provider.Settings
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -38,7 +44,10 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.common.api.Status
-import com.google.android.gms.location.*
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -57,9 +66,10 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
+class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, ResultCallback<Status>, GoogleMap.OnInfoWindowClickListener {
 
 
+    private lateinit var locationManager: LocationManager
     private var mMap: GoogleMap? = null
     //sharedpref
     private var mSharedPreferences: SharedPreferences? = null
@@ -101,6 +111,7 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         initMap()
         setUpLocation()
         seekbarFunction()
@@ -191,6 +202,23 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         initDrawer()
         nav_view.setNavigationItemSelectedListener(this)
 
+    }
+
+    override fun onLocationChanged(location: Location?) {
+        mLastLocation = location
+        displayLocation()
+    }
+
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onProviderEnabled(provider: String?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onProviderDisabled(provider: String?) {
+        Toast.makeText(this, "GPS NOT DETECTED", Toast.LENGTH_SHORT).show()
     }
 
     private fun initDrawer() {
@@ -331,17 +359,23 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     }
 
     //add gps location now
-    private fun displayLocation() {
-        Log.d("Cek lokasi", "cek lokasi")
-        if (mMap != null) {
-            if (checkPermission()) {
-                val mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-                mFusedLocationClient.lastLocation.addOnSuccessListener(object : OnSuccessListener<Location> {
-                    override fun onSuccess(location: Location) {
-                        markerLocation(LatLng(location.latitude, location.longitude))
-                    }
-                })
-                /*  mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient)
+    /* private fun displayLocation() {
+         Log.d("Cek lokasi", "cekLokasi")
+         if (mMap != null) {
+             if (checkPermission()) {
+                 val mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+                 try {
+                     mFusedLocationClient.lastLocation.addOnSuccessListener(object : OnSuccessListener<Location> {
+                         override fun onSuccess(location: Location) {
+                             markerLocation(LatLng(location.latitude, location.longitude))
+                         }
+                     })
+                 } catch (e: NullPointerException) {
+                     Toast.makeText(this, "GPS NOT DETECTED", Toast.LENGTH_SHORT).show()
+                 } catch (e: Exception) {
+                     Toast.makeText(this, "GPS NOT DETECTED", Toast.LENGTH_SHORT).show()
+                 }
+                 *//*  mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient)
                   if (mLastLocation != null) {
                       Log.i("LAST GPS LOCATION", "LasKnown location. " +
                               "Long: " + mLastLocation!!.longitude +
@@ -352,7 +386,33 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                       Log.w("FAILED", "No location retrieved yet")
                       //                startLocationUpdates();
                   }
-             */
+             *//*
+
+            } else {
+                askPermission()
+            }
+        }
+
+    }*/
+
+    private fun displayLocation() {
+        Log.d("LOG Cek lokasi", "cek lokasi")
+
+        if (mMap != null) {
+            if (checkPermission()) {
+                val criteria = Criteria()
+                criteria.accuracy = Criteria.ACCURACY_FINE
+                val bestProvider = locationManager.getBestProvider(Criteria(), false)
+                val location = locationManager.getLastKnownLocation(bestProvider)
+                //   val location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+                if (location != null) {
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    markerLocation(latLng)
+                    Log.d("testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
+                    mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                } else {
+                    Log.w("LOG FAILED", "No locationretrieved yet")
+                }
             } else {
                 askPermission()
             }
@@ -422,6 +482,15 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
 
     override fun onResume() {
         super.onResume()
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            AlertDialog.Builder(this)
+                    .setMessage("GPS TIDAK AKTIF")
+                    .setPositiveButton("Aktifkan") { dialogInterface, i ->
+                        startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    }
+                    .setCancelable(false)
+                    .show()
+        }
         if (mGoogleApiClient != null) {
             mGoogleApiClient!!.connect()
         }
@@ -450,7 +519,7 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
 
     override fun onConnected(bundle: Bundle?) {
         displayLocation()
-        startLocationUpdates()
+        //   startLocationUpdates()
         //recoverlocationMarker();
     }
 
@@ -458,11 +527,11 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         val mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         if (checkPermission())
         //     LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this)
-         mFusedLocationClient.lastLocation.addOnSuccessListener(object : OnSuccessListener<Location> {
-            override fun onSuccess(location: Location) {
-                markerLocation(LatLng(location.latitude, location.longitude))
-            }
-        })
+            mFusedLocationClient.lastLocation.addOnSuccessListener(object : OnSuccessListener<Location> {
+                override fun onSuccess(location: Location) {
+                    markerLocation(LatLng(location.latitude, location.longitude))
+                }
+            })
     }
 
 
@@ -474,10 +543,6 @@ class MapsAdminActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         Log.d("ONConnection failed", "failed status code = " + connectionResult.errorMessage!!)
     }
 
-    override fun onLocationChanged(location: Location) {
-        mLastLocation = location
-        displayLocation()
-    }
 
     private fun seekbarFunction() {
 

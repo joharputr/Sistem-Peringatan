@@ -1,5 +1,6 @@
 package com.example.systemperingatan.LoginRegister
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -23,6 +24,7 @@ class Register : AppCompatActivity() {
         buttonRegister.setOnClickListener {
             validateInput()
         }
+
     }
 
     private fun validateInput() {
@@ -32,7 +34,7 @@ class Register : AppCompatActivity() {
             registerpassword.error = getString(R.string.error_required)
         } else if (registerhp.text.isNullOrEmpty()) {
             registerhp.error = getString(R.string.error_required)
-        }else{
+        } else {
             addUser()
         }
     }
@@ -50,6 +52,7 @@ class Register : AppCompatActivity() {
                 Log.d("statuspost  = ", status1)
                 if (status1.contains("200")) {
                     Toast.makeText(this, "User Added!", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, Login::class.java))
                 } else {
                     val msg = jObj.getString("message")
                     Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()

@@ -33,11 +33,7 @@
         <activity android:name=".Admin.UI.Activity.EditAreaActivity" />
         <activity android:name=".Admin.UI.Activity.ListDataAreaActivity" />
         <activity android:name=".Admin.UI.Activity.MapsAdminActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".Admin.UI.Activity.AddNewPointActivity"
@@ -47,7 +43,13 @@
             android:label="@string/title_activity_add_new_map" />
         <activity
             android:name=".User.UI.UserActivity"
-            android:label="@string/title_activity_user" />
+            android:label="@string/title_activity_user" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />

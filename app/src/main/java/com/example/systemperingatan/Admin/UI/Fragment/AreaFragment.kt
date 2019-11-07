@@ -28,24 +28,27 @@ class AreaFragment : Fragment() {
 
     //long click
     private fun onLongClick(dataItem: DataItem) {
-        val options: Array<String> = arrayOf("Edit Nama", "Edit Radius")
-        AlertDialog.Builder(context)
-                // whcih = index dar pilihan
-                .setItems(options) { dialog, which ->
-                    when (which) {
-                        0 -> {
-                            //edit
-                            editStudent(dataItem)
+        if(App.preferenceHelper.tipe == "admin"){
+            val options: Array<String> = arrayOf("Edit Nama", "Edit Radius")
+            AlertDialog.Builder(context)
+                    // whcih = index dar pilihan
+                    .setItems(options) { dialog, which ->
+                        when (which) {
+                            0 -> {
+                                //edit
+                                editStudent(dataItem)
 
-                        }
-                        1 -> {
-                             editPosition(dataItem)
+                            }
+                            1 -> {
+                                editPosition(dataItem)
 
-                        }
-                    }//menghilangkan dialog
-                    dialog.dismiss()
-                }
-                .show()
+                            }
+                        }//menghilangkan dialog
+                        dialog.dismiss()
+                    }
+                    .show()
+        }
+
     }
 
     private fun editStudent(dataItem: DataItem) {
