@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.database.SQLException
 import android.graphics.Color
 import android.location.Criteria
+import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.AsyncTask
@@ -71,7 +72,7 @@ import kotlin.collections.set
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, NavigationView.OnNavigationItemSelectedListener {
-
+    private var location: Location? = null
     private val arrayListZona = ArrayList<DataItem>()
     val adapterZona = ListDataEvacuationZoneAdapter(arrayListZona, this::onClick)
     var geofencingClient: GeofencingClient? = null
@@ -136,7 +137,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
     }
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user)
@@ -160,11 +160,13 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                 " hp = " + App.preferenceHelper.hp +
                 " password = " + App.preferenceHelper.password)
         checkUser()
+
+
     }
 
     private fun checkUser() {
         Log.d("dataUSERHP = ", App.preferenceHelper.is_login)
-        if ( App.preferenceHelper.is_login == "") {
+        if (App.preferenceHelper.is_login == "") {
             AlertDialog.Builder(this)
                     .setMessage("Anda harus login")
                     .setPositiveButton("Login") { dialogInterface, i ->
@@ -194,12 +196,12 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         if (App.preferenceHelper.tipe != "admin") {
             val nav_Menu: Menu = navigationView.getMenu()
             nav_Menu.findItem(R.id.nav_admin).setVisible(false)
-            nav_Menu.findItem(R.id.nav_list).setVisible(false)
+
             nav_Menu.findItem(R.id.nav_user).setVisible(true)
         } else {
             val nav_Menu: Menu = navigationView.getMenu()
             nav_Menu.findItem(R.id.nav_admin).setVisible(true)
-            nav_Menu.findItem(R.id.nav_list).setVisible(true)
+
             nav_Menu.findItem(R.id.nav_user).setVisible(false)
         }
     }
@@ -208,9 +210,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         // Handle navigation view item clicks here.
         val id = item.getItemId()
 
-        if (id == R.id.nav_list) {
-            startActivity(Intent(this, ListDataAreaActivity::class.java))
-        }
         if (id == R.id.nav_admin) {
             startActivity(Intent(this, MapsAdminActivity::class.java))
         }
@@ -219,7 +218,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             startActivity(Intent(this, UserActivity::class.java))
         }
 
-
+        if (id == R.id.editUser) {
+            startActivity(Intent(this, EditUser::class.java))
+        }
         if (id == R.id.logout) {
             logout()
             startActivity(Intent(this, Login::class.java))
@@ -277,7 +278,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                 Log.d("dataDiri = ", "hp = " + App.preferenceHelper.hp + " password = " + App.preferenceHelper.password)
                 params["hp"] = App.preferenceHelper.hp
                 params["password"] = App.preferenceHelper.password
-
 
                 return params
             }
@@ -412,6 +412,11 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
     }
 
 
+    override fun onStart() {
+        super.onStart()
+        setUpLocation()
+    }
+
     //add gps location now
     private fun displayLocation() {
         Log.d("LOG Cek lokasi", "cek lokasi")
@@ -419,13 +424,20 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             if (checkPermission()) {
                 val criteria = Criteria()
                 criteria.accuracy = Criteria.ACCURACY_FINE
+
                 val bestProvider = locationManager.getBestProvider(Criteria(), false)
-                val location = locationManager.getLastKnownLocation(bestProvider)
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    Log.d("CEKLOKASI", "GPS")
+                    location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    Log.d("CEKLOKASI", "NETWORK")
+                }
                 //   val location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
                 if (location != null) {
-                    val latLng = LatLng(location.latitude, location.longitude)
+                    val latLng = LatLng(location!!.latitude, location!!.longitude)
                     markerLocation(latLng)
-                    Log.d("testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
+                    Log.d("testLocation= ", "lat = " + location!!.latitude + "long = " + location!!.longitude)
                     mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
                 } else {
                     Log.w("LOG FAILED", "No locationretrieved yet")
@@ -451,7 +463,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         val markerOptions = MarkerOptions()
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title("lokasi saya = $title")
+                .title("lokasi saya")
         if (mMap != null) {
             if (locationMarker != null)
                 locationMarker!!.remove()
@@ -463,7 +475,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
     }
 
     private fun createGeofencePendingIntent(): PendingIntent {
-        Log.d("LOGCREATEPENDING INTENT", "createGeofencePendingIntent")
         if (mpendingIntent != null) {
             Log.d("LOGCREATEPENDING ", "pending isi")
             return mpendingIntent as PendingIntent
@@ -471,7 +482,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             Log.d("LOGCREATEPENDING gagal", "pending null")
         }
         val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
-        Log.d("LOG Pending test", "pending test")
+
         return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
@@ -501,8 +512,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                             val latlang = LatLng(lat, lang)
 
                             if (this@UserActivity::titikGps.isInitialized) {
-                                //      val URL = getDirectionURL(titikGps, latlang)
-                                //     GetDirection(URL).execute()
+                                val URL = getDirectionURL(titikGps, latlang)
+                                GetDirection(URL).execute()
                             } else {
                                 Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
                             }
@@ -524,6 +535,17 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
     override fun onResume() {
         super.onResume()
+
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Log.e("CEKCLOGProvider", "ProviderGPS is not avaible");
+        } else if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Log.v("CEKCLOGProvider", " ProviderGPS is avaible");
+        }
+        if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            Log.e("CEKCLOGNetwork Provider", "ProviderNetwork is not avaible");
+        } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            Log.v("CEKCLOGNetwork Provider", "providerNetwork is avaible");
+        }
         setUpLocation()
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             AlertDialog.Builder(this)
@@ -630,7 +652,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         } catch (e: SQLException) {
             e.stackTrace
         }
-
     }
 
 
@@ -699,7 +720,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                         geoClient.removeGeofences(idList).addOnSuccessListener {
 
                         }.addOnFailureListener {
-                            Log.e("LOG ERROR WINDOW CLICK", it.localizedMessage)
+                            Log.e("LOGERROR WINDOW CLICK", it.localizedMessage)
                             Toast.makeText(this@UserActivity, "Error when remove geofence!", Toast.LENGTH_SHORT).show()
 
                         }
@@ -712,10 +733,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                                         radiusFloat
                                 )
                                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL or Geofence.GEOFENCE_TRANSITION_EXIT or
+                                .setTransitionTypes(/*Geofence.GEOFENCE_TRANSITION_DWELL or*/ Geofence.GEOFENCE_TRANSITION_EXIT or
                                         Geofence.GEOFENCE_TRANSITION_ENTER)
-                                .setLoiteringDelay(10000)
-                                //   .setNotificationResponsiveness(1000)
+                                /*.setLoiteringDelay(10000)*/
+                                .setNotificationResponsiveness(0)
                                 .build()
 
                         val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
@@ -725,13 +746,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                         ).run {
                             addOnSuccessListener {
                                 Log.d("CLOGsukses = ", "sukses = $it")
+                                Toast.makeText(this@UserActivity, "Geofences set up", Toast.LENGTH_SHORT).show();
+
                             }
                             addOnFailureListener {
                                 Log.d("CLOGerror = ", it.localizedMessage)
                             }
                         }
                         //  saveAll(response.body()!!.data)
-
 
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
@@ -836,59 +858,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         Log.d(" itemTest = ", "arraylist" + arrayList)
     }
 
-    private fun updateData(number: String, distance: Double) {
-        val tag_string_req = "req_postdata"
-        val strReq = object : StringRequest(Method.POST,
-                NetworkAPI.edit + "/$number", { response ->
-            Log.d("CLOG", "responh: $response")
-            try {
-                val jObj = JSONObject(response)
-                val status1 = jObj.getString("status")
-                Log.d("status post  = ", status1)
-                if (status1.contains("200")) {
-                    Toast.makeText(this, "Geofence Added!", Toast.LENGTH_SHORT).show()
-                } else {
-
-                    val msg = jObj.getString("message")
-                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                }
-
-            } catch (e: JSONException) {
-                e.printStackTrace()
-                Log.d("error catch = ", e.toString())
-            }
-
-        }, { error ->
-            Log.d("CLOG", "verespon: ${error.localizedMessage}")
-            val json: String?
-            val response = error.networkResponse
-            if (response != null && response.data != null) {
-                json = String(response.data)
-                val jObj: JSONObject?
-                try {
-                    jObj = JSONObject(json)
-                    val msg = jObj.getString("message")
-                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-            }
-
-        }) {
-            override fun getParams(): Map<String, String> {
-                // Posting parameters to login url
-                val params = HashMap<String, String>()
-                params["distance"] = distance.toString()
-                return params
-            }
-        }
-        App.instance?.addToRequestQueue(strReq, tag_string_req)
-    }
 
     override fun onMarkerClick(marker: Marker): Boolean {
         return false
     }
-
 
     fun getDirectionURL(origin: LatLng, dest: LatLng): String {
         return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving&key=AIzaSyBcgkU-gP-QU-53LmGoh4TQ87yMDLl2hXc"
@@ -899,7 +872,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             val client = OkHttpClient()
             val request = Request.Builder().url(url).build()
             val response = client.newCall(request).execute()
-            val data = response.body()!!.string()
+            val data = response.body()?.string()
             Log.d("GoogleMap", " data : $data")
             val result = ArrayList<List<LatLng>>()
             try {
@@ -908,11 +881,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                 val path = ArrayList<LatLng>()
 
                 for (i in 0..(respObj.routes[0].legs[0].steps.size - 1)) {
-//                    val startLatLng = LatLng(respObj.routes[0].legs[0].steps[i].start_location.lat.toDouble()
-//                            ,respObj.routes[0].legs[0].steps[i].start_location.lng.toDouble())
-//                    path.add(startLatLng)
-//                    val endLatLng = LatLng(respObj.routes[0].legs[0].steps[i].end_location.lat.toDouble()
-//                            ,respObj.routes[0].legs[0].steps[i].end_location.lng.toDouble())
                     path.addAll(decodePolyline(respObj.routes[0].legs[0].steps[i].polyline.points))
                 }
                 result.add(path)
@@ -967,9 +935,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             val latLng = LatLng((lat.toDouble() / 1E5), (lng.toDouble() / 1E5))
             poly.add(latLng)
         }
-
         return poly
     }
-
-
 }

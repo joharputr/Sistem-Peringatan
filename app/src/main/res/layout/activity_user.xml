@@ -37,7 +37,7 @@
             android:id="@+id/recyclerviewzona"
             android:layout_width="350dp"
             android:layout_height="150dp"
-            android:layout_marginLeft="24dp"
+            android:layout_marginLeft="5dp"
             android:layout_marginTop="540dp"/>
 
 

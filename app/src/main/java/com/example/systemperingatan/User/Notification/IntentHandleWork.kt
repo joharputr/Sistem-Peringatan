@@ -27,7 +27,6 @@ class IntentHandleWork : JobIntentService() {
                     geofencingEvent.errorCode)
             sendNotification(4, errorMessage, "")
             Log.e("ERRORGEOFENCE", errorMessage)
-            return
         }
         val geoFenceTransition = geofencingEvent.geofenceTransition
 
@@ -55,7 +54,6 @@ class IntentHandleWork : JobIntentService() {
 
             if (message != null)
                 sendNotification(3, message, minim_distance!!)
-
 
         } else {
             Log.d("datanotif = ", "gagal")

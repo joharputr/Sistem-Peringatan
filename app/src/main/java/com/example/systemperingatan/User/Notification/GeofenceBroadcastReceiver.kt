@@ -8,4 +8,5 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         IntentHandleWork.enqueueWork(context, intent)
     }
+
 }

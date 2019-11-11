@@ -16,6 +16,10 @@
             android:title="Daftar Area " />
 
         <item
+            android:id="@+id/editUser"
+            android:icon="@drawable/location_item"
+            android:title="Edit User " />
+        <item
             android:id="@+id/logout"
             android:icon="@drawable/location_item"
             android:title="Logout " />

@@ -54,6 +54,11 @@ class Login : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+      //  super.onBackPressed()
+        Toast.makeText(this, "Back press disabled!", Toast.LENGTH_SHORT).show();
+    }
+
 
     private fun validateInput() {
         if (loginpassword.text.isNullOrEmpty()) {
@@ -84,12 +89,14 @@ class Login : AppCompatActivity() {
                     if (data != null) {
                         val jData = jObj.getJSONObject("data")
                         App.preferenceHelper.is_login = jData.getString("is_login")
+                        App.preferenceHelper.id= jData.getString("id")
                         App.preferenceHelper.nama = jData.getString("nama")
                         App.preferenceHelper.tipe = jData.getString("tipe")
                         App.preferenceHelper.hp = jData.getString("hp")
                         App.preferenceHelper.password = jData.getString("password")
 
                         Log.d("dataUSERHP = ", "login = " + App.preferenceHelper.is_login + "" +
+                                " id = " + App.preferenceHelper.id +
                                 " nama = " + App.preferenceHelper.nama +
                                 " tipe = " + App.preferenceHelper.tipe +
                                 " hp = " + App.preferenceHelper.hp +

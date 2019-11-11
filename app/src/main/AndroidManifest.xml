@@ -3,11 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.systemperingatan">
 
-    <!--
-         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
-         Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the 'MyLocation' functionality.
-    -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -19,22 +22,18 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
-
-
+        <activity android:name=".User.UI.EditUser"></activity>
         <activity
             android:name=".Admin.UI.Activity.EditLocationPointActivity"
-            android:label="Edit Location Point"></activity>
-
-        <activity android:name=".LoginRegister.Register"></activity>
-        <activity android:name=".LoginRegister.Login"></activity>
+            android:label="Edit Location Point" />
+        <activity android:name=".LoginRegister.Register" />
+        <activity android:name=".LoginRegister.Login" />
         <activity
             android:name=".Admin.UI.Activity.EditRadiusActivity"
             android:label="@string/title_activity_edit_radius" />
         <activity android:name=".Admin.UI.Activity.EditAreaActivity" />
         <activity android:name=".Admin.UI.Activity.ListDataAreaActivity" />
-        <activity android:name=".Admin.UI.Activity.MapsAdminActivity">
-
-        </activity>
+        <activity android:name=".Admin.UI.Activity.MapsAdminActivity"></activity>
         <activity
             android:name=".Admin.UI.Activity.AddNewPointActivity"
             android:label="@string/title_activity_add_new_point" />
@@ -43,17 +42,17 @@
             android:label="@string/title_activity_add_new_map" />
         <activity
             android:name=".User.UI.UserActivity"
-            android:label="@string/title_activity_user" >
+            android:label="@string/title_activity_user">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -61,7 +60,11 @@
         <receiver
             android:name=".User.Notification.GeofenceBroadcastReceiver"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.location.PROVIDERS_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".User.Notification.IntentHandleWork"
@@ -72,13 +75,5 @@
             android:name="org.apache.http.legacy"
             android:required="false" />
     </application>
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
 </manifest>

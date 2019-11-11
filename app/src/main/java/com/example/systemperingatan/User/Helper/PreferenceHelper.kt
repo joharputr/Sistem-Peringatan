@@ -23,6 +23,11 @@ class PreferenceHelper(app: Application) {
         set(value) = spe.putString("nama", value).apply()
         get() = sp.getString("nama", "") ?: ""
 
+
+    var id: String
+        set(value) = spe.putString("id", value).apply()
+        get() = sp.getString("id", "") ?: ""
+
     var tipe: String
         set(value) = spe.putString("tipe", value).apply()
         get() = sp.getString("tipe", "") ?: ""
