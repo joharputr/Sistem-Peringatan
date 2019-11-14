@@ -36,8 +36,10 @@ import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
+import com.example.systemperingatan.LoginRegister.Login
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.Notification.GeofenceTransitionService
+import com.example.systemperingatan.User.UI.EditUserActivity
 import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -263,6 +265,13 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         }
         if (id == R.id.nav_list) {
             startActivity(Intent(this, ListDataAreaActivity::class.java))
+        }
+        if (id == R.id.edit_data_admin) {
+            startActivity(Intent(this, EditUserActivity::class.java))
+        }
+        if (id == R.id.logout) {
+            logout()
+            startActivity(Intent(this, Login::class.java))
         }
 
         item.setChecked(true)
@@ -865,6 +874,62 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
     override fun onMarkerClick(marker: Marker): Boolean {
 
         return false
+    }
+
+    private fun logout() {
+
+        val tag_string_req = "req_postdata"
+        val strReq = object : StringRequest(Method.POST,
+                NetworkAPI.logout, { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+
+                val jObj = JSONObject(response)
+                val status = jObj.getString("status")
+                Log.d("dataStatus = ", status.toString())
+                val data = jObj.get("data")
+                Log.d("dataUSER = ", data.toString())
+                if (status.contains("200")) {
+                    Toast.makeText(this, "Logout Success!", Toast.LENGTH_SHORT).show()
+
+                } else {
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("errorcatch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, error.localizedMessage, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+        }) {
+            override fun getParams(): Map<String, String> {
+                val params = HashMap<String, String>()
+                Log.d("dataDiri = ", "hp = " + App.preferenceHelper.hp + " password = " + App.preferenceHelper.password)
+                params["hp"] = App.preferenceHelper.hp
+                params["password"] = App.preferenceHelper.password
+
+                return params
+            }
+        }
+
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+
     }
 
 

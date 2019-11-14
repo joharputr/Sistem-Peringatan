@@ -11,6 +11,7 @@ import android.database.SQLException
 import android.graphics.Color
 import android.location.Criteria
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.AsyncTask
@@ -33,10 +34,10 @@ import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.Admin.Adapter.ListDataEvacuationZoneAdapter
-import com.example.systemperingatan.Admin.UI.Activity.ListDataAreaActivity
 import com.example.systemperingatan.Admin.UI.Activity.MapsAdminActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
+import com.example.systemperingatan.LoginRegister.FirebaseAuthActivity
 import com.example.systemperingatan.LoginRegister.Login
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.Helper.GoogleMapDTO
@@ -45,16 +46,14 @@ import com.example.systemperingatan.User.SQLite.GeofenceContract
 import com.example.systemperingatan.User.SQLite.GeofenceDbHelper
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.navigation.NavigationView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.maps.android.SphericalUtil
 import kotlinx.android.synthetic.main.activity_maps.*
@@ -71,13 +70,24 @@ import kotlin.collections.ArrayList
 import kotlin.collections.set
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, NavigationView.OnNavigationItemSelectedListener {
-    private var location: Location? = null
+class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, NavigationView.OnNavigationItemSelectedListener {
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    // globally declare LocationRequest
+    private lateinit var locationRequest: LocationRequest
+
+    // globally declare LocationCallback
+    private lateinit var locationCallback: LocationCallback
+// in onCreate() initialize FusedLocationProviderClient
+
     private val arrayListZona = ArrayList<DataItem>()
     val adapterZona = ListDataEvacuationZoneAdapter(arrayListZona, this::onClick)
     var geofencingClient: GeofencingClient? = null
     private lateinit var locationManager: LocationManager
     private lateinit var titikGps: LatLng
+
+    //firebase
+    lateinit var  mAuth : FirebaseAuth
 
     companion object {
         var user = "user"
@@ -145,7 +155,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         initMap()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         mpendingIntent = null
-        setUpLocation()
+
         Log.d("SharedPref = ", getAll().toString())
         setSupportActionBar(toolbarUser)
         val actionBar = supportActionBar
@@ -161,7 +171,90 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                 " password = " + App.preferenceHelper.password)
         checkUser()
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        setUpLocation()
 
+        mAuth = FirebaseAuth.getInstance()
+        Log.d("mauth ", mAuth.toString())
+    }
+
+
+
+    private fun getLocationUpdates() {
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationRequest = LocationRequest()
+        locationRequest.interval = 50000
+        locationRequest.fastestInterval = 50000
+        locationRequest.smallestDisplacement = 170f // 170 m = 0.1 mile
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY //set according to your app function
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                if (mMap != null) {
+                    if (locationResult.locations.isNotEmpty()) {
+                        val location = locationResult.lastLocation
+                        val latLng = LatLng(location.latitude, location.longitude)
+                        markerLocation(latLng)
+                        Log.d("testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
+                        mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+
+                    }
+                }
+
+            }
+        }
+    }
+
+    //start location updates
+    private fun startLocationUpdates() {
+        fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                null /* Looper */
+        )
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+
+    override fun onLocationChanged(location: Location?) {
+        setUpLocation()
+    }
+
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+    }
+
+    override fun onProviderEnabled(provider: String?) {
+    }
+
+    override fun onProviderDisabled(provider: String?) {
+
+    }
+
+    fun getLastKnownLocation() {
+        fusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        if (mMap != null) {
+                            if (checkPermission()) {
+                                val latLng = LatLng(location.latitude, location.longitude)
+                                markerLocation(latLng)
+                                Log.d("testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
+                                mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+
+
+                            } else {
+                                askPermission()
+                            }
+                        }
+                    } else {
+                        Log.w("LOG FAILED", "No locationretrieved yet")
+                    }
+
+                }
     }
 
     private fun checkUser() {
@@ -170,7 +263,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             AlertDialog.Builder(this)
                     .setMessage("Anda harus login")
                     .setPositiveButton("Login") { dialogInterface, i ->
-                        startActivity(Intent(this, Login::class.java))
+                        startActivity(Intent(this, FirebaseAuthActivity::class.java))
                     }
                     .setCancelable(false)
                     .show()
@@ -191,20 +284,21 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         val navigationView: NavigationView = findViewById(R.id.nav_viewuser)
         val headerView: View = navigationView.getHeaderView(0)
         val navUsername: TextView = headerView.findViewById(R.id.nama)
-        navUsername.text = "Selamat Datang, " + App.preferenceHelper.nama
+        navUsername.text = "Selamat Datang, " +App.preferenceHelper.nama
 
         if (App.preferenceHelper.tipe != "admin") {
             val nav_Menu: Menu = navigationView.getMenu()
             nav_Menu.findItem(R.id.nav_admin).setVisible(false)
-
+            nav_Menu.findItem(R.id.logoutfb).setVisible(true)
             nav_Menu.findItem(R.id.nav_user).setVisible(true)
         } else {
             val nav_Menu: Menu = navigationView.getMenu()
             nav_Menu.findItem(R.id.nav_admin).setVisible(true)
-
+            nav_Menu.findItem(R.id.logoutfb).setVisible(false)
             nav_Menu.findItem(R.id.nav_user).setVisible(false)
         }
     }
+
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
@@ -218,75 +312,23 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             startActivity(Intent(this, UserActivity::class.java))
         }
 
-        if (id == R.id.editUser) {
-            startActivity(Intent(this, EditUser::class.java))
+       /* if (id == R.id.editUser) {
+            startActivity(Intent(this, EditUserActivity::class.java))
+        }*/
+
+        if (id == R.id.logoutfb) {
+            mAuth.signOut()
+            startActivity(Intent(this, FirebaseAuthActivity::class.java))
         }
-        if (id == R.id.logout) {
-            logout()
-            startActivity(Intent(this, Login::class.java))
-        }
+
+
 
         item.setChecked(true)
         drawerLayoutUser.closeDrawer(GravityCompat.START)
         return true
     }
 
-    private fun logout() {
 
-        val tag_string_req = "req_postdata"
-        val strReq = object : StringRequest(Method.POST,
-                NetworkAPI.logout, { response ->
-            Log.d("CLOG", "responh: $response")
-            try {
-
-                val jObj = JSONObject(response)
-                val status = jObj.getString("status")
-                Log.d("dataStatus = ", status.toString())
-                val data = jObj.get("data")
-                Log.d("dataUSER = ", data.toString())
-                if (status.contains("200")) {
-                    Toast.makeText(this, "Logout Success!", Toast.LENGTH_SHORT).show()
-
-                } else {
-                    val msg = jObj.getString("message")
-                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                }
-
-            } catch (e: JSONException) {
-                e.printStackTrace()
-                Log.d("errorcatch = ", e.toString())
-            }
-
-        }, { error ->
-            Log.d("CLOG", "verespon: ${error.localizedMessage}")
-            val json: String?
-            val response = error.networkResponse
-            if (response != null && response.data != null) {
-                json = String(response.data)
-                val jObj: JSONObject?
-                try {
-                    jObj = JSONObject(json)
-                    val msg = jObj.getString("message")
-                    Toast.makeText(applicationContext, error.localizedMessage, Toast.LENGTH_SHORT).show()
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-            }
-        }) {
-            override fun getParams(): Map<String, String> {
-                val params = HashMap<String, String>()
-                Log.d("dataDiri = ", "hp = " + App.preferenceHelper.hp + " password = " + App.preferenceHelper.password)
-                params["hp"] = App.preferenceHelper.hp
-                params["password"] = App.preferenceHelper.password
-
-                return params
-            }
-        }
-
-        // Adding request to request queue
-        App.instance?.addToRequestQueue(strReq, tag_string_req)
-
-    }
 
     override fun onBackPressed() {
         super.onBackPressed()
@@ -368,7 +410,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
         } else {
             if (checkPlayServices()) {
-                displayLocation()
+                getLocationUpdates()
             }
         }
     }
@@ -411,12 +453,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         return true
     }
 
-
-    override fun onStart() {
-        super.onStart()
-        setUpLocation()
-    }
-
     //add gps location now
     private fun displayLocation() {
         Log.d("LOG Cek lokasi", "cek lokasi")
@@ -428,14 +464,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                 val bestProvider = locationManager.getBestProvider(Criteria(), false)
                 if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     Log.d("CEKLOKASI", "GPS")
-                    location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    //     location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                 } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    //            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                     Log.d("CEKLOKASI", "NETWORK")
                 }
-                //   val location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+                val location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
                 if (location != null) {
-                    val latLng = LatLng(location!!.latitude, location!!.longitude)
+                    val latLng = LatLng(location.latitude, location.longitude)
                     markerLocation(latLng)
                     Log.d("testLocation= ", "lat = " + location!!.latitude + "long = " + location!!.longitude)
                     mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
@@ -546,7 +582,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             Log.v("CEKCLOGNetwork Provider", "providerNetwork is avaible");
         }
-        setUpLocation()
+        startLocationUpdates()
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             AlertDialog.Builder(this)
                     .setMessage("GPS TIDAK AKTIF")
@@ -564,6 +600,13 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+    }
+
+
+
     override fun onMapReady(googleMap: GoogleMap) {
         Log.d("LOG onMapReady", "onMapReady()")
         mMap = googleMap
@@ -576,7 +619,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
         mMap!!.setOnMarkerClickListener(this)
         mMap!!.setOnInfoWindowClickListener(this)
 
-        displayLocation()
+        setUpLocation()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 
@@ -873,7 +916,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
             val request = Request.Builder().url(url).build()
             val response = client.newCall(request).execute()
             val data = response.body()?.string()
-            Log.d("GoogleMap", " data : $data")
+            Log.d("GoogleMapTest", " data : $data")
             val result = ArrayList<List<LatLng>>()
             try {
                 val respObj = Gson().fromJson(data, GoogleMapDTO::class.java)

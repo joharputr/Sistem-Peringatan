@@ -22,7 +22,10 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".User.UI.EditUser"></activity>
+        <activity android:name=".LoginRegister.FirebaseAuthActivity">
+
+        </activity>
+        <activity android:name=".User.UI.EditUserActivity" />
         <activity
             android:name=".Admin.UI.Activity.EditLocationPointActivity"
             android:label="Edit Location Point" />
@@ -33,7 +36,7 @@
             android:label="@string/title_activity_edit_radius" />
         <activity android:name=".Admin.UI.Activity.EditAreaActivity" />
         <activity android:name=".Admin.UI.Activity.ListDataAreaActivity" />
-        <activity android:name=".Admin.UI.Activity.MapsAdminActivity"></activity>
+        <activity android:name=".Admin.UI.Activity.MapsAdminActivity" />
         <activity
             android:name=".Admin.UI.Activity.AddNewPointActivity"
             android:label="@string/title_activity_add_new_point" />

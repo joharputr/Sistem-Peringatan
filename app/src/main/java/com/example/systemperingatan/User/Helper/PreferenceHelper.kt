@@ -36,10 +36,14 @@ class PreferenceHelper(app: Application) {
         set(value) = spe.putString("hp", value).apply()
         get() = sp.getString("hp", "") ?: ""
 
+    var phonefb: String
+        set(value) = spe.putString("phonefb", value).apply()
+        get() = sp.getString("phonefb", "") ?: ""
+
     var password: String
         set(value) = spe.putString("password", value).apply()
         get() = sp.getString("password", "") ?: ""
-    fun logOut() {
+    fun clearAll() {
         spe.clear().apply()
     }
 

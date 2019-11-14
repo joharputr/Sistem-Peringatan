@@ -14,7 +14,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 
-class EditUser : AppCompatActivity() {
+class EditUserActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

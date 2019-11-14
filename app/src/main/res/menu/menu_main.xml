@@ -10,19 +10,16 @@
             android:icon="@drawable/location_item"
             android:title="Admin View" />
 
-        <item
-            android:id="@+id/nav_list"
-            android:icon="@drawable/location_item"
-            android:title="Daftar Area " />
-
-        <item
+    <!--    <item
             android:id="@+id/editUser"
             android:icon="@drawable/location_item"
-            android:title="Edit User " />
+            android:title="Edit User " />-->
+
         <item
-            android:id="@+id/logout"
+            android:id="@+id/logoutfb"
             android:icon="@drawable/location_item"
-            android:title="Logout " />
+            android:title="Logout" />
+
 
     </group>
 </menu>

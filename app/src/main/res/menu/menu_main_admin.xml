@@ -8,7 +8,15 @@
         <item
             android:id="@+id/nav_list"
             android:icon="@drawable/location_item"
-            android:title="Daftar Area " />
+            android:title="Daftar Area" />
+        <item
+            android:id="@+id/edit_data_admin"
+            android:icon="@drawable/location_item"
+            android:title="Edit Data Admin" />
+        <item
+            android:id="@+id/logout"
+            android:icon="@drawable/location_item"
+            android:title="Logout" />
 
 
     </group>

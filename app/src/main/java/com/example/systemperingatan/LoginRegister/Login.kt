@@ -23,7 +23,7 @@ class Login : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(com.example.systemperingatan.R.layout.activity_login)
         //delete All shared preference
-        App.preferenceHelper.logOut()
+        App.preferenceHelper.clearAll()
         loginbtn.setOnClickListener {
             validateInput()
         }
@@ -42,7 +42,7 @@ class Login : AppCompatActivity() {
     }
 
     private fun checklogin() {
-        if (App.preferenceHelper.is_login == "1") {
+        if (App.preferenceHelper.tipe == "admin") {
 
             AlertDialog.Builder(this)
                     .setMessage("Anda Sudah login")
@@ -54,10 +54,10 @@ class Login : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
+  /*  override fun onBackPressed() {
       //  super.onBackPressed()
         Toast.makeText(this, "Back press disabled!", Toast.LENGTH_SHORT).show();
-    }
+    }*/
 
 
     private fun validateInput() {

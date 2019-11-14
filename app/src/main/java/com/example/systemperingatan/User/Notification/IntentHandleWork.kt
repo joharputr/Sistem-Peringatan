@@ -6,14 +6,24 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.util.Log
+import android.view.View
+import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.core.app.NotificationCompat
+import com.android.volley.toolbox.StringRequest
+import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
+import com.example.systemperingatan.App
 import com.example.systemperingatan.BuildConfig
+import com.example.systemperingatan.LoginRegister.Login
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
+import kotlinx.android.synthetic.main.activity_register.*
+import org.json.JSONException
+import org.json.JSONObject
+import java.text.SimpleDateFormat
 import java.util.*
 
 private const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
@@ -33,12 +43,21 @@ class IntentHandleWork : JobIntentService() {
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
 
             val data = getFirstReminder(geofencingEvent.triggeringGeofences)
+            val id = data?.number
             val message = data?.message
             val minim_distance = data?.minim_distance
 
+
+            val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
+            val currentDate = sdf.format(Date())
+
+            Log.d("testIdMasuk = ",id +" nama  =  "+data?.message+ " dateis  = "+currentDate)
+            postDataEnterToServer(data?.message,data?.minim_distance,currentDate)
             if (message != null) {
                 sendNotification(1, message, minim_distance!!)
             }
+
+
         } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             val data = getFirstReminder(geofencingEvent.triggeringGeofences)
             val message = data?.message
@@ -59,6 +78,8 @@ class IntentHandleWork : JobIntentService() {
             Log.d("datanotif = ", "gagal")
         }
     }
+
+
 
     private fun getFirstReminder(triggeringGeofences: List<Geofence>): DataItem? {
         val firstGeofence = triggeringGeofences[0]
@@ -120,6 +141,59 @@ class IntentHandleWork : JobIntentService() {
 
 
         return notificationBuilder.build()
+    }
+
+    private fun postDataEnterToServer(name :String?, zone: String?,date :String) {
+
+        val tag_string_req = "req_postdata"
+        val strReq = object : StringRequest(Method.POST,
+                NetworkAPI.postDataEnter, { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+
+                val jObj = JSONObject(response)
+                val status1 = jObj.getString("status")
+                Log.d("statuspost  = ", status1)
+                if (status1.contains("200")) {
+                } else {
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("error catch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, error.localizedMessage, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+        }) {
+            override fun getParams(): Map<String, String> {
+                val params = HashMap<String, String>()
+                params["phone"] = App.preferenceHelper.phonefb
+                params["nama_area"] = name.toString()
+                params["waktu"] = date
+                params["nama_zona_terdekat"] = zone.toString()
+                return params
+            }
+        }
+
+        // Adding request to request queue
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+
     }
 
     private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
