@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:layout_gravity="center"
+    android:layout_marginLeft="19dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginRight="15dp"
+
+    android:background="@android:color/transparent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="150dp">
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Telepon : "
+            app:layout_constraintBottom_toBottomOf="@+id/phone"
+            app:layout_constraintEnd_toStartOf="@+id/phone"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/phone" />
+
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Waktu Masuk: "
+            app:layout_constraintBottom_toBottomOf="@+id/waktu"
+            app:layout_constraintEnd_toStartOf="@+id/waktu"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/waktu" />
+
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Area : "
+            app:layout_constraintBottom_toBottomOf="@+id/area_data"
+            app:layout_constraintEnd_toStartOf="@+id/area_data"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/area_data" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zona : "
+            app:layout_constraintBottom_toBottomOf="@+id/zona"
+            app:layout_constraintEnd_toStartOf="@+id/zona"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/zona" />
+
+        <TextView
+            android:id="@+id/phone"
+            android:layout_width="150dp"
+            android:layout_height="20dp"
+            android:fontFamily="roboto"
+            android:gravity="center_horizontal"
+            android:textSize="12sp"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.84"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.13999999"
+            tools:text="Soekarno" />
+
+        <TextView
+            android:id="@+id/area_data"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/phone"
+            android:gravity="center_horizontal"
+            android:text="sinergi"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/longitude"
+            app:layout_constraintStart_toStartOf="@+id/waktu"
+            app:layout_constraintTop_toBottomOf="@+id/waktu"
+            app:layout_constraintVertical_bias="0.22000003" />
+
+        <TextView
+            android:id="@+id/waktu"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/phone"
+            android:gravity="center_horizontal"
+            android:text="15/11/2019 22:21:23"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/phone"
+            app:layout_constraintStart_toStartOf="@+id/phone"
+            app:layout_constraintTop_toBottomOf="@+id/phone"
+            app:layout_constraintVertical_bias="0.120000005" />
+
+        <TextView
+            android:id="@+id/zona"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/phone"
+            android:gravity="center_horizontal"
+            android:text="zona 1"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/latitude"
+            app:layout_constraintStart_toStartOf="@+id/area_data"
+            app:layout_constraintTop_toBottomOf="@+id/area_data"
+            app:layout_constraintVertical_bias="0.39" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.cardview.widget.CardView>

@@ -36,6 +36,7 @@ import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
+import com.example.systemperingatan.LoginRegister.FirebaseAuthActivity
 import com.example.systemperingatan.LoginRegister.Login
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.Notification.GeofenceTransitionService
@@ -269,9 +270,13 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         if (id == R.id.edit_data_admin) {
             startActivity(Intent(this, EditUserActivity::class.java))
         }
+        if (id == R.id.data_enter_exit) {
+            logout()
+            startActivity(Intent(this, ListDataExitEnter::class.java))
+        }
         if (id == R.id.logout) {
             logout()
-            startActivity(Intent(this, Login::class.java))
+            startActivity(Intent(this, FirebaseAuthActivity::class.java))
         }
 
         item.setChecked(true)
@@ -449,7 +454,6 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
                 .title("G:" + 0 + " Lokasi Saya")
-                .snippet(title)
         if (mMap != null) {
             // Remove the anterior marker
             if (locationMarker != null)

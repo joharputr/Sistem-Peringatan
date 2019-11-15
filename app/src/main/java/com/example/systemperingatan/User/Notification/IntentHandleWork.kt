@@ -48,7 +48,7 @@ class IntentHandleWork : JobIntentService() {
             val minim_distance = data?.minim_distance
 
 
-            val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
+            val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
             val currentDate = sdf.format(Date())
 
             Log.d("testIdMasuk = ",id +" nama  =  "+data?.message+ " dateis  = "+currentDate)
@@ -104,6 +104,8 @@ class IntentHandleWork : JobIntentService() {
             mChannel.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
             mChannel.setShowBadge(false)
             notificatioMng.createNotificationChannel(mChannel)
+        }else{
+            Log.d("CLOG","dibawah 0")
         }
 
         val random = Random()
@@ -126,9 +128,8 @@ class IntentHandleWork : JobIntentService() {
         } else {
             bigText = "Error = $msg"
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            notificationBuilder
-                    .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+
+            notificationBuilder.setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
                     .setColor(Color.RED)
                     .setStyle(NotificationCompat.BigTextStyle()
                             .bigText(bigText))
@@ -137,7 +138,7 @@ class IntentHandleWork : JobIntentService() {
                     .setContentIntent(notificationPendingIntent)
                     .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
                     .setPriority(NotificationManager.IMPORTANCE_HIGH)
-        }
+
 
 
         return notificationBuilder.build()
@@ -183,7 +184,11 @@ class IntentHandleWork : JobIntentService() {
         }) {
             override fun getParams(): Map<String, String> {
                 val params = HashMap<String, String>()
-                params["phone"] = App.preferenceHelper.phonefb
+                if (App.preferenceHelper.tipe == "admin"){
+                    params["phone"] = "Admin"
+                }else{
+                    params["phone"] = App.preferenceHelper.phonefb
+                }
                 params["nama_area"] = name.toString()
                 params["waktu"] = date
                 params["nama_zona_terdekat"] = zone.toString()
@@ -206,4 +211,9 @@ class IntentHandleWork : JobIntentService() {
                     intent)
         }
     }
+
+
+    //redmi 6
+    // redmi 4
+    //rrealme busul
 }

@@ -35,10 +35,10 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerviewzona"
-            android:layout_width="350dp"
-            android:layout_height="150dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:layout_marginTop="540dp"/>
+            android:layout_marginTop="450dp"/>
 
 
     </RelativeLayout>

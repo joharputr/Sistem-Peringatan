@@ -14,6 +14,10 @@
             android:icon="@drawable/location_item"
             android:title="Edit Data Admin" />
         <item
+            android:id="@+id/data_enter_exit"
+            android:icon="@drawable/location_item"
+            android:title="Daftar data User" />
+        <item
             android:id="@+id/logout"
             android:icon="@drawable/location_item"
             android:title="Logout" />

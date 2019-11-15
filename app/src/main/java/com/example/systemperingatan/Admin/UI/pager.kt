@@ -8,7 +8,7 @@ import com.example.systemperingatan.Admin.UI.Fragment.AreaFragment
 import com.example.systemperingatan.Admin.UI.Fragment.ZonaEvakuasiFragment
 
 class pager(fm: FragmentManager, private val context: Context) : FragmentPagerAdapter(fm) {
-    var title: String? = null
+
     private val pages = listOf(
             AreaFragment(),
             ZonaEvakuasiFragment()
@@ -23,9 +23,8 @@ class pager(fm: FragmentManager, private val context: Context) : FragmentPagerAd
     }
 
     override fun getPageTitle(position: Int): CharSequence? {
-
         return when (position) {
-            0 -> "Area"
+            0    -> "Area"
             else -> "Zona Evakuasi"
         }
     }

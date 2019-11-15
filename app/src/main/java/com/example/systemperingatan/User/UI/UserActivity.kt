@@ -88,7 +88,15 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     //firebase
     lateinit var  mAuth : FirebaseAuth
+    private val geofencePendingIntent: PendingIntent by lazy {
 
+        val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
+        PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT)
+    }
     companion object {
         var user = "user"
         fun getAll(): List<DataItem> {
@@ -128,7 +136,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         //sharedpref
         private var preferences: SharedPreferences? = null
 
-        private var mpendingIntent: PendingIntent? = null
+    //    private var mpendingIntent: PendingIntent? = null
         private var locationMarker: Marker? = null
         //spinner
         private val gson = Gson()
@@ -144,6 +152,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
 
+
+
     }
 
 
@@ -154,7 +164,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         initMap()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        mpendingIntent = null
+       // mpendingIntent = null
 
         Log.d("SharedPref = ", getAll().toString())
         setSupportActionBar(toolbarUser)
@@ -178,10 +188,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         Log.d("mauth ", mAuth.toString())
     }
 
-
-
     private fun getLocationUpdates() {
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest()
         locationRequest.interval = 50000
@@ -221,7 +228,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
 
     override fun onLocationChanged(location: Location?) {
-        setUpLocation()
+      /*  val latLng = LatLng(location?.latitude!!, location.longitude)
+        markerLocation(latLng)
+        Log.d("testLocationchanged = ", "lat = " + location.latitude + "long = " + location.longitude)
+        mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))*/
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
@@ -284,7 +294,11 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val navigationView: NavigationView = findViewById(R.id.nav_viewuser)
         val headerView: View = navigationView.getHeaderView(0)
         val navUsername: TextView = headerView.findViewById(R.id.nama)
-        navUsername.text = "Selamat Datang, " +App.preferenceHelper.nama
+        if (App.preferenceHelper.tipe == "admin") {
+            navUsername.text = "Selamat Datang, " + App.preferenceHelper.nama
+        }else{
+            navUsername.text = "Selamat Datang, " + App.preferenceHelper.phonefb
+        }
 
         if (App.preferenceHelper.tipe != "admin") {
             val nav_Menu: Menu = navigationView.getMenu()
@@ -351,7 +365,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
             geofencingClient?.addGeofences(
                     createGeofenceRequest(geofence),
-                    createGeofencePendingIntent()
+                    geofencePendingIntent
             )?.run {
                 addOnSuccessListener {
                     Log.d("CLOGsukses = ", "sukses = $it")
@@ -410,7 +424,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         } else {
             if (checkPlayServices()) {
-                getLocationUpdates()
+              //  getLocationUpdates()
+                getLastKnownLocation()
             }
         }
     }
@@ -473,7 +488,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
                     markerLocation(latLng)
-                    Log.d("testLocation= ", "lat = " + location!!.latitude + "long = " + location!!.longitude)
+                    Log.d("testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
                     mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
                 } else {
                     Log.w("LOG FAILED", "No locationretrieved yet")
@@ -499,7 +514,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val markerOptions = MarkerOptions()
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title("lokasi saya")
+                .title("G:" + 0 + " Lokasi Saya")
         if (mMap != null) {
             if (locationMarker != null)
                 locationMarker!!.remove()
@@ -510,7 +525,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         }
     }
 
-    private fun createGeofencePendingIntent(): PendingIntent {
+  /*  private fun createGeofencePendingIntent(): PendingIntent {
         if (mpendingIntent != null) {
             Log.d("LOGCREATEPENDING ", "pending isi")
             return mpendingIntent as PendingIntent
@@ -520,7 +535,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
 
         return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-    }
+    }*/
 
 
     private fun reloadMapMarkersZonaWithoutRecyclerView() {
@@ -549,7 +564,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                             if (this@UserActivity::titikGps.isInitialized) {
                                 val URL = getDirectionURL(titikGps, latlang)
-                                GetDirection(URL).execute()
+                          //      GetDirection(URL).execute()
                             } else {
                                 Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
                             }
@@ -582,7 +597,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             Log.v("CEKCLOGNetwork Provider", "providerNetwork is avaible");
         }
-        startLocationUpdates()
+        //startLocationUpdates()
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             AlertDialog.Builder(this)
                     .setMessage("GPS TIDAK AKTIF")
@@ -602,7 +617,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     override fun onPause() {
         super.onPause()
-        stopLocationUpdates()
+    //    stopLocationUpdates()
     }
 
 
@@ -704,6 +719,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         //   mMap!!.clear()
         val dbHelper = GeofenceDbHelper(this)
         dbHelper.DeleteAll()
+        mMap?.clear()
         api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
             override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
                 val data = response.body()
@@ -785,7 +801,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                         val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
                         geofencingClient.addGeofences(
                                 createGeofenceRequest(geofence),
-                                createGeofencePendingIntent()
+                                geofencePendingIntent
                         ).run {
                             addOnSuccessListener {
                                 Log.d("CLOGsukses = ", "sukses = $it")
@@ -842,9 +858,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                             if (this@UserActivity::titikGps.isInitialized) {
                                 val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
 
-                                val URL = getDirectionURL(titikGps, latlang)
+                            /*    val URL = getDirectionURL(titikGps, latlang)
                                 Log.d("GoogleMap1", "URL : $URL")
-                                GetDirection(URL).execute()
+                                GetDirection(URL).execute()*/
 
                                 Log.d("CLOG = ", "distance = " + distance.toString())
 

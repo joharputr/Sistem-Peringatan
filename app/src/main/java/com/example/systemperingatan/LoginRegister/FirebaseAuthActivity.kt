@@ -84,6 +84,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
         mCallbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 progressbar.visibility = View.GONE
+                Log.d("onVerificatsucces = ", credential.toString())
                 signIn(credential)
             }
 

@@ -36,6 +36,7 @@
             android:label="@string/title_activity_edit_radius" />
         <activity android:name=".Admin.UI.Activity.EditAreaActivity" />
         <activity android:name=".Admin.UI.Activity.ListDataAreaActivity" />
+        <activity android:name=".Admin.UI.Activity.ListDataExitEnter" />
         <activity android:name=".Admin.UI.Activity.MapsAdminActivity" />
         <activity
             android:name=".Admin.UI.Activity.AddNewPointActivity"

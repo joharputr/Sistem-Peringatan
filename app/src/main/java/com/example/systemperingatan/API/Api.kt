@@ -1,5 +1,6 @@
 package com.example.systemperingatan.API
 
+import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseExitEnter
 import com.example.systemperingatan.API.Pojo.Response
 import retrofit2.Call
 import retrofit2.http.Body
@@ -16,6 +17,10 @@ interface Api {
     @GET("lihat")
     @Headers("Content-Type: application/json")
     fun allData(): Call<Response>
+
+    @GET("lihatDataEnter")
+    @Headers("Content-Type: application/json")
+    fun dataEnter(): Call<ResponseExitEnter>
 
     @DELETE("hapus/{number}")
     fun deleteData(@Path("number") number: String): Call<Response>
