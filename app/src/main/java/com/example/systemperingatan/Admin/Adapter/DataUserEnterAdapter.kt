@@ -9,7 +9,7 @@ import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.item_view_enter.view.*
 
 
-class DataUserAdapter(private val data: ArrayList<DataItemExitEnter>) : RecyclerView.Adapter<DataUserAdapter.ViewHolder>() {
+class DataUserEnterAdapter(private val data: ArrayList<DataItemExitEnter>) : RecyclerView.Adapter<DataUserEnterAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: DataItemExitEnter) = itemView.apply {

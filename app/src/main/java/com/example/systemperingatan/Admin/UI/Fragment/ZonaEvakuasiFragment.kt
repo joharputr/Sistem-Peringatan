@@ -17,7 +17,6 @@ import com.example.systemperingatan.Admin.UI.Activity.EditAreaActivity
 import com.example.systemperingatan.Admin.UI.Activity.EditLocationPointActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
-import kotlinx.android.synthetic.main.activity_list_data_area.*
 import kotlinx.android.synthetic.main.areafragment.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -25,10 +24,10 @@ import retrofit2.Callback
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class ZonaEvakuasiFragment : Fragment() {
     private var itemListArea = ArrayList<DataItem>()
-    val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick,this::onLongClick)
+    val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick, this::onLongClick)
 
     private fun onLongClick(dataItem: DataItem) {
-        if (App.preferenceHelper.tipe == "admin"){
+        if (App.preferenceHelper.tipe == "admin") {
             val options: Array<String> = arrayOf("Edit Nama", "Edit Lokasi")
             AlertDialog.Builder(context)
                     // whcih = index dar pilihan
@@ -36,7 +35,7 @@ class ZonaEvakuasiFragment : Fragment() {
                         when (which) {
                             0 -> {
                                 //edit
-                                editStudent(dataItem)
+                                editZona(dataItem)
 
                             }
                             1 -> {
@@ -58,7 +57,7 @@ class ZonaEvakuasiFragment : Fragment() {
         startActivity(intent)
     }
 
-    private fun editStudent(dataItem: DataItem) {
+    private fun editZona(dataItem: DataItem) {
         val intent = Intent(context, EditAreaActivity::class.java)
         intent.putExtra("editArea", dataItem)
         startActivity(intent)
@@ -74,6 +73,7 @@ class ZonaEvakuasiFragment : Fragment() {
             adapter = adapterArea
             layoutManager = LinearLayoutManager(context)
         }
+
     }
 
     private fun onClick(dataItem: DataItem) {
@@ -82,7 +82,10 @@ class ZonaEvakuasiFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-     //   reloadMapMarkers()
+        swipeArea.setOnRefreshListener {
+            reloadMapMarkers()
+            swipeArea.isRefreshing = false
+        }
     }
 
     override fun onResume() {
@@ -111,13 +114,11 @@ class ZonaEvakuasiFragment : Fragment() {
 
                         val dataFav1 = DataItem(number, null, null, latitude.toString(),
                                 null, message, null, longitude.toString(), null,
-                                null, null,null)
+                                null, null, null)
                         Log.d("dataList = ", dataFav1.toString())
                         itemListArea.addAll(listOf(dataFav1))
+                        adapterArea.notifyDataSetChanged()
                         initRecyclerView()
-
-                    } else {
-                        Toast.makeText(context, "errorGet = " + response.message(), Toast.LENGTH_SHORT).show()
                     }
                 }
             }

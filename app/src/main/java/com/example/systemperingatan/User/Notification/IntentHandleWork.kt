@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.core.app.NotificationCompat
@@ -15,12 +14,10 @@ import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.App
 import com.example.systemperingatan.BuildConfig
-import com.example.systemperingatan.LoginRegister.Login
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
-import kotlinx.android.synthetic.main.activity_register.*
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -51,21 +48,29 @@ class IntentHandleWork : JobIntentService() {
             val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
             val currentDate = sdf.format(Date())
 
-            Log.d("testIdMasuk = ",id +" nama  =  "+data?.message+ " dateis  = "+currentDate)
-            postDataEnterToServer(data?.message,data?.minim_distance,currentDate)
+            Log.d("testIdMasuk = ", id + " nama  =  " + data?.message + " dateis  = " + currentDate)
+            postDataEnterToServer(data?.message, data?.minim_distance, currentDate)
             if (message != null) {
                 sendNotification(1, message, minim_distance!!)
             }
 
 
         } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            val data = getFirstReminder(geofencingEvent.triggeringGeofences)
-            val message = data?.message
-            val minim_distance = data?.minim_distance
 
-            if (message != null) {
-                sendNotification(2, message, minim_distance!!)
+            val data = getFirstReminder(geofencingEvent.triggeringGeofences)
+            if (data?.type == "circle") {
+                val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
+                val currentDate = sdf.format(Date())
+
+                val message = data.message
+                val minim_distance = data.minim_distance
+                postDataExitToServer(data.message, currentDate)
+                Log.d("namaEXIT = ", message + " minim = " + minim_distance)
+                if (message != null) {
+                    sendNotification(2, message, minim_distance!!)
+                }
             }
+
         } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
             val data = getFirstReminder(geofencingEvent.triggeringGeofences)
             val message = data?.message
@@ -78,7 +83,6 @@ class IntentHandleWork : JobIntentService() {
             Log.d("datanotif = ", "gagal")
         }
     }
-
 
 
     private fun getFirstReminder(triggeringGeofences: List<Geofence>): DataItem? {
@@ -104,8 +108,8 @@ class IntentHandleWork : JobIntentService() {
             mChannel.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
             mChannel.setShowBadge(false)
             notificatioMng.createNotificationChannel(mChannel)
-        }else{
-            Log.d("CLOG","dibawah 0")
+        } else {
+            Log.d("CLOG", "dibawah 0")
         }
 
         val random = Random()
@@ -129,22 +133,22 @@ class IntentHandleWork : JobIntentService() {
             bigText = "Error = $msg"
         }
 
-            notificationBuilder.setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
-                    .setColor(Color.RED)
-                    .setStyle(NotificationCompat.BigTextStyle()
-                            .bigText(bigText))
-                    .setContentText(bigText)
-                    .setContentTitle("Geofence Notification!")
-                    .setContentIntent(notificationPendingIntent)
-                    .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
-                    .setPriority(NotificationManager.IMPORTANCE_HIGH)
+        notificationBuilder.setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                .setColor(Color.RED)
+                .setStyle(NotificationCompat.BigTextStyle()
+                        .bigText(bigText))
+                .setContentText(bigText)
+                .setContentTitle("Geofence Notification!")
+                .setContentIntent(notificationPendingIntent)
+                .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
+                .setPriority(NotificationManager.IMPORTANCE_HIGH)
 
 
 
         return notificationBuilder.build()
     }
 
-    private fun postDataEnterToServer(name :String?, zone: String?,date :String) {
+    private fun postDataEnterToServer(name: String?, zone: String?, date: String) {
 
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
@@ -184,14 +188,71 @@ class IntentHandleWork : JobIntentService() {
         }) {
             override fun getParams(): Map<String, String> {
                 val params = HashMap<String, String>()
-                if (App.preferenceHelper.tipe == "admin"){
+                if (App.preferenceHelper.tipe == "admin") {
                     params["phone"] = "Admin"
-                }else{
+                } else {
                     params["phone"] = App.preferenceHelper.phonefb
                 }
-                params["nama_area"] = name.toString()
+                params["area"] = name.toString()
                 params["waktu"] = date
                 params["nama_zona_terdekat"] = zone.toString()
+                return params
+            }
+        }
+
+        // Adding request to request queue
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+
+    }
+
+    private fun postDataExitToServer(name: String?, waktu: String?) {
+
+        val tag_string_req = "req_postdata"
+        val strReq = object : StringRequest(Method.POST,
+                NetworkAPI.postDataExit, { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+
+                val jObj = JSONObject(response)
+                val status1 = jObj.getString("status")
+                Log.d("statuspost  = ", status1)
+                if (status1.contains("200")) {
+                    Log.d("Success", "post data exit")
+                } else {
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("error catch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, error.localizedMessage, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+        }) {
+            override fun getParams(): Map<String, String> {
+                val params = HashMap<String, String>()
+                if (App.preferenceHelper.tipe == "admin") {
+                    params["phone"] = "Admin"
+                } else {
+                    params["phone"] = App.preferenceHelper.phonefb
+                }
+                params["area"] = name.toString()
+                params["waktu"] = waktu.toString()
                 return params
             }
         }

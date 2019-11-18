@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:layout_gravity="center"
+    android:layout_marginLeft="19dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginRight="15dp"
+
+    android:background="@android:color/transparent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Telepon : "
+            app:layout_constraintBottom_toBottomOf="@+id/phone"
+            app:layout_constraintEnd_toStartOf="@+id/phone"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/phone" />
+
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Waktu Keluar : "
+            app:layout_constraintBottom_toBottomOf="@+id/waktu_exit"
+            app:layout_constraintEnd_toEndOf="@+id/textView7"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="@+id/textView7"
+            app:layout_constraintTop_toBottomOf="@+id/textView7"
+            app:layout_constraintVertical_bias="1.0" />
+
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Area : "
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/textView8"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="@+id/textView8"
+            app:layout_constraintTop_toBottomOf="@+id/textView8"
+            app:layout_constraintVertical_bias="0.060000002" />
+
+
+        <TextView
+            android:id="@+id/phone"
+            android:layout_width="150dp"
+            android:layout_height="20dp"
+            android:fontFamily="roboto"
+            android:gravity="center_horizontal"
+            android:textSize="12sp"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.84"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.13999999"
+            tools:text="Soekarno" />
+
+        <TextView
+            android:id="@+id/area_data_exit"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/phone"
+            android:gravity="center_horizontal"
+            android:text="sinergi"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/waktu_exit"
+            app:layout_constraintStart_toEndOf="@+id/textView8"
+            app:layout_constraintTop_toTopOf="@+id/textView9"
+            app:layout_constraintVertical_bias="0.050000012" />
+
+        <TextView
+            android:id="@+id/waktu_exit"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/phone"
+            android:gravity="center_horizontal"
+            android:text="15/11/2019 22:21:23"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/phone"
+            app:layout_constraintStart_toStartOf="@+id/phone"
+            app:layout_constraintTop_toBottomOf="@+id/phone"
+            app:layout_constraintVertical_bias="0.120000005" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.cardview.widget.CardView>

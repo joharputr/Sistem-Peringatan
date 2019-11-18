@@ -22,6 +22,10 @@ interface Api {
     @Headers("Content-Type: application/json")
     fun dataEnter(): Call<ResponseExitEnter>
 
+    @GET("lihatDataExit")
+    @Headers("Content-Type: application/json")
+    fun dataExit(): Call<ResponseExitEnter>
+
     @DELETE("hapus/{number}")
     fun deleteData(@Path("number") number: String): Call<Response>
 

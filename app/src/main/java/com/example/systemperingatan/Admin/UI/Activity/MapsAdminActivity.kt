@@ -125,7 +125,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         fab1_mail = findViewById(R.id.fab1)
         fab2_share = findViewById(R.id.fab2)
         fab3_titik = findViewById(R.id.fab2_titik)
-        fab4_user = findViewById(R.id.fab2_User)
+
         fab_close = AnimationUtils.loadAnimation(applicationContext, R.anim.fab_close)
         fab_open = AnimationUtils.loadAnimation(applicationContext, R.anim.fab_open)
         fab_clock = AnimationUtils.loadAnimation(applicationContext, R.anim.rotate_fab_clock)
@@ -136,36 +136,34 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
                 textview_mail.visibility = View.INVISIBLE
                 textview_share.visibility = View.INVISIBLE
                 textview_titik.visibility = View.INVISIBLE
-                textview_User.visibility = View.INVISIBLE
 
                 fab2_share!!.startAnimation(fab_close)
                 fab1_mail!!.startAnimation(fab_close)
                 fab3_titik!!.startAnimation(fab_close)
-                fab4_user!!.startAnimation(fab_close)
+
                 fab_main!!.startAnimation(fab_anticlock)
 
                 fab2_share!!.isClickable = false
                 fab1_mail!!.isClickable = false
                 fab3_titik!!.isClickable = false
-                fab4_user!!.isClickable = false
+
                 isOpen = false
 
             } else {
                 textview_mail.visibility = View.VISIBLE
                 textview_share.visibility = View.VISIBLE
                 textview_titik.visibility = View.VISIBLE
-                textview_User.visibility = View.VISIBLE
 
                 fab2_share!!.startAnimation(fab_open)
                 fab1_mail!!.startAnimation(fab_open)
                 fab2_titik!!.startAnimation(fab_open)
-                fab4_user!!.startAnimation(fab_open)
+
                 fab_main!!.startAnimation(fab_clock)
 
                 fab2_share!!.isClickable = true
                 fab1_mail!!.isClickable = true
                 fab2_titik!!.isClickable = true
-                fab4_user!!.isClickable = true
+
                 isOpen = true
             }
         }
@@ -188,11 +186,6 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
                 val intent = AddNewPointActivity.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
                 startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
-        }
-
-        fab4_user!!.setOnClickListener {
-            val intent = Intent(this, UserActivity::class.java)
-            startActivity(intent)
         }
 
 
@@ -730,7 +723,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         mMap!!.addMarker(MarkerOptions()
                 .title("G:$number Nama Area Evakuasi = $message")
                 .snippet("Click here if you want delete this geofence")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
     }
 

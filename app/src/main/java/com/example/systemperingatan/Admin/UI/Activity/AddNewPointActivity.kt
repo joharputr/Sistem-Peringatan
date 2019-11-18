@@ -30,12 +30,18 @@ import com.example.systemperingatan.User.Notification.GeofenceTransitionService
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import kotlinx.android.synthetic.main.activity_add_new_point.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -77,6 +83,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         private const val EXTRA_LAT_LNG = "EXTRA_LAT_LNG"
         private const val EXTRA_ZOOM = "EXTRA_ZOOM"
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
+        private var placesClient: PlacesClient? = null
 
         fun newIntent(context: Context, latLng: LatLng, zoom: Float): Intent {
             val intent = Intent(context, AddNewPointActivity::class.java)
@@ -98,8 +105,38 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         mpendingIntent = null
         reloadMapMarkers()
         finishAddPoint()
-
+        SearchPlace()
         disableView()
+    }
+
+    private fun SearchPlace() {
+
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyCRK_C8YiQf46yeP6Usf-_Cqrg2a5-OMuM")
+        }
+
+        placesClient = Places.createClient(this)
+
+        // Initialize the AutocompleteSupportFragment.
+        val autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment_point) as AutocompleteSupportFragment?
+
+        autocompleteFragment?.setPlaceFields(Arrays.asList(Place.Field.ID,
+                Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS))
+
+        autocompleteFragment?.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(place.latLng, 14f)
+                map!!.animateCamera(cameraUpdate)
+                Log.d("PLACESTest", "Place: " + place.getName() + ", " + place.getId() +
+                        " Latitude = " + place.latLng?.latitude + " address =" + place.address)
+            }
+
+            override fun onError(status: Status) {
+                // TODO: Handle the error.
+                Log.d("PLACES", "An error occurred: $status")
+            }
+        })
+
     }
 
     private fun AddPointLocation() {
@@ -336,7 +373,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
 
                 val address = geocoder.getFromLocation(map!!.cameraPosition.target.latitude, map!!.cameraPosition.target.longitude, 1)
                 Log.d("addressTEST = ", address.get(0).getAddressLine(0))
-                reminder.address =address.get(0).getAddressLine(0)
+                reminder.address = address.get(0).getAddressLine(0)
             } catch (e: IOException) {
                 when {
                     e.message == "grpc failed" -> {/* ignore */
@@ -472,8 +509,6 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                 .strokeColor(R.color.wallet_holo_blue_light)
                 .fillColor(Color.parseColor("#80ff0000")))
     }
-
-
 
 
     private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {

@@ -27,10 +27,10 @@ class Login : AppCompatActivity() {
         loginbtn.setOnClickListener {
             validateInput()
         }
-        buatAkun.setOnClickListener {
-            startActivity(Intent(this, Register::class.java))
-        }
 
+    /*    buatAkun.setOnClickListener {
+            startActivity(Intent(this, Register::class.java))
+        }*/
 
     }
 

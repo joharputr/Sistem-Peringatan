@@ -11,7 +11,7 @@ data class DataItemExitEnter(
         @field:SerializedName("waktu")
         val waktu: String? = null,
 
-        @field:SerializedName("nama_area")
+        @field:SerializedName("area")
         val namaArea: String? = null,
 
         @field:SerializedName("id")

@@ -28,7 +28,7 @@ class AreaFragment : Fragment() {
 
     //long click
     private fun onLongClick(dataItem: DataItem) {
-        if(App.preferenceHelper.tipe == "admin"){
+        if (App.preferenceHelper.tipe == "admin") {
             val options: Array<String> = arrayOf("Edit Nama", "Edit Radius")
             AlertDialog.Builder(context)
                     // whcih = index dar pilihan
@@ -36,7 +36,7 @@ class AreaFragment : Fragment() {
                         when (which) {
                             0 -> {
                                 //edit
-                                editStudent(dataItem)
+                                editArea(dataItem)
 
                             }
                             1 -> {
@@ -51,7 +51,7 @@ class AreaFragment : Fragment() {
 
     }
 
-    private fun editStudent(dataItem: DataItem) {
+    private fun editArea(dataItem: DataItem) {
         val intent = Intent(context, EditAreaActivity::class.java)
         intent.putExtra("editArea", dataItem)
         startActivity(intent)
@@ -81,17 +81,23 @@ class AreaFragment : Fragment() {
 
     }
 
+
     private fun onClick(dataItem: DataItem) {
         Log.d("testdata", dataItem.number)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        // reloadMapMarkers()
+
+        swipeArea.setOnRefreshListener {
+            reloadMapMarkers()
+            swipeArea.isRefreshing = false
+        }
     }
 
     fun reloadMapMarkers() {
         //   mMap!!.clear()
+        itemListArea.clear()
         progressBar_circular.visibility = View.VISIBLE
         App.api.allData().enqueue(object : Callback<Response> {
             override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>) {
@@ -117,8 +123,6 @@ class AreaFragment : Fragment() {
                         adapterArea.notifyDataSetChanged()
                         initRecyclerView()
 
-                    } else {
-                        Toast.makeText(context, "errorGet = " + response.message(), Toast.LENGTH_SHORT).show()
                     }
                 }
             }

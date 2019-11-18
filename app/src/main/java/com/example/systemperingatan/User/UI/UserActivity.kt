@@ -30,15 +30,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.android.volley.toolbox.StringRequest
-import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.Admin.Adapter.ListDataEvacuationZoneAdapter
 import com.example.systemperingatan.Admin.UI.Activity.MapsAdminActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.LoginRegister.FirebaseAuthActivity
-import com.example.systemperingatan.LoginRegister.Login
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.Helper.GoogleMapDTO
 import com.example.systemperingatan.User.Notification.GeofenceBroadcastReceiver
@@ -60,14 +57,9 @@ import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_user.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONException
-import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.set
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, NavigationView.OnNavigationItemSelectedListener {
@@ -87,7 +79,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     private lateinit var titikGps: LatLng
 
     //firebase
-    lateinit var  mAuth : FirebaseAuth
+    lateinit var mAuth: FirebaseAuth
     private val geofencePendingIntent: PendingIntent by lazy {
 
         val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
@@ -97,6 +89,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT)
     }
+
     companion object {
         var user = "user"
         fun getAll(): List<DataItem> {
@@ -120,7 +113,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER /*or GeofencingRequest.INITIAL_TRIGGER_DWELL*/)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT)
                     .addGeofence(geofence)
                     .build()
         }
@@ -136,7 +129,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         //sharedpref
         private var preferences: SharedPreferences? = null
 
-    //    private var mpendingIntent: PendingIntent? = null
+        //    private var mpendingIntent: PendingIntent? = null
         private var locationMarker: Marker? = null
         //spinner
         private val gson = Gson()
@@ -153,7 +146,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
 
 
-
     }
 
 
@@ -164,7 +156,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         initMap()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-       // mpendingIntent = null
+        // mpendingIntent = null
 
         Log.d("SharedPref = ", getAll().toString())
         setSupportActionBar(toolbarUser)
@@ -228,10 +220,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
 
     override fun onLocationChanged(location: Location?) {
-      /*  val latLng = LatLng(location?.latitude!!, location.longitude)
-        markerLocation(latLng)
-        Log.d("testLocationchanged = ", "lat = " + location.latitude + "long = " + location.longitude)
-        mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))*/
+        /*  val latLng = LatLng(location?.latitude!!, location.longitude)
+          markerLocation(latLng)
+          Log.d("testLocationchanged = ", "lat = " + location.latitude + "long = " + location.longitude)
+          mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))*/
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
@@ -296,7 +288,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val navUsername: TextView = headerView.findViewById(R.id.nama)
         if (App.preferenceHelper.tipe == "admin") {
             navUsername.text = "Selamat Datang, " + App.preferenceHelper.nama
-        }else{
+        } else {
             navUsername.text = "Selamat Datang, " + App.preferenceHelper.phonefb
         }
 
@@ -326,9 +318,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
             startActivity(Intent(this, UserActivity::class.java))
         }
 
-       /* if (id == R.id.editUser) {
-            startActivity(Intent(this, EditUserActivity::class.java))
-        }*/
+        /* if (id == R.id.editUser) {
+             startActivity(Intent(this, EditUserActivity::class.java))
+         }*/
 
         if (id == R.id.logoutfb) {
             mAuth.signOut()
@@ -341,7 +333,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         drawerLayoutUser.closeDrawer(GravityCompat.START)
         return true
     }
-
 
 
     override fun onBackPressed() {
@@ -424,7 +415,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         } else {
             if (checkPlayServices()) {
-              //  getLocationUpdates()
+                //  getLocationUpdates()
                 getLastKnownLocation()
             }
         }
@@ -514,7 +505,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val markerOptions = MarkerOptions()
                 .position(location)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title("G:" + 0 + " Lokasi Saya")
+                .title("Lokasi Saya")
         if (mMap != null) {
             if (locationMarker != null)
                 locationMarker!!.remove()
@@ -525,17 +516,17 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         }
     }
 
-  /*  private fun createGeofencePendingIntent(): PendingIntent {
-        if (mpendingIntent != null) {
-            Log.d("LOGCREATEPENDING ", "pending isi")
-            return mpendingIntent as PendingIntent
-        } else {
-            Log.d("LOGCREATEPENDING gagal", "pending null")
-        }
-        val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
+    /*  private fun createGeofencePendingIntent(): PendingIntent {
+          if (mpendingIntent != null) {
+              Log.d("LOGCREATEPENDING ", "pending isi")
+              return mpendingIntent as PendingIntent
+          } else {
+              Log.d("LOGCREATEPENDING gagal", "pending null")
+          }
+          val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
 
-        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-    }*/
+          return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+      }*/
 
 
     private fun reloadMapMarkersZonaWithoutRecyclerView() {
@@ -564,7 +555,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                             if (this@UserActivity::titikGps.isInitialized) {
                                 val URL = getDirectionURL(titikGps, latlang)
-                          //      GetDirection(URL).execute()
+                                //      GetDirection(URL).execute()
                             } else {
                                 Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
                             }
@@ -617,9 +608,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     override fun onPause() {
         super.onPause()
-    //    stopLocationUpdates()
+        //    stopLocationUpdates()
     }
-
 
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -660,7 +650,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val strokeColor = 0xffff0000.toInt(); //red outline
         val shadeColor = 0x44ff0000; //opaque red fill
         mMap!!.addMarker(MarkerOptions()
-                .title("G:$key pesan =  $message")
+                .title(message)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(location))
         mMap!!.addCircle(CircleOptions()
@@ -671,8 +661,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
         mMap!!.addMarker(MarkerOptions()
-                .title("G:$number area = $message")
-                .snippet("Click here if you want delete this geofence")
+                .title(message)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
     }
@@ -691,24 +680,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     }
 
     override fun onInfoWindowClick(marker: Marker) {
-        val requestId = marker.title.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
-        val substring = requestId.split(" ")
-        try {
-            val idList = ArrayList<String>()
-            idList.add(substring[0])
-
-            geofencingClient?.removeGeofences(idList)?.addOnSuccessListener {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    reloadMapMarkers()
-                }
-            }?.addOnFailureListener {
-                Log.e("LOG ERROR WINDOW CLICK", it.localizedMessage)
-                Toast.makeText(this@UserActivity, "Error when remove geofence!", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: SecurityException) {
-            e.localizedMessage
-        } catch (e: SQLException) {
-            e.stackTrace
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            reloadMapMarkers()
         }
     }
 
@@ -858,9 +831,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                             if (this@UserActivity::titikGps.isInitialized) {
                                 val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
 
-                            /*    val URL = getDirectionURL(titikGps, latlang)
-                                Log.d("GoogleMap1", "URL : $URL")
-                                GetDirection(URL).execute()*/
+                                /*    val URL = getDirectionURL(titikGps, latlang)
+                                    Log.d("GoogleMap1", "URL : $URL")
+                                    GetDirection(URL).execute()*/
 
                                 Log.d("CLOG = ", "distance = " + distance.toString())
 
@@ -875,7 +848,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                                 Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
                             }
                         }
-
 
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()

@@ -1,5 +1,4 @@
 package com.example.systemperingatan.API
-
 import com.example.systemperingatan.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -10,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 
 object NetworkAPI {
-    val url = "192.168.1.21"
+    val url = "192.168.1.6"
     var post = "http://$url/ci-restserver/Api/tambah"
     var RegisterUser = "http://$url/ci-restserver/Api/register"
     var LoginUser = "http://$url/ci-restserver/Api/login"
@@ -19,6 +18,7 @@ object NetworkAPI {
     var editUser = "http://$url/ci-restserver/Api/edituser/"
     var delete = "http://$url/ci-restserver/Api/hapus/"
     var postDataEnter = "http://$url/ci-restserver/Api/postDataEnter"
+    var postDataExit = "http://$url/ci-restserver/Api/postDataExit"
     private val base_url = "http://$url/ci-restserver/Api/"
 
     fun getRetrofit(): Retrofit {

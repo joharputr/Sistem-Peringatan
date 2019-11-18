@@ -46,7 +46,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
         //home navigation
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val actionBar = supportActionBar
-        actionBar?.title = "Login Firebase"
+        actionBar?.title = "Login"
     }
 
     //setting menu in action bar
