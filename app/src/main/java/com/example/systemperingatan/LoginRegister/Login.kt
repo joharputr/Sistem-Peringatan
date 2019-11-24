@@ -92,7 +92,6 @@ class Login : AppCompatActivity() {
                         App.preferenceHelper.id= jData.getString("id")
                         App.preferenceHelper.nama = jData.getString("nama")
                         App.preferenceHelper.tipe = jData.getString("tipe")
-                        App.preferenceHelper.hp = jData.getString("hp")
                         App.preferenceHelper.password = jData.getString("password")
 
                         Log.d("dataUSERHP = ", "login = " + App.preferenceHelper.is_login + "" +
@@ -136,7 +135,7 @@ class Login : AppCompatActivity() {
         }) {
             override fun getParams(): Map<String, String> {
                 val params = HashMap<String, String>()
-                params["hp"] = loginhp.text.toString()
+                params["nama"] = loginhp.text.toString()
                 params["password"] = loginpassword.text.toString()
                 return params
             }

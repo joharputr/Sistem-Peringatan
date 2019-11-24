@@ -1,5 +1,6 @@
 package com.example.systemperingatan.User.Notification
 
+import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
@@ -26,6 +27,7 @@ import java.util.*
 private const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
 
 class IntentHandleWork : JobIntentService() {
+    @SuppressLint("SimpleDateFormat")
     override fun onHandleWork(intent: Intent) {
 
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
@@ -44,16 +46,22 @@ class IntentHandleWork : JobIntentService() {
             val message = data?.message
             val minim_distance = data?.minim_distance
 
-
             val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
             val currentDate = sdf.format(Date())
 
             Log.d("testIdMasuk = ", id + " nama  =  " + data?.message + " dateis  = " + currentDate)
-            postDataEnterToServer(data?.message, data?.minim_distance, currentDate)
-            if (message != null) {
-                sendNotification(1, message, minim_distance!!)
-            }
+            Log.d("testtypepoint = ", id + " nama  =  " + data?.message + " point  = " + data?.type)
 
+            if (data?.type == "circle" && message != null && minim_distance != null) {
+                postDataEnterToServer(message, minim_distance, currentDate)
+                sendNotification(1, message, minim_distance)
+            } else if (data?.type == "circle" && message != null && minim_distance == null) {
+                sendNotification(5, message, "")
+
+            } else if (data?.type == "point" && message != null) {
+                postDataAman(message, currentDate)
+                sendNotification(4, message, "")
+            }
 
         } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
 
@@ -61,7 +69,6 @@ class IntentHandleWork : JobIntentService() {
             if (data?.type == "circle") {
                 val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
                 val currentDate = sdf.format(Date())
-
                 val message = data.message
                 val minim_distance = data.minim_distance
                 postDataExitToServer(data.message, currentDate)
@@ -129,6 +136,10 @@ class IntentHandleWork : JobIntentService() {
             bigText = "Anda diluar $msg"
         } else if (id == 3) {
             bigText = "Anda sudah terlalu lama di $msg zona evakuasi terdekat adalah $minim_distance"
+        } else if (id == 4) {
+            bigText = "Anda berada sekitar 100 meter di zona evakuasi  $msg"
+        } else if (id == 5) {
+            bigText = "Anda berada di area  $msg"
         } else {
             bigText = "Error = $msg"
         }
@@ -138,7 +149,7 @@ class IntentHandleWork : JobIntentService() {
                 .setStyle(NotificationCompat.BigTextStyle()
                         .bigText(bigText))
                 .setContentText(bigText)
-                .setContentTitle("Geofence Notification!")
+                .setContentTitle("Notifikasi Sistem Peringatan")
                 .setContentIntent(notificationPendingIntent)
                 .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
                 .setPriority(NotificationManager.IMPORTANCE_HIGH)
@@ -160,6 +171,7 @@ class IntentHandleWork : JobIntentService() {
                 val status1 = jObj.getString("status")
                 Log.d("statuspost  = ", status1)
                 if (status1.contains("200")) {
+                    Log.d("sukses data =",jObj.toString())
                 } else {
                     val msg = jObj.getString("message")
                     Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
@@ -262,13 +274,70 @@ class IntentHandleWork : JobIntentService() {
 
     }
 
+    private fun postDataAman(name: String?, date: String) {
+
+        val tag_string_req = "req_postdata"
+        val strReq = object : StringRequest(Method.POST,
+                NetworkAPI.postDataAman, { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+
+                val jObj = JSONObject(response)
+                val status1 = jObj.getString("status")
+                Log.d("statuspost  = ", status1)
+                if (status1.contains("200")) {
+                } else {
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("error catch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, error.localizedMessage, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+        }) {
+            override fun getParams(): Map<String, String> {
+                val params = HashMap<String, String>()
+                if (App.preferenceHelper.tipe == "admin") {
+                    params["phone"] = "Admin"
+                } else {
+                    params["phone"] = App.preferenceHelper.phonefb
+                }
+                params["nama_zona"] = name.toString()
+                params["waktu"] = date
+
+                return params
+            }
+        }
+
+        // Adding request to request queue
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+
+    }
+
     private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
 
     companion object {
         fun enqueueWork(context: Context, intent: Intent) {
             enqueueWork(
                     context,
-                    IntentHandleWork::class.java, 500,
+                    IntentHandleWork::class.java, 1,
                     intent)
         }
     }
@@ -276,5 +345,6 @@ class IntentHandleWork : JobIntentService() {
 
     //redmi 6
     // redmi 4
-    //rrealme busul
+    //rrealme busuk
+    //redmi note 4
 }

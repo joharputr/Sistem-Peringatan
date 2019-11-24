@@ -1,7 +1,6 @@
 package com.example.systemperingatan.Admin.UI.Activity
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -11,7 +10,6 @@ import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -35,8 +33,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.net.PlacesClient
-import kotlinx.android.synthetic.main.activity_add_new_map.*
-import kotlinx.android.synthetic.main.activity_edit_area.*
 import kotlinx.android.synthetic.main.activity_edit_radius.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -56,6 +52,7 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
     private val predictionList: List<AutocompletePrediction>? = null
     private var placesClient: PlacesClient? = null
     private var reminder = DataItem(null, null, null, null, null, null, null, null, null, null)
+
     val newGeofenceNumber: Int
         get() {
             val number = mSharedPreferences!!.getInt(MapsAdminActivity.NEW_GEOFENCE_NUMBER, 1)
@@ -96,7 +93,6 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         private const val EXTRA_LAT_LNG = "EXTRA_LAT_LNG"
         private const val EXTRA_ZOOM = "EXTRA_ZOOM"
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,8 +111,6 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         mSharedPreferences = getSharedPreferences(MapsAdminActivity.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setUpLocation()
-
-
     }
 
     override fun onStop() {
@@ -148,7 +142,6 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
                 buildGoogleApiClient()
                 createLocationRequest()
                 displayLocation()
-
             }
         }
     }
@@ -295,8 +288,8 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         val radius = intent.getParcelableExtra<DataItem>("editRadius")
 
 
-        if (map != null){
-            val place = LatLng(radius.latitude!!.toDouble(),radius.longitude!!.toDouble())
+        if (map != null) {
+            val place = LatLng(radius.latitude!!.toDouble(), radius.longitude!!.toDouble())
             val cameraUpdate = CameraUpdateFactory.newLatLngZoom(place, 14f)
             map!!.animateCamera(cameraUpdate)
         }
@@ -359,7 +352,7 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         }
     }
 
-    private fun getRadius(progress: Int) = 100 + (2 * progress.toDouble() + 1) * 100
+    private fun getRadius(progress: Int) = 100 + (2 * progress.toDouble() + 2) * 100
 
     //step 3
     private fun showConfigureMessageStep() {
@@ -369,11 +362,10 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         radiusDescriptionEditRadius.visibility = View.GONE
         nextEditRadius.visibility = View.GONE
         val radius = intent.getParcelableExtra<DataItem>("editRadius")
-         updateData(radius.number!!)
+        updateData(radius.number!!)
 
-        startActivity(Intent(this,MapsAdminActivity::class.java))
+        startActivity(Intent(this, MapsAdminActivity::class.java))
     }
-
 
 
     private fun showReminderUpdate() {
@@ -452,8 +444,6 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         }
         App.instance?.addToRequestQueue(strReq, tag_string_req)
     }
-
-
 
 
 }

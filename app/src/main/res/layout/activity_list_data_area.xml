@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Admin.UI.Activity.ListDataAreaActivity">
+    tools:context=".Admin.UI.Activity.ListDataAreaZonaActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbarListArea"

@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaAdapter
-import com.example.systemperingatan.Admin.UI.Activity.EditAreaActivity
+import com.example.systemperingatan.Admin.UI.Activity.EditNamaAreaZonaActivity
 import com.example.systemperingatan.Admin.UI.Activity.EditLocationPointActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
@@ -36,19 +36,16 @@ class ZonaEvakuasiFragment : Fragment() {
                             0 -> {
                                 //edit
                                 editZona(dataItem)
-
                             }
                             1 -> {
                                 //hapus
                                 editLocation(dataItem)
-
                             }
                         }//menghilangkan dialog
                         dialog.dismiss()
                     }
                     .show()
         }
-
     }
 
     private fun editLocation(dataItem: DataItem) {
@@ -58,7 +55,7 @@ class ZonaEvakuasiFragment : Fragment() {
     }
 
     private fun editZona(dataItem: DataItem) {
-        val intent = Intent(context, EditAreaActivity::class.java)
+        val intent = Intent(context, EditNamaAreaZonaActivity::class.java)
         intent.putExtra("editArea", dataItem)
         startActivity(intent)
     }
@@ -110,7 +107,7 @@ class ZonaEvakuasiFragment : Fragment() {
                         val expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
                         val radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         val message = data.data.get(i)?.message.toString()
-                        Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+                  //      Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
 
                         val dataFav1 = DataItem(number, null, null, latitude.toString(),
                                 null, message, null, longitude.toString(), null,

@@ -21,7 +21,7 @@ class EditUserActivity : AppCompatActivity() {
         setContentView(R.layout.activity_edit_user)
         editNamaUser.setText(App.preferenceHelper.nama)
         editPasswordUser.setText(App.preferenceHelper.password)
-        editNoHpUser.setText(App.preferenceHelper.hp)
+
         buttonEditUser.setOnClickListener {
             updateData(App.preferenceHelper.id)
         }
@@ -78,13 +78,13 @@ class EditUserActivity : AppCompatActivity() {
                 val params = HashMap<String, String>()
                 params["nama"] = editNamaUser.text.toString()
                 params["password"] = editPasswordUser.text.toString()
-                params["hp"] = editNoHpUser.text.toString()
 
-                App.preferenceHelper.hp = editNoHpUser.text.toString()
+
+
                 App.preferenceHelper.nama = editNamaUser.text.toString()
                 App.preferenceHelper.password = editPasswordUser.text.toString()
                 Log.d("testName= ", editNamaUser.text.toString() + "passsword = " + editPasswordUser.text.toString() + "hp = "
-                        + editNoHpUser.text.toString())
+                        )
                 return params
             }
         }

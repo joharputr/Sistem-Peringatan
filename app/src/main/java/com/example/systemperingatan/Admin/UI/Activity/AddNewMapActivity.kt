@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -49,8 +48,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
-import java.io.IOException
-import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -95,6 +92,7 @@ class AddNewMapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListe
     }
 
     private fun updateRadiusWithProgress(progress: Int) {
+        Log.d("cek radius = ", progress.toString())
         val radius = getRadius(progress)
         reminder.radius = radius.toString()
         radiusDescription.text = getString(R.string.radius_description, radius.roundToInt().toString())
@@ -283,7 +281,6 @@ class AddNewMapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListe
             } else {
                 permissionDenied()
             }
-
         }
     }
 
@@ -406,7 +403,7 @@ class AddNewMapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListe
         }
     }
 
-    private fun getRadius(progress: Int) = 100 + (2 * progress.toDouble() + 1) * 100
+    private fun getRadius(progress: Int) = 100 + (2 * progress.toDouble() + 2) * 100
 
     //step 3
     private fun showConfigureMessageStep() {
@@ -415,12 +412,12 @@ class AddNewMapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListe
         radiusBar.visibility = View.GONE
         radiusDescription.visibility = View.GONE
         message.visibility = View.VISIBLE
-        instructionTitle.text = getString(R.string.instruction_message_description)
+        instructionTitle.text = "Tulis nama area"
         next.setOnClickListener {
             hideKeyboard(this, message)
             reminder.message = message.text.toString()
             if (reminder.message.isNullOrEmpty()) {
-                message.error = getString(R.string.error_required)
+                message.error = "Nama area wajib diisi"
             } else {
                 addLocation()
                 Log.d("reminderMessage =", reminder.message)
@@ -448,7 +445,7 @@ class AddNewMapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListe
             val marker = map.addMarker(MarkerOptions()
                     .position(latLng)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
-           // marker.tag = reminder.id
+            // marker.tag = reminder.id
             if (reminder.radius != null) {
                 val radius = java.lang.Double.parseDouble(reminder.radius!!)
                 map.addCircle(CircleOptions()

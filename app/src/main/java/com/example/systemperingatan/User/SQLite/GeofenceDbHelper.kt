@@ -67,7 +67,7 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
                 GeofenceContract.GeofenceEntry.COLUMN_NAME_MIN_DISTANCE
         )
         val db = readableDatabase
-        val MY_QUERY = "SELECT *, ( SELECT b.messages FROM Geofences b  ORDER BY type desc, distances + 0 ASC LIMIT 1 ) AS 'minim_distance' FROM Geofences a"
+        val MY_QUERY = "SELECT *, ( SELECT b.messages FROM Geofences b WHERE type = 'point' ORDER BY type desc, distances + 0 ASC LIMIT 1 ) AS 'minim_distance' FROM Geofences a"
 
         /*  return db.query(
                   "Geofences",

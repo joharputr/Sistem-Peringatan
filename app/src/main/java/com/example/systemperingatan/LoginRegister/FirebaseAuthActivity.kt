@@ -32,13 +32,21 @@ class FirebaseAuthActivity : AppCompatActivity() {
         App.preferenceHelper.clearAll()
 
         btnaskcode.setOnClickListener {
-            progressbar.visibility = View.VISIBLE
-            verify()
+            if (editPhone.text.isNullOrEmpty()) {
+                editPhone.error = getString(R.string.error_nohp_fb)
+            } else {
+                progressbar.visibility = View.VISIBLE
+                verify()
+            }
         }
 
         btnVerivy.setOnClickListener {
-            progressbar.visibility = View.VISIBLE
-            authenticate()
+            if (editCodeVerification.text.isNullOrEmpty())
+                editCodeVerification.error = "Wajib mengisi kode verifikasi"
+            else {
+
+                authenticate()
+            }
         }
 
         //setting toolbar
@@ -91,7 +99,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
             override fun onVerificationFailed(error: FirebaseException) {
                 progressbar.visibility = View.GONE
                 Log.d("onVerificationFailed = ", error.toString())
-                Toast.makeText(applicationContext, "" + error, Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "masukan nomer telepon sesuai format", Toast.LENGTH_SHORT).show()
             }
 
             override fun onCodeSent(verfication: String, p1: PhoneAuthProvider.ForceResendingToken) {
@@ -117,9 +125,13 @@ class FirebaseAuthActivity : AppCompatActivity() {
 
         val verifiNo = editCodeVerification.text.toString()
 
-        val credential: PhoneAuthCredential = PhoneAuthProvider.getCredential(verificationId, verifiNo)
-
-        signIn(credential)
-
+        try {
+            progressbar.visibility = View.VISIBLE
+            val credential: PhoneAuthCredential = PhoneAuthProvider.getCredential(verificationId, verifiNo)
+            signIn(credential)
+        } catch (e: Exception) {
+            progressbar.visibility = View.GONE
+            editCodeVerification.error = "Kode Verifikasi salah"
+        }
     }
 }

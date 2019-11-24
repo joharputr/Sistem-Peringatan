@@ -1,41 +1,44 @@
 package com.example.systemperingatan.Admin.UI.Activity
 
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.activity_edit_area.*
-import kotlinx.android.synthetic.main.activity_maps.*
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.HashMap
+import java.util.*
 
-class EditAreaActivity : AppCompatActivity() {
+class EditNamaAreaZonaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_area)
         val intent = intent
         val data = intent.getParcelableExtra<DataItem>("editArea")
-        Log.d("cekDataNumber",data.number)
+        Log.d("cekDataNumber", data.number)
 
         setSupportActionBar(toolbarArea)
         val actionBar = supportActionBar
         // Set toolbar title/app title
-        actionBar?.title = "Edit Area"
+        actionBar?.title = "Edit Data"
         actionBar?.elevation = 4.0F
 
         editNama.setText(data.message)
 
         buttonEditArea.setOnClickListener {
-            updateData(data.number.toString())
-            startActivity(Intent(this,ListDataAreaActivity::class.java))
+            if (editNama.text.isNullOrEmpty()) {
+                editNama.error = "Nama wajib diisi"
+            }else {
+                updateData(data.number.toString())
+                // startActivity(Intent(this,ListDataAreaZonaActivity::class.java))
+                finish()
+            }
         }
     }
 
@@ -83,7 +86,7 @@ class EditAreaActivity : AppCompatActivity() {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
                 params["message"] = editNama.text.toString()
-                Log.d("testName= ",editNama.text.toString())
+                Log.d("testName= ", editNama.text.toString())
                 return params
             }
         }

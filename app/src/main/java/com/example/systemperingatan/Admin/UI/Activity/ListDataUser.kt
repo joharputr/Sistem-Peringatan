@@ -5,29 +5,31 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.example.systemperingatan.Admin.UI.pager
+import com.example.systemperingatan.Admin.UI.pagerDataUser
 import com.example.systemperingatan.R
-import kotlinx.android.synthetic.main.activity_list_data_area.*
+import kotlinx.android.synthetic.main.activity_list_data_area.toolbarListArea
+import kotlinx.android.synthetic.main.activity_list_data_area_exitenter.*
 
-class ListDataAreaActivity : AppCompatActivity() {
+class ListDataUser : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_list_data_area)
+        setContentView(R.layout.activity_list_data_area_exitenter)
 
-        viewpager_main.adapter = pager(supportFragmentManager, baseContext)
-        tabs_main.setupWithViewPager(viewpager_main)
+        viewpager_main_exit_enter.adapter = pagerDataUser(supportFragmentManager, baseContext)
+        tabs_main_exit_enter.setupWithViewPager(viewpager_main_exit_enter)
         setToolbar()
     }
 
     override fun onBackPressed() {
         super.onBackPressed()
-        startActivity(Intent(this, MapsAdminActivity::class.java))
+       finish()
     }
 
     private fun setToolbar() {
         setSupportActionBar(toolbarListArea)
         val actionBar = supportActionBar
-        actionBar?.title = "List Area dan Zona Evakuasi"
+        actionBar?.title = "List Data User"
         actionBar?.setDisplayHomeAsUpEnabled(true)
         actionBar?.setDisplayShowHomeEnabled(true)
     }
@@ -41,6 +43,4 @@ class ListDataAreaActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
 }
-

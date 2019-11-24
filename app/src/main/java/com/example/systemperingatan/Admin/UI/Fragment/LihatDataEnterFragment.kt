@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.systemperingatan.API.Pojo.DataExitEnter.DataItemExitEnter
-import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseExitEnter
+import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
+import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.Admin.Adapter.DataUserEnterAdapter
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
@@ -18,7 +18,7 @@ import retrofit2.Call
 import retrofit2.Callback
 
 class LihatDataEnterFragment : Fragment() {
-    private var itemListData = ArrayList<DataItemExitEnter>()
+    private var itemListData = ArrayList<DataUser>()
     val adapterArea = DataUserEnterAdapter(itemListData)
 
 
@@ -37,14 +37,13 @@ class LihatDataEnterFragment : Fragment() {
             adapter = adapterArea
             layoutManager = LinearLayoutManager(context)
         }
-
     }
 
 
     fun reloadMapMarkers() {
         progressBar_circular_data.visibility = View.VISIBLE
-        App.api.dataEnter().enqueue(object : Callback<ResponseExitEnter> {
-            override fun onResponse(call: Call<ResponseExitEnter>, response: retrofit2.Response<ResponseExitEnter>) {
+        App.api.dataEnter().enqueue(object : Callback<ResponseDataUser> {
+            override fun onResponse(call: Call<ResponseDataUser>, response: retrofit2.Response<ResponseDataUser>) {
 
                 val data = response.body()
                 progressBar_circular_data.visibility = View.GONE
@@ -56,9 +55,10 @@ class LihatDataEnterFragment : Fragment() {
                         val area = data.data.get(i)?.namaArea
                         val waktu = data.data.get(i)?.waktu
                         val zona = data.data.get(i)?.namaZonaTerdekat
-                        Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
 
-                        val dataUser = DataItemExitEnter(phone, waktu, area, id, zona)
+              /*          Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+*/
+                        val dataUser = DataUser(phone, waktu, area, id ,null,zona)
                         Log.d("dataUser = ", dataUser.toString())
 
                         itemListData.addAll(listOf(dataUser))
@@ -69,7 +69,7 @@ class LihatDataEnterFragment : Fragment() {
                 }
             }
 
-            override fun onFailure(call: Call<ResponseExitEnter>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseDataUser>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
                 Toast.makeText(context, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }

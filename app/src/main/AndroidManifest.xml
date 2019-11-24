@@ -34,9 +34,9 @@
         <activity
             android:name=".Admin.UI.Activity.EditRadiusActivity"
             android:label="@string/title_activity_edit_radius" />
-        <activity android:name=".Admin.UI.Activity.EditAreaActivity" />
-        <activity android:name=".Admin.UI.Activity.ListDataAreaActivity" />
-        <activity android:name=".Admin.UI.Activity.ListDataExitEnter" />
+        <activity android:name=".Admin.UI.Activity.EditNamaAreaZonaActivity" />
+        <activity android:name=".Admin.UI.Activity.ListDataAreaZonaActivity" />
+        <activity android:name=".Admin.UI.Activity.ListDataUser" />
         <activity android:name=".Admin.UI.Activity.MapsAdminActivity" />
         <activity
             android:name=".Admin.UI.Activity.AddNewPointActivity"
@@ -54,6 +54,23 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".Admin.UI.Activity.SearchDataUser"
+            android:launchMode="singleTop"
+          >
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".User.UI.UserActivity" />
+        </activity>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
@@ -65,15 +82,20 @@
             android:name=".User.Notification.GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="true">
-            <intent-filter>
+          <!--  <intent-filter>
                 <action android:name="android.location.PROVIDERS_CHANGED" />
-            </intent-filter>
+            </intent-filter>-->
         </receiver>
 
         <service
             android:name=".User.Notification.IntentHandleWork"
             android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
+            android:permission="android.permission.BIND_JOB_SERVICE" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.location.PROVIDERS_CHANGED" />
+            </intent-filter>
+        </service>
 
         <uses-library
             android:name="org.apache.http.legacy"

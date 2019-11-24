@@ -10,10 +10,10 @@
             android:icon="@drawable/location_item"
             android:title="Admin View" />
 
-    <!--    <item
-            android:id="@+id/editUser"
+        <item
+            android:id="@+id/lihatAreaZona"
             android:icon="@drawable/location_item"
-            android:title="Edit User " />-->
+            android:title="Daftar Area dan Zona " />
 
         <item
             android:id="@+id/logoutfb"

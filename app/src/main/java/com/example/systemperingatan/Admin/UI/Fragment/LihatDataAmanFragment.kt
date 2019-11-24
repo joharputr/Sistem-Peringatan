@@ -13,6 +13,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
+import com.example.systemperingatan.Admin.Adapter.DataUserAmanAdapter
+import com.example.systemperingatan.Admin.Adapter.DataUserEnterAdapter
 import com.example.systemperingatan.Admin.Adapter.DataUserExitAdapter
 import com.example.systemperingatan.Admin.UI.Activity.SearchDataUser
 import com.example.systemperingatan.App
@@ -21,10 +23,9 @@ import kotlinx.android.synthetic.main.lihat_data_user.*
 import retrofit2.Call
 import retrofit2.Callback
 
-class LihatDataExitFragment : Fragment() {
+class LihatDataAmanFragment : Fragment() {
     private var itemListData = ArrayList<DataUser>()
-    val adapterArea = DataUserExitAdapter(itemListData)
-
+    val adapterArea = DataUserAmanAdapter(itemListData)
 
     override fun onResume() {
         super.onResume()
@@ -38,7 +39,22 @@ class LihatDataExitFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
 
+        val componentName = ComponentName(context!!, SearchDataUser::class.java)
+
+        searchMovie.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+        searchMovie.setOnQueryTextListener(object : android.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextSubmit(query: String): Boolean {
+                Log.d("querysub =", query)
+
+                return false
+            }
+        })
     }
 
     private fun initRecyclerView() {
@@ -50,7 +66,7 @@ class LihatDataExitFragment : Fragment() {
 
     fun reloadMapMarkers() {
         progressBar_circular_data.visibility = View.VISIBLE
-        App.api.dataExit().enqueue(object : Callback<ResponseDataUser> {
+        App.api.dataAman().enqueue(object : Callback<ResponseDataUser> {
             override fun onResponse(call: Call<ResponseDataUser>, response: retrofit2.Response<ResponseDataUser>) {
 
                 val data = response.body()
@@ -60,15 +76,15 @@ class LihatDataExitFragment : Fragment() {
                     if (data.data != null) {
                         val id = data.data.get(i)?.id
                         val phone = data.data.get(i)?.phone
-                        val area = data.data.get(i)?.namaArea
+                        val nama_zona = data.data.get(i)?.nama_zona
                         val waktu = data.data.get(i)?.waktu
 
-                    /*    Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
-*/
-                        val dataUser = DataUser(phone, waktu, area, id, null,null)
-                        Log.d("dataUserExit = ", dataUser.toString())
+                        /*    Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+    */
+                        val dataUserAman = DataUser(phone, waktu, null, id, nama_zona)
+                        Log.d("dataUserExit = ", dataUserAman.toString())
 
-                        itemListData.addAll(listOf(dataUser))
+                        itemListData.addAll(listOf(dataUserAman))
                         adapterArea.notifyDataSetChanged()
                         initRecyclerView()
                     }

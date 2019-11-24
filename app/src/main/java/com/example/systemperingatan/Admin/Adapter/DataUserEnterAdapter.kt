@@ -4,15 +4,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.systemperingatan.API.Pojo.DataExitEnter.DataItemExitEnter
+import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.item_view_enter.view.*
 
 
-class DataUserEnterAdapter(private val data: ArrayList<DataItemExitEnter>) : RecyclerView.Adapter<DataUserEnterAdapter.ViewHolder>() {
+class DataUserEnterAdapter(private val data: ArrayList<DataUser>) : RecyclerView.Adapter<DataUserEnterAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(item: DataItemExitEnter) = itemView.apply {
+        fun bind(item: DataUser) = itemView.apply {
             phone.text = item.phone
             area_data.text = item.namaArea
             zona.text = item.namaZonaTerdekat

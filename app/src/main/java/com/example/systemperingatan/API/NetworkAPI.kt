@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 
 object NetworkAPI {
-    val url = "192.168.1.6"
+    val url = "192.168.1.14"
     var post = "http://$url/ci-restserver/Api/tambah"
     var RegisterUser = "http://$url/ci-restserver/Api/register"
     var LoginUser = "http://$url/ci-restserver/Api/login"
@@ -19,6 +19,7 @@ object NetworkAPI {
     var delete = "http://$url/ci-restserver/Api/hapus/"
     var postDataEnter = "http://$url/ci-restserver/Api/postDataEnter"
     var postDataExit = "http://$url/ci-restserver/Api/postDataExit"
+    var postDataAman = "http://$url/ci-restserver/Api/postDataAman"
     private val base_url = "http://$url/ci-restserver/Api/"
 
     fun getRetrofit(): Retrofit {

@@ -153,7 +153,6 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         }
     }
 
-
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         map!!.uiSettings.isMapToolbarEnabled = false
@@ -339,7 +338,6 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
     private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
         map!!.addMarker(MarkerOptions()
                 .title("G:$number area = $message")
-                .snippet("Click here if you want delete this geofence")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(latLng))
     }
@@ -349,7 +347,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         pointTitle.visibility = View.GONE
         message_point.visibility = View.GONE
         ok_title_point.visibility = View.GONE
-        next_point.visibility = View.VISIBLE
+        next_point.visibility = View.GONE
         addNamePoint.visibility = View.GONE
     }
 
@@ -405,88 +403,93 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                     .build()
 
 
+
             ok_title_point.setOnClickListener {
-                pointTitle.visibility = View.GONE
-                message_point.visibility = View.GONE
-                ok_title_point.visibility = View.GONE
-                next_point.visibility = View.VISIBLE
+                if (message_point.text.isNullOrEmpty()) {
+                    message_point.error = "Nama zona evakuasi wajib diisi"
+                } else {
+                    pointTitle.visibility = View.GONE
+                    message_point.visibility = View.GONE
+                    ok_title_point.visibility = View.GONE
+                    next_point.visibility = View.VISIBLE
 
-                try {
-                    LocationServices.GeofencingApi.addGeofences(
-                            mGoogleApiClient,
-                            createGeofenceRequest(geofence),
-                            createGeofencePendingIntent()
-                    ).setResultCallback { status ->
-                        if (status.isSuccess) {
-                            Log.d("__DEBUG", "key :" + key + " Latitude :" + reminder.latitude + " Longitude :" + reminder.longitude + " expTime:" + expTime)
+                    try {
+                        LocationServices.GeofencingApi.addGeofences(
+                                mGoogleApiClient,
+                                createGeofenceRequest(geofence),
+                                createGeofencePendingIntent()
+                        ).setResultCallback { status ->
+                            if (status.isSuccess) {
+                                Log.d("__DEBUG", "key :" + key + " Latitude :" + reminder.latitude + " Longitude :" + reminder.longitude + " expTime:" + expTime)
 
-                            val tag_string_req = "req_postdata"
-                            val strReq = object : StringRequest(Request.Method.POST,
-                                    NetworkAPI.post, { response ->
-                                Log.d("CLOG", "responh: $response")
-                                try {
-                                    val jObj = JSONObject(response)
-                                    val status1 = jObj.getString("status")
-                                    if (status1.contains("200")) {
-                                        Toast.makeText(this, "sukses", Toast.LENGTH_SHORT).show()
-
-                                    } else {
-                                        val msg = jObj.getString("message")
-                                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                                    }
-
-                                } catch (e: JSONException) {
-                                    e.printStackTrace()
-                                }
-
-
-                            }, { error ->
-                                Log.d("CLOG", "verespon: $error")
-                                val json: String?
-                                val response = error.networkResponse
-                                if (response != null && response.data != null) {
-                                    json = String(response.data)
-                                    val jObj: JSONObject?
+                                val tag_string_req = "req_postdata"
+                                val strReq = object : StringRequest(Request.Method.POST,
+                                        NetworkAPI.post, { response ->
+                                    Log.d("CLOG", "responh: $response")
                                     try {
-                                        jObj = JSONObject(json)
-                                        val msg = jObj.getString("message")
-                                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                        val jObj = JSONObject(response)
+                                        val status1 = jObj.getString("status")
+                                        if (status1.contains("200")) {
+                                            Toast.makeText(this, "sukses", Toast.LENGTH_SHORT).show()
+
+                                        } else {
+                                            val msg = jObj.getString("message")
+                                            Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                        }
+
                                     } catch (e: JSONException) {
                                         e.printStackTrace()
                                     }
+
+
+                                }, { error ->
+                                    Log.d("CLOG", "verespon: $error")
+                                    val json: String?
+                                    val response = error.networkResponse
+                                    if (response != null && response.data != null) {
+                                        json = String(response.data)
+                                        val jObj: JSONObject?
+                                        try {
+                                            jObj = JSONObject(json)
+                                            val msg = jObj.getString("message")
+                                            Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                        } catch (e: JSONException) {
+                                            e.printStackTrace()
+                                        }
+                                    }
+
+                                }) {
+                                    override fun getParams(): Map<String, String> {
+                                        // Posting parameters to login url
+                                        val params = HashMap<String, String>()
+                                        val radius = 100.0
+                                        params["number"] = key
+                                        params["latitude"] = reminder.latitude.toString()
+                                        params["longitude"] = reminder.longitude.toString()
+                                        params["expires"] = expTime.toString()
+                                        params["message"] = message_point.text.toString()
+                                        params["type"] = "point"
+                                        params["address"] = reminder.address.toString()
+                                        Log.d("CLOGAdress", "address = " + message_point.text.toString())
+                                        params["radius"] = radius.toString()
+                                        return params
+                                    }
                                 }
 
-                            }) {
-                                override fun getParams(): Map<String, String> {
-                                    // Posting parameters to login url
-                                    val params = HashMap<String, String>()
-                                    val radius = 10
-                                    params["number"] = key
-                                    params["latitude"] = reminder.latitude.toString()
-                                    params["longitude"] = reminder.longitude.toString()
-                                    params["expires"] = expTime.toString()
-                                    params["message"] = message_point.text.toString()
-                                    params["type"] = "point"
-                                    params["address"] = reminder.address.toString()
-                                    Log.d("CLOGAdress", "address = " + message_point.text.toString())
-                                    params["radius"] = radius.toString()
-                                    return params
-                                }
+                                // Adding request to request queue
+                                App.instance?.addToRequestQueue(strReq, tag_string_req)
+                                Log.d("SAVE", "key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
+                                Toast.makeText(this@AddNewPointActivity, "Geofence Added!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
+                                Log.e("ERROR MESSAGE", errorMessage)
                             }
-
-                            // Adding request to request queue
-                            App.instance?.addToRequestQueue(strReq, tag_string_req)
-                            Log.d("SAVE", "key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
-                            Toast.makeText(this@AddNewPointActivity, "Geofence Added!", Toast.LENGTH_SHORT).show()
-                        } else {
-                            val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
-                            Log.e("ERROR MESSAGE", errorMessage)
                         }
+                    } catch (securityException: SecurityException) {
+                        logSecurityException(securityException)
+                    } catch (e: SQLException) {
+                        e.stackTrace
                     }
-                } catch (securityException: SecurityException) {
-                    logSecurityException(securityException)
-                } catch (e: SQLException) {
-                    e.stackTrace
                 }
             }
         }

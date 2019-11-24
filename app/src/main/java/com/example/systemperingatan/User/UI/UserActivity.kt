@@ -1,6 +1,7 @@
 package com.example.systemperingatan.User.UI
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
@@ -32,6 +33,7 @@ import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.Admin.Adapter.ListDataEvacuationZoneAdapter
+import com.example.systemperingatan.Admin.UI.Activity.ListDataAreaZonaActivity
 import com.example.systemperingatan.Admin.UI.Activity.MapsAdminActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
@@ -41,8 +43,6 @@ import com.example.systemperingatan.User.Helper.GoogleMapDTO
 import com.example.systemperingatan.User.Notification.GeofenceBroadcastReceiver
 import com.example.systemperingatan.User.SQLite.GeofenceContract
 import com.example.systemperingatan.User.SQLite.GeofenceDbHelper
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -62,7 +62,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, NavigationView.OnNavigationItemSelectedListener {
+class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener, NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     // globally declare LocationRequest
@@ -77,12 +77,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     var geofencingClient: GeofencingClient? = null
     private lateinit var locationManager: LocationManager
     private lateinit var titikGps: LatLng
-
+    private val lastLocation: Location? = null
+    var bestProvider: String? = null
     //firebase
     lateinit var mAuth: FirebaseAuth
     private val geofencePendingIntent: PendingIntent by lazy {
 
         val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
         PendingIntent.getBroadcast(
                 this,
                 0,
@@ -113,7 +115,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER /*or GeofencingRequest.INITIAL_TRIGGER_EXIT*/)
                     .addGeofence(geofence)
                     .build()
         }
@@ -144,7 +146,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private val MY_PERMISSION_REQUEST_CODE = 7192
 
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
-
 
     }
 
@@ -236,6 +237,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     }
 
+    @SuppressLint("MissingPermission")
     fun getLastKnownLocation() {
         fusedLocationClient.lastLocation
                 .addOnSuccessListener { location ->
@@ -257,6 +259,17 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                     }
 
                 }
+
+      /*  locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        val criteria = Criteria()
+        bestProvider = locationManager.getBestProvider(criteria, true)
+        val location = locationManager.getLastKnownLocation(bestProvider)
+        val latLng = LatLng(location.latitude,location.longitude)
+        markerLocation(latLng)
+        if (location != null){
+            mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+        }
+        locationManager.requestLocationUpdates(bestProvider, 20000, 0f, this)*/
     }
 
     private fun checkUser() {
@@ -318,16 +331,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
             startActivity(Intent(this, UserActivity::class.java))
         }
 
-        /* if (id == R.id.editUser) {
-             startActivity(Intent(this, EditUserActivity::class.java))
-         }*/
+         if (id == R.id.lihatAreaZona) {
+             startActivity(Intent(this, ListDataAreaZonaActivity::class.java))
+         }
 
         if (id == R.id.logoutfb) {
             mAuth.signOut()
             startActivity(Intent(this, FirebaseAuthActivity::class.java))
         }
-
-
 
         item.setChecked(true)
         drawerLayoutUser.closeDrawer(GravityCompat.START)
@@ -414,14 +425,16 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                     MY_PERMISSION_REQUEST_CODE)
 
         } else {
-            if (checkPlayServices()) {
+      /*      if (checkPlayServices()) {
                 //  getLocationUpdates()
                 getLastKnownLocation()
-            }
+            }*/
+            getLastKnownLocation()
         }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+
         if (requestCode == MY_PERMISSION_REQUEST_CODE) {
             if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 setUpLocation()
@@ -436,7 +449,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         Toast.makeText(this, "permisson Denied", Toast.LENGTH_SHORT).show()
     }
 
-
     private fun askPermission() {
         ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -444,8 +456,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 MY_PERMISSION_REQUEST_CODE)
     }
 
-
-    private fun checkPlayServices(): Boolean {
+/*    private fun checkPlayServices(): Boolean {
         val resultCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)
         if (resultCode != ConnectionResult.SUCCESS) {
             if (GoogleApiAvailability.getInstance().isUserResolvableError(resultCode))
@@ -457,7 +468,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
             return false
         }
         return true
-    }
+    }*/
 
     //add gps location now
     private fun displayLocation() {
@@ -528,7 +539,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
           return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
       }*/
 
-
+    //biar datanya ga dobel
     private fun reloadMapMarkersZonaWithoutRecyclerView() {
         api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
             override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
@@ -555,7 +566,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                             if (this@UserActivity::titikGps.isInitialized) {
                                 val URL = getDirectionURL(titikGps, latlang)
-                                //      GetDirection(URL).execute()
+                                Log.d("testrute = ",URL)
+                                GetDirection(URL).execute()
                             } else {
                                 Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
                             }
@@ -620,8 +632,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         }
 
         mMap!!.isMyLocationEnabled = true
-        mMap!!.setOnMapClickListener(this)
-        mMap!!.setOnMarkerClickListener(this)
+
         mMap!!.setOnInfoWindowClickListener(this)
 
         setUpLocation()
@@ -633,10 +644,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         //    percobaan()
     }
 
-    //when click the map
-    override fun onMapClick(latLng: LatLng) {
-        Log.d("LOG", "onMapClick($latLng)")
-    }
 
     private fun logSecurityException(securityException: SecurityException) {
         Log.e("LOG ERROR PERMISSION", "Invalid location permission. " + "You need to use ACCESS_FINE_LOCATION with geofences", securityException)
@@ -659,11 +666,17 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 .fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(2F))
     }
 
-    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
+    private fun addMarkerPoint(latLng: LatLng, message: String, radius: Double, number: String) {
+        val strokeColor = 0x0106001b.toInt(); //red outline
+        val shadeColor = 0x44ff0000; //opaque red fill
         mMap!!.addMarker(MarkerOptions()
                 .title(message)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
+        mMap!!.addCircle(CircleOptions()
+                .center(latLng)
+                .radius(radius)
+                .fillColor(0xff0009ff.toInt()).strokeColor(strokeColor).strokeWidth(2f))
     }
 
     private fun onClick(dataItem: DataItem) {
@@ -682,9 +695,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     override fun onInfoWindowClick(marker: Marker) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
+            reloadMapMarkersZonaWithoutRecyclerView()
         }
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private//select all from db
@@ -711,29 +724,18 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                         if (data.data.get(i)?.type == "circle") {
                             addMarker(message!!, radiusMeter, number!!, latitude, longitude)
                         } else {
-                            addMarkerPoint(LatLng(latitude, longitude), message!!, number!!)
+                            addMarkerPoint(LatLng(latitude, longitude), message!!, radiusMeter, number!!)
                         }
 
                         val radiusFloat = radiusMeter.toFloat()
-                        Log.d("CLOG = ", "radiusFloat = " + radiusFloat.toString())
+
                         val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         val latlang = LatLng(lat, lang)
-
-                        Log.d("CLOG = ", "data latLang array ke $i = " + latlang.toString())
-
                         if (this@UserActivity::titikGps.isInitialized) {
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
 
-                            //add route direction
-
-                            //    val URL = getDirectionURL(titikGps, latlang)
-                            //     Log.d("GoogleMap1", "URL : $URL")
-
-
-                            Log.d("CLOG = ", "distance = " + distance.toString())
                             val helper = GeofenceDbHelper(this@UserActivity)
-                            Log.d("CLOGlat", latitude.toString())
 
                             helper.saveToDb(number, latitude, longitude, expires, message!!, distance, type)
 
@@ -754,8 +756,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                         }.addOnFailureListener {
                             Log.e("LOGERROR WINDOW CLICK", it.localizedMessage)
                             Toast.makeText(this@UserActivity, "Error when remove geofence!", Toast.LENGTH_SHORT).show()
-
                         }
+
+                        Log.d("numberGeo", "number = " + number)
 
                         val geofence = Geofence.Builder()
                                 .setRequestId(number)
@@ -768,7 +771,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                                 .setTransitionTypes(/*Geofence.GEOFENCE_TRANSITION_DWELL or*/ Geofence.GEOFENCE_TRANSITION_EXIT or
                                         Geofence.GEOFENCE_TRANSITION_ENTER)
                                 /*.setLoiteringDelay(10000)*/
-                                .setNotificationResponsiveness(0)
+                             //   .setNotificationResponsiveness(0)
                                 .build()
 
                         val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
@@ -778,8 +781,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                         ).run {
                             addOnSuccessListener {
                                 Log.d("CLOGsukses = ", "sukses = $it")
-                                Toast.makeText(this@UserActivity, "Geofences set up", Toast.LENGTH_SHORT).show();
-
+                                //      Toast.makeText(this@UserActivity, "Geofences set up", Toast.LENGTH_SHORT).show();
                             }
                             addOnFailureListener {
                                 Log.d("CLOGerror = ", it.localizedMessage)
@@ -830,14 +832,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                             if (this@UserActivity::titikGps.isInitialized) {
                                 val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
-
-                                /*    val URL = getDirectionURL(titikGps, latlang)
-                                    Log.d("GoogleMap1", "URL : $URL")
-                                    GetDirection(URL).execute()*/
-
-                                Log.d("CLOG = ", "distance = " + distance.toString())
-
-                                Log.d("CLOGaddress", address.toString())
 
                                 val dataZona = DataItem(number, null, null, latitude.toString(), null, message,
                                         type, longitude.toString(), null, address, distance.toString(), null)
@@ -890,10 +884,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     }
 
 
-    override fun onMarkerClick(marker: Marker): Boolean {
-        return false
-    }
-
     fun getDirectionURL(origin: LatLng, dest: LatLng): String {
         return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving&key=AIzaSyBcgkU-gP-QU-53LmGoh4TQ87yMDLl2hXc"
     }
@@ -911,8 +901,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                 val path = ArrayList<LatLng>()
 
-                for (i in 0..(respObj.routes[0].legs[0].steps.size - 1)) {
+                for (i in 0 until (respObj.routes[0].legs[0].steps.size)) {
                     path.addAll(decodePolyline(respObj.routes[0].legs[0].steps[i].polyline.points))
+                    Log.d("cekPath","= "+respObj.routes[0].legs[0].steps[i].polyline.points)
                 }
                 result.add(path)
             } catch (e: Exception) {

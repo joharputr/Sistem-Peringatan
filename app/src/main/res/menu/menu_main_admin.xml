@@ -8,7 +8,7 @@
         <item
             android:id="@+id/nav_list"
             android:icon="@drawable/location_item"
-            android:title="Daftar Area" />
+            android:title="Daftar Area dan Zona " />
         <item
             android:id="@+id/edit_data_admin"
             android:icon="@drawable/location_item"

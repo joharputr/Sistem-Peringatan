@@ -6,22 +6,21 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.R
-import kotlinx.android.synthetic.main.item_view_enter.view.phone
-import kotlinx.android.synthetic.main.item_view_exit.view.*
+import kotlinx.android.synthetic.main.item_view_aman.view.*
 
-class DataUserExitAdapter(private val data: ArrayList<DataUser>) : RecyclerView.Adapter<DataUserExitAdapter.ViewHolder>() {
+class DataUserAmanAdapter(private val data: ArrayList<DataUser>) : RecyclerView.Adapter<DataUserAmanAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: DataUser) = itemView.apply {
-            phone.text = item.phone
-            area_data_exit.text = item.namaArea
-            waktu_exit.text = item.waktu
+            phoneAman.text = item.phone
+            zona_evakuasi.text = item.nama_zona
+            waktu_aman.text = item.waktu
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.item_view_exit, parent, false)
+        val view = inflater.inflate(R.layout.item_view_aman, parent, false)
         return ViewHolder(view)
     }
 

@@ -4,14 +4,41 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Admin.UI.Activity.ListDataExitEnter">
+    tools:context=".Admin.UI.Activity.ListDataUser">
+
+    <View
+
+        android:id="@+id/viewMovie"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+    </View>
+
+    <SearchView
+        android:id="@+id/searchMovie"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+
+        app:layout_constraintBottom_toBottomOf="@+id/viewMovie"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:showAsAction="ifRoom|collapseActionView" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerviewData"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="0dp" />
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewMovie"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ProgressBar
         android:id="@+id/progressBar_circular_data"

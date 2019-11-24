@@ -7,16 +7,16 @@
 
     <string name="title_activity_user">Map</string>
 
-
     <string name="title_activity_add_new_map">Map</string>
     <string name="marker_content_description">mark the location</string>
     <string name="instruction_where_description">letakan titik lokasi</string>
     <string name="message_hint">Nama Titik</string>
     <string name="continue_description">Selanjutnya</string>
-    <string name="radius_description">%1$s meters</string>
+    <string name="radius_description">sekitar %1$s meter dari titik pusat</string>
     <string name="instruction_radius_description">tentukan radius</string>
     <string name="instruction_message_description">tulis Nama Location</string>
-    <string name="error_required">field must not null</string>
+    <string name="error_required">Data harus diisi</string>
+    <string name="error_nohp_fb">Nomer telepon wajib diisi</string>
     <string name="title_activity_add_new_point">Map</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="action_settings">Settings</string>

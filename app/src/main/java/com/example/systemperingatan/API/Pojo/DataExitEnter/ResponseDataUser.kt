@@ -3,10 +3,10 @@ package com.example.systemperingatan.API.Pojo.DataExitEnter
 import com.google.gson.annotations.SerializedName
 
 
-data class ResponseExitEnter(
+data class ResponseDataUser(
 
         @field:SerializedName("data")
-        val data: List<DataItemExitEnter?>? = null,
+        val data: List<DataUser?>? = null,
 
         @field:SerializedName("message")
         val message: String? = null,

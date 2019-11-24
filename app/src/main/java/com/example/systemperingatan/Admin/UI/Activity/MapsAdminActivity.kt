@@ -37,7 +37,6 @@ import com.example.systemperingatan.App
 import com.example.systemperingatan.App.Companion.api
 import com.example.systemperingatan.BuildConfig
 import com.example.systemperingatan.LoginRegister.FirebaseAuthActivity
-import com.example.systemperingatan.LoginRegister.Login
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.Notification.GeofenceTransitionService
 import com.example.systemperingatan.User.UI.EditUserActivity
@@ -258,14 +257,13 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
 
         }
         if (id == R.id.nav_list) {
-            startActivity(Intent(this, ListDataAreaActivity::class.java))
+            startActivity(Intent(this, ListDataAreaZonaActivity::class.java))
         }
         if (id == R.id.edit_data_admin) {
             startActivity(Intent(this, EditUserActivity::class.java))
         }
         if (id == R.id.data_enter_exit) {
-            logout()
-            startActivity(Intent(this, ListDataExitEnter::class.java))
+            startActivity(Intent(this, ListDataUser::class.java))
         }
         if (id == R.id.logout) {
             logout()
@@ -708,8 +706,8 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
         mMap!!.addMarker(MarkerOptions()
-                .title("G:$key pesan =  $message")
-                .snippet("Click here if you want delete this geofence")
+                .title("G:$key nama =  $message")
+                .snippet("Hapus Marker ini")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(location))
         mMap!!.addCircle(CircleOptions()
@@ -719,12 +717,17 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
                 .fillColor(Color.parseColor("#80ff0000")))
     }
 
-    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
+    private fun addMarkerPoint(latLng: LatLng, message: String,radius: Double, number: String) {
+        val strokeColor = 0x0106001b.toInt(); //red outline
         mMap!!.addMarker(MarkerOptions()
                 .title("G:$number Nama Area Evakuasi = $message")
-                .snippet("Click here if you want delete this geofence")
+                .snippet("Hapus Marker ini")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
+        mMap!!.addCircle(CircleOptions()
+                .center(latLng)
+                .radius(radius)
+                .fillColor(0xff0009ff.toInt()).strokeColor(strokeColor).strokeWidth(2f))
     }
 
 
@@ -756,6 +759,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
                 Toast.makeText(this@MapsAdminActivity, "Error when remove geofence!", Toast.LENGTH_SHORT).show()
 
             }
+
             /*     LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, idList).setResultCallback { status ->
                      if (status.isSuccess) {
                          //remove from db
@@ -792,7 +796,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
                         expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         message = data.data.get(i)?.message.toString()
-                        Toast.makeText(this@MapsAdminActivity, response.message(), Toast.LENGTH_SHORT).show()
+                //        Toast.makeText(this@MapsAdminActivity, response.message(), Toast.LENGTH_SHORT).show()
                         addMarker(message, radiusMeter, number!!, latitude, longitude)
 
                     } else if (data.data != null && data.data.get(i)?.type == "point") {
@@ -800,7 +804,8 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         message = data.data.get(i)?.message.toString()
-                        addMarkerPoint(LatLng(latitude, longitude), message, numberPoint!!)
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
+                        addMarkerPoint(LatLng(latitude, longitude), message,radiusMeter, numberPoint!!)
 
                     } else {
                         Toast.makeText(this@MapsAdminActivity, response.message(), Toast.LENGTH_SHORT).show()
@@ -917,8 +922,8 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         }) {
             override fun getParams(): Map<String, String> {
                 val params = HashMap<String, String>()
-                Log.d("dataDiri = ", "hp = " + App.preferenceHelper.hp + " password = " + App.preferenceHelper.password)
-                params["hp"] = App.preferenceHelper.hp
+                Log.d("dataDiri = ", "nama = " + App.preferenceHelper.hp + " password = " + App.preferenceHelper.password)
+                params["nama"] = App.preferenceHelper.nama
                 params["password"] = App.preferenceHelper.password
 
                 return params

@@ -3,7 +3,7 @@ package com.example.systemperingatan.API.Pojo.DataExitEnter
 import com.google.gson.annotations.SerializedName
 
 
-data class DataItemExitEnter(
+data class DataUser(
 
         @field:SerializedName("phone")
         val phone: String? = null,
@@ -16,6 +16,9 @@ data class DataItemExitEnter(
 
         @field:SerializedName("id")
         val id: String? = null,
+
+        @field:SerializedName("nama_zona")
+        val nama_zona: String? = null,
 
         @field:SerializedName("nama_zona_terdekat")
         val namaZonaTerdekat: String? = null

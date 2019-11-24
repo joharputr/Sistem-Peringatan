@@ -1,6 +1,6 @@
 package com.example.systemperingatan.API
 
-import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseExitEnter
+import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.API.Pojo.Response
 import retrofit2.Call
 import retrofit2.http.Body
@@ -20,23 +20,20 @@ interface Api {
 
     @GET("lihatDataEnter")
     @Headers("Content-Type: application/json")
-    fun dataEnter(): Call<ResponseExitEnter>
+    fun dataEnter(): Call<ResponseDataUser>
 
     @GET("lihatDataExit")
     @Headers("Content-Type: application/json")
-    fun dataExit(): Call<ResponseExitEnter>
+    fun dataExit(): Call<ResponseDataUser>
 
-    @DELETE("hapus/{number}")
-    fun deleteData(@Path("number") number: String): Call<Response>
-
-    @POST("tambah")
+    @GET("lihatDataAman")
     @Headers("Content-Type: application/json")
-    fun addData(@Query("numbers") numbers: String,
-                @Query("latitude") latitiude: String,
-                @Query("longitude") longitude: String,
-                @Query("expires") expires: String): Call<Response>
+    fun dataAman(): Call<ResponseDataUser>
 
-    @PUT("kontak/")
-    @Headers("Content-Type: application/json")
-    fun updateItem(@Path("id") id: Int, @Body data: Map<String, String>): Call<Response>
+    @GET("search")
+    fun getSearch(
+            @Query(
+                    "q"
+            ) querySearch: String?
+    ): Call<ResponseDataUser>
 }
