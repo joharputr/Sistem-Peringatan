@@ -1,5 +1,8 @@
 package com.example.systemperingatan.Admin.UI.Fragment
 
+import android.app.SearchManager
+import android.content.ComponentName
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.Admin.Adapter.DataUserEnterAdapter
+import com.example.systemperingatan.Admin.UI.Activity.search.SearchDataUser
+import com.example.systemperingatan.Admin.UI.Activity.search.SearchEnter
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.lihat_data_user.*
@@ -37,6 +42,26 @@ class LihatDataEnterFragment : Fragment() {
             adapter = adapterArea
             layoutManager = LinearLayoutManager(context)
         }
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
+
+        val componentName = ComponentName(context!!, SearchEnter::class.java)
+
+        searchMovie.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+        searchMovie.setOnQueryTextListener(object : android.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextSubmit(query: String): Boolean {
+                Log.d("querysub =", query)
+
+                return false
+            }
+        })
     }
 
 

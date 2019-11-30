@@ -404,7 +404,7 @@ class EditRadiusActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
                 val status1 = jObj.getString("status")
                 Log.d("status post  = ", status1)
                 if (status1.contains("200")) {
-                    Toast.makeText(this, "Edit Name Complete", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Berbasil mengubah lokasi area", Toast.LENGTH_SHORT).show()
                 } else {
 
                     val msg = jObj.getString("message")

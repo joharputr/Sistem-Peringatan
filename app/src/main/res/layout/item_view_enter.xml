@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
-    android:layout_height="150dp"
+    android:layout_height="160dp"
     android:layout_gravity="center"
     android:layout_marginLeft="19dp"
     android:layout_marginTop="16dp"
@@ -15,7 +15,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="150dp">
+        android:layout_height="160dp">
 
         <TextView
             android:id="@+id/textView7"
@@ -43,7 +43,7 @@
             android:id="@+id/textView9"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Area yang dimasuki: "
+            android:text="Area : "
             app:layout_constraintBottom_toBottomOf="@+id/area_data"
             app:layout_constraintEnd_toStartOf="@+id/area_data"
             app:layout_constraintHorizontal_bias="1.0"
@@ -51,14 +51,16 @@
             app:layout_constraintTop_toTopOf="@+id/area_data" />
 
         <TextView
-            android:layout_width="wrap_content"
+
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="Zona evakuasi terdekat: "
+            android:text="Zona evakuasi : terdekat "
             app:layout_constraintBottom_toBottomOf="@+id/zona"
             app:layout_constraintEnd_toStartOf="@+id/zona"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/zona" />
+            app:layout_constraintTop_toTopOf="@+id/zona"
+            app:layout_constraintVertical_bias="0.0" />
 
         <TextView
             android:id="@+id/phone"

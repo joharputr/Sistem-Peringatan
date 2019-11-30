@@ -115,7 +115,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER /*or GeofencingRequest.INITIAL_TRIGGER_EXIT*/)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT)
                     .addGeofence(geofence)
                     .build()
         }
@@ -162,7 +162,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         Log.d("SharedPref = ", getAll().toString())
         setSupportActionBar(toolbarUser)
         val actionBar = supportActionBar
-        actionBar?.title = "User"
+        actionBar?.title = "Sistem peringatan"
         actionBar?.elevation = 4.0F
         actionBar?.setDisplayHomeAsUpEnabled(true);
         initDrawer()
@@ -260,16 +260,16 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                 }
 
-      /*  locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        val criteria = Criteria()
-        bestProvider = locationManager.getBestProvider(criteria, true)
-        val location = locationManager.getLastKnownLocation(bestProvider)
-        val latLng = LatLng(location.latitude,location.longitude)
-        markerLocation(latLng)
-        if (location != null){
-            mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
-        }
-        locationManager.requestLocationUpdates(bestProvider, 20000, 0f, this)*/
+        /*  locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+          val criteria = Criteria()
+          bestProvider = locationManager.getBestProvider(criteria, true)
+          val location = locationManager.getLastKnownLocation(bestProvider)
+          val latLng = LatLng(location.latitude,location.longitude)
+          markerLocation(latLng)
+          if (location != null){
+              mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+          }
+          locationManager.requestLocationUpdates(bestProvider, 20000, 0f, this)*/
     }
 
     private fun checkUser() {
@@ -309,12 +309,13 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
             val nav_Menu: Menu = navigationView.getMenu()
             nav_Menu.findItem(R.id.nav_admin).setVisible(false)
             nav_Menu.findItem(R.id.logoutfb).setVisible(true)
-            nav_Menu.findItem(R.id.nav_user).setVisible(true)
+
+            nav_Menu.findItem(R.id.lihatAreaZona).setVisible(true)
         } else {
             val nav_Menu: Menu = navigationView.getMenu()
             nav_Menu.findItem(R.id.nav_admin).setVisible(true)
             nav_Menu.findItem(R.id.logoutfb).setVisible(false)
-            nav_Menu.findItem(R.id.nav_user).setVisible(false)
+            nav_Menu.findItem(R.id.lihatAreaZona).setVisible(false)
         }
     }
 
@@ -331,9 +332,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
             startActivity(Intent(this, UserActivity::class.java))
         }
 
-         if (id == R.id.lihatAreaZona) {
-             startActivity(Intent(this, ListDataAreaZonaActivity::class.java))
-         }
+        if (id == R.id.lihatAreaZona) {
+            startActivity(Intent(this, ListDataAreaZonaActivity::class.java))
+        }
 
         if (id == R.id.logoutfb) {
             mAuth.signOut()
@@ -425,10 +426,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                     MY_PERMISSION_REQUEST_CODE)
 
         } else {
-      /*      if (checkPlayServices()) {
-                //  getLocationUpdates()
-                getLastKnownLocation()
-            }*/
+            /*      if (checkPlayServices()) {
+                      //  getLocationUpdates()
+                      getLastKnownLocation()
+                  }*/
             getLastKnownLocation()
         }
     }
@@ -565,8 +566,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                             val latlang = LatLng(lat, lang)
 
                             if (this@UserActivity::titikGps.isInitialized) {
+                                addRoute(titikGps, latlang)
                                 val URL = getDirectionURL(titikGps, latlang)
-                                Log.d("testrute = ",URL)
+                                Log.d("testrute = ", URL)
                                 GetDirection(URL).execute()
                             } else {
                                 Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
@@ -586,6 +588,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
             }
         })
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -755,7 +758,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                         }.addOnFailureListener {
                             Log.e("LOGERROR WINDOW CLICK", it.localizedMessage)
-                            Toast.makeText(this@UserActivity, "Error when remove geofence!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@UserActivity, "Error when add geofence!", Toast.LENGTH_SHORT).show()
                         }
 
                         Log.d("numberGeo", "number = " + number)
@@ -771,7 +774,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                                 .setTransitionTypes(/*Geofence.GEOFENCE_TRANSITION_DWELL or*/ Geofence.GEOFENCE_TRANSITION_EXIT or
                                         Geofence.GEOFENCE_TRANSITION_ENTER)
                                 /*.setLoiteringDelay(10000)*/
-                             //   .setNotificationResponsiveness(0)
+                                //   .setNotificationResponsiveness(0)
                                 .build()
 
                         val geofencingClient = LocationServices.getGeofencingClient(this@UserActivity)
@@ -869,8 +872,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 val distances = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE))
                 val min_dis = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_MIN_DISTANCE))
                 val type = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_TYPE))
+                val id_min_dis = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.ID_COLUMN_NAME_MIN_DISTANCE))
 
-                val dataFav1 = DataItem(number, null, expires, latitude, null, messages, type, longitude, null, null, distances, min_dis)
+                Log.d("dataZonaTerdekat = ","id = " +id_min_dis+" nama zona ="+min_dis)
+                val dataFav1 = DataItem(number, null, expires, latitude, null, messages, type, longitude, null, null, distances, min_dis, id_min_dis)
                 arrayList.addAll(listOf(dataFav1))
             }
         }
@@ -888,6 +893,18 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${dest.latitude},${dest.longitude}&sensor=false&mode=driving&key=AIzaSyBcgkU-gP-QU-53LmGoh4TQ87yMDLl2hXc"
     }
 
+    private fun addRoute(titikGps: LatLng, latlang: LatLng) {
+        api.get_route("${titikGps.latitude},${titikGps.longitude}", "${latlang.latitude},${latlang.longitude}", "false", "driving", "AIzaSyBcgkU-gP-QU-53LmGoh4TQ87yMDLl2hXc").enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Route.Response> {
+            override fun onFailure(call: Call<com.example.systemperingatan.API.Pojo.Route.Response>, t: Throwable) {
+                Log.d("GAGLroute", t.localizedMessage)
+            }
+
+            override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Route.Response>, response: Response<com.example.systemperingatan.API.Pojo.Route.Response>) {
+                Log.d("ResponseRoute = ", response.body().toString())
+            }
+        })
+    }
+
     private inner class GetDirection(val url: String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
         override fun doInBackground(vararg params: Void?): List<List<LatLng>> {
             val client = OkHttpClient()
@@ -903,10 +920,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                 for (i in 0 until (respObj.routes[0].legs[0].steps.size)) {
                     path.addAll(decodePolyline(respObj.routes[0].legs[0].steps[i].polyline.points))
-                    Log.d("cekPath","= "+respObj.routes[0].legs[0].steps[i].polyline.points)
+                    Log.d("cekPath", "= " + respObj.routes[0].legs[0].steps[i].polyline.points)
                 }
                 result.add(path)
-            } catch (e: Exception) {
+            } catch (e: NullPointerException) {
                 e.printStackTrace()
             }
             return result

@@ -14,7 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.Admin.Adapter.DataUserExitAdapter
-import com.example.systemperingatan.Admin.UI.Activity.SearchDataUser
+import com.example.systemperingatan.Admin.UI.Activity.search.SearchEnter
+import com.example.systemperingatan.Admin.UI.Activity.search.SearchExit
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.lihat_data_user.*
@@ -36,11 +37,26 @@ class LihatDataExitFragment : Fragment() {
         return inflater.inflate(R.layout.lihat_data_user, container, false)
     }
 
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
 
+        val componentName = ComponentName(context!!, SearchExit::class.java)
+
+        searchMovie.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+        searchMovie.setOnQueryTextListener(object : android.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextSubmit(query: String): Boolean {
+                Log.d("querysub =", query)
+
+                return false
+            }
+        })
     }
-
     private fun initRecyclerView() {
         recyclerviewData.run {
             adapter = adapterArea

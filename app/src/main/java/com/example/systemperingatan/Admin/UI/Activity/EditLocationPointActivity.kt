@@ -365,7 +365,7 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
                         // Adding request to request queue
                         App.instance?.addToRequestQueue(strReq, tag_string_req)
                         Log.d("SAVE", "key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
-                        Toast.makeText(this@EditLocationPointActivity, "Geofence Edited!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@EditLocationPointActivity, "Sukses mengubah posisi zona evakuasi", Toast.LENGTH_SHORT).show()
                     } else {
                         val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
                         Log.e("ERRORMESSAGE", errorMessage)

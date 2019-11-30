@@ -1,4 +1,4 @@
-package com.example.systemperingatan.User.UI
+package com.example.systemperingatan.Admin.UI.Activity
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,12 +9,13 @@ import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
+import com.example.systemperingatan.User.UI.UserActivity
 import kotlinx.android.synthetic.main.activity_edit_user.*
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 
-class EditUserActivity : AppCompatActivity() {
+class EditAdminActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,12 +28,6 @@ class EditUserActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-        startActivity(Intent(this, UserActivity::class.java))
-    }
-
-
     private fun updateData(id: String) {
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
@@ -43,7 +38,7 @@ class EditUserActivity : AppCompatActivity() {
                 val status1 = jObj.getString("status")
                 Log.d("status post  = ", status1)
                 if (status1.contains("200")) {
-                    Toast.makeText(this, "Change Profile Complete", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Ubah data admin sukses", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, UserActivity::class.java))
                 } else {
 
@@ -79,12 +74,10 @@ class EditUserActivity : AppCompatActivity() {
                 params["nama"] = editNamaUser.text.toString()
                 params["password"] = editPasswordUser.text.toString()
 
-
-
                 App.preferenceHelper.nama = editNamaUser.text.toString()
                 App.preferenceHelper.password = editPasswordUser.text.toString()
                 Log.d("testName= ", editNamaUser.text.toString() + "passsword = " + editPasswordUser.text.toString() + "hp = "
-                        )
+                )
                 return params
             }
         }

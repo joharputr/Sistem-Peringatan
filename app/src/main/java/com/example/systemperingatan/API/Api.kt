@@ -2,6 +2,7 @@ package com.example.systemperingatan.API
 
 import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.API.Pojo.Response
+import com.example.systemperingatan.User.Helper.GoogleMapDTO
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -30,10 +31,41 @@ interface Api {
     @Headers("Content-Type: application/json")
     fun dataAman(): Call<ResponseDataUser>
 
-    @GET("search")
-    fun getSearch(
+    @GET("search_aman")
+    fun getSearch_aman(
             @Query(
                     "q"
             ) querySearch: String?
     ): Call<ResponseDataUser>
+
+
+    @GET("search_enter")
+    fun getSearch_enter(
+            @Query(
+                    "q"
+            ) querySearch: String?
+    ): Call<ResponseDataUser>
+
+
+    @GET("search_exit")
+    fun getSearch_exit(
+            @Query(
+                    "q"
+            ) querySearch: String?
+    ): Call<ResponseDataUser>
+
+    @GET("https://maps.googleapis.com/maps/api/directions/json")
+    fun get_route(
+            @Query(
+                    "origin"
+            ) origin: String?,  @Query(
+                    "destination"
+            ) destination: String?, @Query(
+                    "sensor"
+            ) sensor: String?, @Query(
+                    "mode"
+            ) mode: String?, @Query(
+                    "key"
+            ) key: String?
+    ): Call<com.example.systemperingatan.API.Pojo.Route.Response>
 }

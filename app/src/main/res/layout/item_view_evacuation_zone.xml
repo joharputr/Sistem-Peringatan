@@ -48,7 +48,7 @@
             app:layout_constraintTop_toBottomOf="@+id/area"
             app:layout_constraintVertical_bias="0.23000002" />
 
-        <TextView
+  <!--      <TextView
 
             android:id="@+id/distance"
             android:layout_width="290dp"
@@ -62,7 +62,7 @@
             app:layout_constraintHorizontal_bias="0.64"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/address"
-            app:layout_constraintVertical_bias="0.65999997" />
+            app:layout_constraintVertical_bias="0.65999997" />-->
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

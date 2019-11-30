@@ -1,4 +1,4 @@
-package com.example.systemperingatan.Admin.UI.Activity
+package com.example.systemperingatan.Admin.UI.Activity.search
 
 import android.app.SearchManager
 import android.content.Intent
@@ -34,7 +34,7 @@ class SearchDataUser : AppCompatActivity() {
 
         setSupportActionBar(searchToolbar)
         val actionBar = supportActionBar
-        actionBar?.title = "Search Data User"
+        actionBar?.title = "Pencarian Data Notifikasi Aman"
 
     }
 
@@ -59,7 +59,7 @@ class SearchDataUser : AppCompatActivity() {
     fun Search() {
         itemListData.clear()
         pbsearch.visibility = View.VISIBLE
-        App.api.getSearch(search).enqueue(object : Callback<ResponseDataUser> {
+        App.api.getSearch_aman(search).enqueue(object : Callback<ResponseDataUser> {
             override fun onResponse(call: Call<ResponseDataUser>, response: Response<ResponseDataUser>) {
 
                 val data = response.body()

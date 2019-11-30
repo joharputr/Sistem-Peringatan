@@ -12,9 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
-import com.example.systemperingatan.Admin.Adapter.ListDataAreaAdapter
-import com.example.systemperingatan.Admin.UI.Activity.EditNamaAreaZonaActivity
+import com.example.systemperingatan.Admin.Adapter.ListDataAreaZonaAdapter
+import com.example.systemperingatan.Admin.UI.Activity.EditNamaAreaActivity
 import com.example.systemperingatan.Admin.UI.Activity.EditLocationPointActivity
+import com.example.systemperingatan.Admin.UI.Activity.EditNamaZonaActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.areafragment.*
@@ -24,7 +25,7 @@ import retrofit2.Callback
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class ZonaEvakuasiFragment : Fragment() {
     private var itemListArea = ArrayList<DataItem>()
-    val adapterArea = ListDataAreaAdapter(itemListArea, this::onClick, this::onLongClick)
+    val adapterArea = ListDataAreaZonaAdapter(itemListArea, this::onLongClick)
 
     private fun onLongClick(dataItem: DataItem) {
         if (App.preferenceHelper.tipe == "admin") {
@@ -55,8 +56,8 @@ class ZonaEvakuasiFragment : Fragment() {
     }
 
     private fun editZona(dataItem: DataItem) {
-        val intent = Intent(context, EditNamaAreaZonaActivity::class.java)
-        intent.putExtra("editArea", dataItem)
+        val intent = Intent(context, EditNamaZonaActivity::class.java)
+        intent.putExtra("editZona", dataItem)
         startActivity(intent)
     }
 
@@ -70,10 +71,6 @@ class ZonaEvakuasiFragment : Fragment() {
             adapter = adapterArea
             layoutManager = LinearLayoutManager(context)
         }
-
-    }
-
-    private fun onClick(dataItem: DataItem) {
 
     }
 

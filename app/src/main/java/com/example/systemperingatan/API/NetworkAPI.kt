@@ -1,4 +1,5 @@
 package com.example.systemperingatan.API
+
 import com.example.systemperingatan.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -20,15 +21,20 @@ object NetworkAPI {
     var postDataEnter = "http://$url/ci-restserver/Api/postDataEnter"
     var postDataExit = "http://$url/ci-restserver/Api/postDataExit"
     var postDataAman = "http://$url/ci-restserver/Api/postDataAman"
+    var edit_notif_masuk = "http://$url/ci-restserver/Api/edit_notif_masuk"
+    var edit_notif_keluar = "http://$url/ci-restserver/Api/edit_notif_keluar"
+    var edit_notif_zona = "http://$url/ci-restserver/Api/edit_notif_zona"
+    var edit_zona_di_notif_masuk = "http://$url/ci-restserver/Api/edit_zona_di_notif_masuk"
     private val base_url = "http://$url/ci-restserver/Api/"
 
     fun getRetrofit(): Retrofit {
-        return  Retrofit.Builder()
+        return Retrofit.Builder()
                 .baseUrl(base_url)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(getOkHttpClient()) //retrofit butuh client
                 .build()
     }
+
     //client
     private fun getOkHttpClient(): OkHttpClient {
         val timeOut = 60L
@@ -39,13 +45,15 @@ object NetworkAPI {
                 .addInterceptor(getInterseptor())  //client butuh interseptor
                 .build()
     }
+
     //interseptor
     //muncul di logcat
     private fun getInterseptor(): Interceptor {
-        return HttpLoggingInterceptor().apply {//pake run eror why?
-            level = if (BuildConfig.DEBUG){
+        return HttpLoggingInterceptor().apply {
+            //pake run eror why?
+            level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BODY
-            }else{
+            } else {
                 HttpLoggingInterceptor.Level.NONE
             }
         }

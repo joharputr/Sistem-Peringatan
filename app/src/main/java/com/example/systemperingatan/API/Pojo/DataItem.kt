@@ -43,6 +43,9 @@ data class DataItem(
         var distance: String? = null,
 
         @field:SerializedName("minim_distance")
-        var minim_distance: String? = null
+        var minim_distance: String? = null,
 
-) :Parcelable
+        @field:SerializedName("id_minim_distance")
+        var id_minim_distance: String? = null
+
+) : Parcelable

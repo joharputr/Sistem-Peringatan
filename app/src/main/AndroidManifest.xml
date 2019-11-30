@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
@@ -22,10 +23,9 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".LoginRegister.FirebaseAuthActivity">
 
-        </activity>
-        <activity android:name=".User.UI.EditUserActivity" />
+        <activity android:name=".LoginRegister.FirebaseAuthActivity"></activity>
+        <activity android:name=".Admin.UI.Activity.EditAdminActivity" />
         <activity
             android:name=".Admin.UI.Activity.EditLocationPointActivity"
             android:label="Edit Location Point" />
@@ -34,9 +34,10 @@
         <activity
             android:name=".Admin.UI.Activity.EditRadiusActivity"
             android:label="@string/title_activity_edit_radius" />
-        <activity android:name=".Admin.UI.Activity.EditNamaAreaZonaActivity" />
+        <activity android:name=".Admin.UI.Activity.EditNamaAreaActivity" />
+        <activity android:name=".Admin.UI.Activity.EditNamaZonaActivity" />
         <activity android:name=".Admin.UI.Activity.ListDataAreaZonaActivity" />
-        <activity android:name=".Admin.UI.Activity.ListDataUser" />
+        <activity android:name=".Admin.UI.Activity.ListDataNotifikasi" />
         <activity android:name=".Admin.UI.Activity.MapsAdminActivity" />
         <activity
             android:name=".Admin.UI.Activity.AddNewPointActivity"
@@ -53,12 +54,39 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".Admin.UI.Activity.search.SearchDataUser"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".User.UI.UserActivity" />
+        </activity>
 
         <activity
-            android:name=".Admin.UI.Activity.SearchDataUser"
-            android:launchMode="singleTop"
-          >
+            android:name=".Admin.UI.Activity.search.SearchEnter"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
 
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".User.UI.UserActivity" />
+        </activity>
+
+        <activity
+            android:name=".Admin.UI.Activity.search.SearchExit"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -81,18 +109,14 @@
         <receiver
             android:name=".User.Notification.GeofenceBroadcastReceiver"
             android:enabled="true"
-            android:exported="true">
-          <!--  <intent-filter>
-                <action android:name="android.location.PROVIDERS_CHANGED" />
-            </intent-filter>-->
-        </receiver>
+            android:exported="true"></receiver>
 
         <service
             android:name=".User.Notification.IntentHandleWork"
             android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" >
+            android:permission="android.permission.BIND_JOB_SERVICE">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.location.PROVIDERS_CHANGED" />
             </intent-filter>
         </service>

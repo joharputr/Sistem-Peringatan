@@ -39,7 +39,6 @@ import com.example.systemperingatan.BuildConfig
 import com.example.systemperingatan.LoginRegister.FirebaseAuthActivity
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.Notification.GeofenceTransitionService
-import com.example.systemperingatan.User.UI.EditUserActivity
 import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -260,10 +259,10 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
             startActivity(Intent(this, ListDataAreaZonaActivity::class.java))
         }
         if (id == R.id.edit_data_admin) {
-            startActivity(Intent(this, EditUserActivity::class.java))
+            startActivity(Intent(this, EditAdminActivity::class.java))
         }
         if (id == R.id.data_enter_exit) {
-            startActivity(Intent(this, ListDataUser::class.java))
+            startActivity(Intent(this, ListDataNotifikasi::class.java))
         }
         if (id == R.id.logout) {
             logout()

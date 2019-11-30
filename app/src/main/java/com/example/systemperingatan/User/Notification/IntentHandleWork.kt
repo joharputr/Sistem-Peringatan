@@ -45,6 +45,7 @@ class IntentHandleWork : JobIntentService() {
             val id = data?.number
             val message = data?.message
             val minim_distance = data?.minim_distance
+            val id_minim_distance = data?.id_minim_distance
 
             val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
             val currentDate = sdf.format(Date())
@@ -53,13 +54,13 @@ class IntentHandleWork : JobIntentService() {
             Log.d("testtypepoint = ", id + " nama  =  " + data?.message + " point  = " + data?.type)
 
             if (data?.type == "circle" && message != null && minim_distance != null) {
-                postDataEnterToServer(message, minim_distance, currentDate)
+                postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate)
                 sendNotification(1, message, minim_distance)
             } else if (data?.type == "circle" && message != null && minim_distance == null) {
                 sendNotification(5, message, "")
 
             } else if (data?.type == "point" && message != null) {
-                postDataAman(message, currentDate)
+                postDataAman(id.toString(), message, currentDate)
                 sendNotification(4, message, "")
             }
 
@@ -71,7 +72,7 @@ class IntentHandleWork : JobIntentService() {
                 val currentDate = sdf.format(Date())
                 val message = data.message
                 val minim_distance = data.minim_distance
-                postDataExitToServer(data.message, currentDate)
+                postDataExitToServer(data.number.toString(), data.message, currentDate)
                 Log.d("namaEXIT = ", message + " minim = " + minim_distance)
                 if (message != null) {
                     sendNotification(2, message, minim_distance!!)
@@ -107,7 +108,7 @@ class IntentHandleWork : JobIntentService() {
         val notificationPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
         val notificatioMng = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
             val mChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID, "Geofence", importance)
             mChannel.enableLights(true)
             mChannel.lightColor = Color.RED
@@ -125,6 +126,8 @@ class IntentHandleWork : JobIntentService() {
         notificatioMng.notify(
                 randomInt,
                 createNotification(id, msg, minim_distance, notificationPendingIntent))
+
+        startForeground(id, createNotification(id, msg, minim_distance, notificationPendingIntent))
     }
 
     private fun createNotification(id: Int, msg: String, minim_distance: String, notificationPendingIntent: PendingIntent): Notification {
@@ -152,14 +155,14 @@ class IntentHandleWork : JobIntentService() {
                 .setContentTitle("Notifikasi Sistem Peringatan")
                 .setContentIntent(notificationPendingIntent)
                 .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
-                .setPriority(NotificationManager.IMPORTANCE_HIGH)
+        /*.setPriority(NotificationManager.IMPORTANCE_HIGH)*/
 
 
 
         return notificationBuilder.build()
     }
 
-    private fun postDataEnterToServer(name: String?, zone: String?, date: String) {
+    private fun postDataEnterToServer(id: String, id_min_dis: String, name: String?, zone: String?, date: String) {
 
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
@@ -171,7 +174,7 @@ class IntentHandleWork : JobIntentService() {
                 val status1 = jObj.getString("status")
                 Log.d("statuspost  = ", status1)
                 if (status1.contains("200")) {
-                    Log.d("sukses data =",jObj.toString())
+                    Log.d("sukses data =", jObj.toString())
                 } else {
                     val msg = jObj.getString("message")
                     Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
@@ -208,6 +211,8 @@ class IntentHandleWork : JobIntentService() {
                 params["area"] = name.toString()
                 params["waktu"] = date
                 params["nama_zona_terdekat"] = zone.toString()
+                params["id_area_masuk"] = id
+                params["id_zona_terdekat"] = id_min_dis
                 return params
             }
         }
@@ -217,7 +222,7 @@ class IntentHandleWork : JobIntentService() {
 
     }
 
-    private fun postDataExitToServer(name: String?, waktu: String?) {
+    private fun postDataExitToServer(number: String, name: String?, waktu: String?) {
 
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
@@ -265,6 +270,8 @@ class IntentHandleWork : JobIntentService() {
                 }
                 params["area"] = name.toString()
                 params["waktu"] = waktu.toString()
+                params["id_area_keluar"] = number.toString()
+
                 return params
             }
         }
@@ -274,7 +281,7 @@ class IntentHandleWork : JobIntentService() {
 
     }
 
-    private fun postDataAman(name: String?, date: String) {
+    private fun postDataAman(id: String, name: String?, date: String) {
 
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
@@ -321,6 +328,7 @@ class IntentHandleWork : JobIntentService() {
                 }
                 params["nama_zona"] = name.toString()
                 params["waktu"] = date
+                params["id_zona"] = id
 
                 return params
             }
@@ -331,13 +339,12 @@ class IntentHandleWork : JobIntentService() {
 
     }
 
-    private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
-
     companion object {
+        private const val JOB_ID = 573
         fun enqueueWork(context: Context, intent: Intent) {
             enqueueWork(
                     context,
-                    IntentHandleWork::class.java, 1,
+                    IntentHandleWork::class.java, JOB_ID,
                     intent)
         }
     }

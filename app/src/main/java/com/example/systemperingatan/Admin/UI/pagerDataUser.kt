@@ -23,12 +23,10 @@ class pagerDataUser(fragmentManager: FragmentManager, private val context: Conte
 
     override fun getPageTitle(position: Int): CharSequence? {
         return when(position){
-            0 -> "Enter"
-            1 -> "Exit"
+            0 -> "Masuk"
+            1 -> "Keluar"
             else -> "Aman"
 
-
         }
-
     }
 }

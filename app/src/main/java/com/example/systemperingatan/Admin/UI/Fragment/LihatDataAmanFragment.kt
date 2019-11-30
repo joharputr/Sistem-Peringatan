@@ -14,9 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.Admin.Adapter.DataUserAmanAdapter
-import com.example.systemperingatan.Admin.Adapter.DataUserEnterAdapter
-import com.example.systemperingatan.Admin.Adapter.DataUserExitAdapter
-import com.example.systemperingatan.Admin.UI.Activity.SearchDataUser
+import com.example.systemperingatan.Admin.UI.Activity.search.SearchDataUser
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.lihat_data_user.*

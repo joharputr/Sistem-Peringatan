@@ -10,7 +10,7 @@ import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.activity_list_data_area.toolbarListArea
 import kotlinx.android.synthetic.main.activity_list_data_area_exitenter.*
 
-class ListDataUser : AppCompatActivity() {
+class ListDataNotifikasi : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +29,7 @@ class ListDataUser : AppCompatActivity() {
     private fun setToolbar() {
         setSupportActionBar(toolbarListArea)
         val actionBar = supportActionBar
-        actionBar?.title = "List Data User"
+        actionBar?.title = "List Data Notifikasi"
         actionBar?.setDisplayHomeAsUpEnabled(true)
         actionBar?.setDisplayShowHomeEnabled(true)
     }
