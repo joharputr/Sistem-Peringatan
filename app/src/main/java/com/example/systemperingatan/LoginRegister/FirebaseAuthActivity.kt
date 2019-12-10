@@ -8,16 +8,19 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.toolbox.StringRequest
+import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import com.example.systemperingatan.User.UI.UserActivity
 import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseException
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.auth.*
+import kotlinx.android.synthetic.main.activity_edit_area.*
 import kotlinx.android.synthetic.main.activity_firebase_auth.*
+import org.json.JSONException
+import org.json.JSONObject
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class FirebaseAuthActivity : AppCompatActivity() {
@@ -44,7 +47,6 @@ class FirebaseAuthActivity : AppCompatActivity() {
             if (editCodeVerification.text.isNullOrEmpty())
                 editCodeVerification.error = "Wajib mengisi kode verifikasi"
             else {
-
                 authenticate()
             }
         }
@@ -52,7 +54,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
         //setting toolbar
         setSupportActionBar(findViewById(R.id.toolbarFirebase))
         //home navigation
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         val actionBar = supportActionBar
         actionBar?.title = "Login"
     }
@@ -92,19 +94,22 @@ class FirebaseAuthActivity : AppCompatActivity() {
         mCallbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 progressbar.visibility = View.GONE
-                Log.d("onVerificatsucces = ", credential.toString())
+                Log.d("onVerificatsucces = ", credential.smsCode.toString())
+               // Toast.makeText(applicationContext, "Instant Verifikasi Sukses", Toast.LENGTH_SHORT).show()
                 signIn(credential)
+
             }
 
             override fun onVerificationFailed(error: FirebaseException) {
                 progressbar.visibility = View.GONE
                 Log.d("onVerificationFailed = ", error.toString())
-                Toast.makeText(applicationContext, "masukan nomer telepon sesuai format", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "masukan nomor telepon sesuai format", Toast.LENGTH_SHORT).show()
             }
 
             override fun onCodeSent(verfication: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(verfication, p1)
                 verificationId = verfication
+                Toast.makeText(applicationContext, "Kode Dikirimkan", Toast.LENGTH_SHORT).show()
                 progressbar.visibility = View.GONE
             }
         }
@@ -114,9 +119,18 @@ class FirebaseAuthActivity : AppCompatActivity() {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener { task: Task<AuthResult> ->
                     if (task.isSuccessful) {
-                        Toast.makeText(applicationContext, "success sign in", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, UserActivity::class.java))
-                        App.preferenceHelper.is_login = "1"
+                        Log.d("cekNomor = ", "" + task.result?.user)
+                        val phnNo = editPhone.text.toString()
+                        cek_user_firebase(phnNo)
+
+                    } else {
+                        // Sign in failed, display a message and update the UI
+                        Log.w("", "signInWithCredential:failure", task.exception)
+                        if (task.exception is FirebaseAuthInvalidCredentialsException) {
+                            // The verification code entered was invalid
+                            progressbar.visibility = View.GONE
+                            Toast.makeText(applicationContext, "Kode Verifikasi salah", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
     }
@@ -133,5 +147,65 @@ class FirebaseAuthActivity : AppCompatActivity() {
             progressbar.visibility = View.GONE
             editCodeVerification.error = "Kode Verifikasi salah"
         }
+    }
+
+    private fun cek_user_firebase(number: String) {
+        val tag_string_req = "req_postdata"
+        val strReq = object : StringRequest(Method.POST,
+                NetworkAPI.cek_firebase_user, { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+                progressbar.visibility = View.GONE
+                val jObj = JSONObject(response)
+                val status = jObj.getString("status")
+                Log.d("status post  = ", status)
+                if (status.contains("200")) {
+                    //login sukses
+                    Toast.makeText(applicationContext, "success sign in", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, UserActivity::class.java))
+                    App.preferenceHelper.is_login = "1"
+                } else if (status.contains("403")) {
+                    //user already login
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                } else {
+                    //register
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, UserActivity::class.java))
+                    App.preferenceHelper.is_login = "1"
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("error catch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+
+        }) {
+            override fun getParams(): Map<String, String> {
+                // Posting parameters to login url
+                val params = HashMap<String, String>()
+                params["phone"] = number
+
+                return params
+            }
+        }
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
     }
 }

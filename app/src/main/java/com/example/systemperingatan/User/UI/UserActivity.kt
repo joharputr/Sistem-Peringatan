@@ -18,6 +18,7 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.Menu
@@ -31,6 +32,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.android.volley.toolbox.StringRequest
+import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.Admin.Adapter.ListDataEvacuationZoneAdapter
 import com.example.systemperingatan.Admin.UI.Activity.ListDataAreaZonaActivity
@@ -57,9 +60,14 @@ import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_user.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONException
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.set
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener, NavigationView.OnNavigationItemSelectedListener {
@@ -70,16 +78,15 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     // globally declare LocationCallback
     private lateinit var locationCallback: LocationCallback
-// in onCreate() initialize FusedLocationProviderClient
-
+    // in onCreate() initialize FusedLocationProviderClient
+    private var mSettingsClient: SettingsClient? = null
     private val arrayListZona = ArrayList<DataItem>()
     val adapterZona = ListDataEvacuationZoneAdapter(arrayListZona, this::onClick)
     var geofencingClient: GeofencingClient? = null
     private lateinit var locationManager: LocationManager
-    private lateinit var titikGps: LatLng
-    private val lastLocation: Location? = null
-    var bestProvider: String? = null
+    lateinit var titikGps: LatLng
     //firebase
+
     lateinit var mAuth: FirebaseAuth
     private val geofencePendingIntent: PendingIntent by lazy {
 
@@ -115,7 +122,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER or GeofencingRequest.INITIAL_TRIGGER_EXIT)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER /*or GeofencingRequest.INITIAL_TRIGGER_EXIT*/)
                     .addGeofence(geofence)
                     .build()
         }
@@ -145,15 +152,13 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         private val MY_PERMISSION_REQUEST_CODE = 7192
 
-        private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
-
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user)
         geofencingClient = LocationServices.getGeofencingClient(this)
+        mSettingsClient = LocationServices.getSettingsClient(this)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         initMap()
         preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -164,7 +169,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val actionBar = supportActionBar
         actionBar?.title = "Sistem peringatan"
         actionBar?.elevation = 4.0F
-        actionBar?.setDisplayHomeAsUpEnabled(true);
+        actionBar?.setDisplayHomeAsUpEnabled(true)
         initDrawer()
         nav_viewuser.setNavigationItemSelectedListener(this)
         Log.d("dataUSERHPUser = ", "login = " + App.preferenceHelper.is_login + "" +
@@ -175,43 +180,104 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         checkUser()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        setUpLocation()
 
         mAuth = FirebaseAuth.getInstance()
-        Log.d("mauth ", mAuth.toString())
+        val currentFirebaseUser = mAuth.currentUser?.uid
+        Log.d("userFirebase", currentFirebaseUser.toString())
+
+
     }
 
+    override fun onStart() {
+        super.onStart()
+        setUpLocation()
+    }
+
+    override fun onPause() {
+        Log.d("CEKACTIVITY", "onpause")
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        Log.d("CEKACTIVITY", "onDestroy")
+        super.onDestroy()
+        setUpLocation()
+    }
+
+    /* private fun startLocationUpdatesBackup() {
+         val builder = LocationSettingsRequest.Builder()
+         builder.addLocationRequest(locationRequest)
+         mLocationSettingsRequest = builder.build()
+
+         mSettingsClient?.checkLocationSettings(mLocationSettingsRequest)?.addOnSuccessListener(this) {
+             Log.i("", "All location settings are satisfied.")
+
+             fusedLocationClient.requestLocationUpdates(
+                     locationRequest,
+                     locationCallback,
+                     Looper.myLooper() *//* Looper *//*
+            )
+
+            if (lastLocation == null) {
+                Log.i("", "mLocation WAS NULL")
+            }
+        }?.addOnFailureListener(this) { e ->
+            val statusCode = (e as ApiException).statusCode
+            when (statusCode) {
+                LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                    Log.i("", "Location settings are not satisfied. Attempting to upgrade " + "location settings ")
+                    try {
+                        // Show the dialog by calling startResolutionForResult(), and check the
+                        // result in onActivityResult().
+                        val rae = e as ResolvableApiException
+                        val requestCheckSettings = 100  //?
+                        rae.startResolutionForResult(this@UserActivity, requestCheckSettings)
+                    } catch (sie: IntentSender.SendIntentException) {
+                        Log.i("", "PendingIntent unable to execute request.")
+                    }
+
+                }
+                LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                    val errorMessage =
+                            "Location settings are inadequate, and cannot be " + "fixed here. Fix in Settings."
+                    Log.e("", errorMessage)
+                    Toast.makeText(this@UserActivity, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }*/
+
     private fun getLocationUpdates() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest()
-        locationRequest.interval = 50000
-        locationRequest.fastestInterval = 50000
+        locationRequest.interval = 10000
+        locationRequest.fastestInterval = 5000
         locationRequest.smallestDisplacement = 170f // 170 m = 0.1 mile
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY //set according to your app function
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
-                if (mMap != null) {
-                    if (locationResult.locations.isNotEmpty()) {
-                        val location = locationResult.lastLocation
-                        val latLng = LatLng(location.latitude, location.longitude)
-                        markerLocation(latLng)
-                        Log.d("testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
-                        mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
 
-                    }
+                for (location in locationResult.locations) {
+                    //onLocationChanged(location)
+                    //val lastLocation = locationResult.lastLocation
+
+                    val latLng = LatLng(location.latitude, location!!.longitude)
+                    markerLocation(latLng)
+                    mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                    Log.d("1testLocationUpdate= ", "lat = " + location.latitude + "long = " + location.longitude)
+
                 }
-
             }
         }
     }
 
     //start location updates
     private fun startLocationUpdates() {
+        Log.d("testUpdate = ", "testLocationUpdate")
         fusedLocationClient.requestLocationUpdates(
                 locationRequest,
                 locationCallback,
-                null /* Looper */
+                Looper.myLooper() /* Looper */
         )
     }
 
@@ -221,16 +287,17 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
 
     override fun onLocationChanged(location: Location?) {
-        /*  val latLng = LatLng(location?.latitude!!, location.longitude)
-          markerLocation(latLng)
-          Log.d("testLocationchanged = ", "lat = " + location.latitude + "long = " + location.longitude)
-          mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))*/
+        val latLng = LatLng(location?.latitude!!, location.longitude)
+        markerLocation(latLng)
+        Log.d("onLocationChanged= ", "lat = " + location.latitude + "long = " + location.longitude)
+        mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
     }
 
     override fun onProviderEnabled(provider: String?) {
+
     }
 
     override fun onProviderDisabled(provider: String?) {
@@ -240,15 +307,15 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     @SuppressLint("MissingPermission")
     fun getLastKnownLocation() {
         fusedLocationClient.lastLocation
-                .addOnSuccessListener { location ->
+                .addOnSuccessListener { location: Location? ->
                     if (location != null) {
                         if (mMap != null) {
                             if (checkPermission()) {
                                 val latLng = LatLng(location.latitude, location.longitude)
-                                markerLocation(latLng)
-                                Log.d("testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
-                                mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
-
+                                onLocationChanged(location)
+                                //     markerLocation(latLng)
+                                //   Log.d("1testLocation= ", "lat = " + location.latitude + "long = " + location.longitude)
+                                //    mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
 
                             } else {
                                 askPermission()
@@ -260,16 +327,16 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                 }
 
-        /*  locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-          val criteria = Criteria()
-          bestProvider = locationManager.getBestProvider(criteria, true)
-          val location = locationManager.getLastKnownLocation(bestProvider)
-          val latLng = LatLng(location.latitude,location.longitude)
-          markerLocation(latLng)
-          if (location != null){
-              mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
-          }
-          locationManager.requestLocationUpdates(bestProvider, 20000, 0f, this)*/
+        /*    locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+              val criteria = Criteria()
+              val bestProvider = locationManager.getBestProvider(criteria, true)
+              val location = locationManager.getLastKnownLocation(bestProvider)
+              val latLng = LatLng(location.latitude, location.longitude)
+              markerLocation(latLng)
+              if (location != null) {
+                  mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+              }*/
+        //     locationManager.requestLocationUpdates(bestProvider, 20000, 0f, this)
     }
 
     private fun checkUser() {
@@ -306,23 +373,23 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         }
 
         if (App.preferenceHelper.tipe != "admin") {
-            val nav_Menu: Menu = navigationView.getMenu()
-            nav_Menu.findItem(R.id.nav_admin).setVisible(false)
-            nav_Menu.findItem(R.id.logoutfb).setVisible(true)
+            val nav_Menu: Menu = navigationView.menu
+            nav_Menu.findItem(R.id.nav_admin).isVisible = false
+            nav_Menu.findItem(R.id.logoutfb).isVisible = true
 
-            nav_Menu.findItem(R.id.lihatAreaZona).setVisible(true)
+            nav_Menu.findItem(R.id.lihatAreaZona).isVisible = true
         } else {
-            val nav_Menu: Menu = navigationView.getMenu()
-            nav_Menu.findItem(R.id.nav_admin).setVisible(true)
-            nav_Menu.findItem(R.id.logoutfb).setVisible(false)
-            nav_Menu.findItem(R.id.lihatAreaZona).setVisible(false)
+            val nav_Menu: Menu = navigationView.menu
+            nav_Menu.findItem(R.id.nav_admin).isVisible = true
+            nav_Menu.findItem(R.id.logoutfb).isVisible = false
+            nav_Menu.findItem(R.id.lihatAreaZona).isVisible = false
         }
     }
 
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
-        val id = item.getItemId()
+        val id = item.itemId
 
         if (id == R.id.nav_admin) {
             startActivity(Intent(this, MapsAdminActivity::class.java))
@@ -338,12 +405,67 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         if (id == R.id.logoutfb) {
             mAuth.signOut()
+            logout_user()
             startActivity(Intent(this, FirebaseAuthActivity::class.java))
         }
 
-        item.setChecked(true)
+        item.isChecked = true
         drawerLayoutUser.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    private fun logout_user() {
+
+        val tag_string_req = "req_postdata"
+        val strReq = object : StringRequest(Method.POST,
+                NetworkAPI.logout_firebase_user, { response ->
+            Log.d("CLOG", "responh: $response")
+            try {
+
+                val jObj = JSONObject(response)
+                val status = jObj.getString("status")
+                Log.d("dataStatus = ", status.toString())
+                val data = jObj.get("data")
+                Log.d("dataUSER = ", data.toString())
+                if (status.contains("200")) {
+                    Toast.makeText(this, "Logout Success!", Toast.LENGTH_SHORT).show()
+
+                } else {
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                Log.d("errorcatch = ", e.toString())
+            }
+
+        }, { error ->
+            Log.d("CLOG", "verespon: ${error.localizedMessage}")
+            val json: String?
+            val response = error.networkResponse
+            if (response != null && response.data != null) {
+                json = String(response.data)
+                val jObj: JSONObject?
+                try {
+                    jObj = JSONObject(json)
+                    val msg = jObj.getString("message")
+                    Toast.makeText(applicationContext, error.localizedMessage, Toast.LENGTH_SHORT).show()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }
+        }) {
+            override fun getParams(): Map<String, String> {
+                val params = HashMap<String, String>()
+                Log.d("phone_firebase = ", "phone = " + App.preferenceHelper.phonefb)
+                params["phone"] = App.preferenceHelper.phonefb
+                return params
+            }
+        }
+
+        App.instance?.addToRequestQueue(strReq, tag_string_req)
+
     }
 
 
@@ -357,9 +479,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val geofence = Geofence.Builder()
                 .setRequestId(857.toString())
                 .setCircularRegion(
-                        -7.690715292002636,
-                        110.42399603873491,
-                        1000.0.toFloat()
+                        -7.6915218,
+                        110.421291,
+                        500.0.toFloat()
                 )
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
@@ -384,13 +506,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         } catch (e: SQLException) {
             e.stackTrace
         }
-
+        val dbHelper = GeofenceDbHelper(this)
+        dbHelper.DeleteAll()
         val arrayList = ArrayList<DataItem>()
         val dataFav1 = DataItem(857.toString(), null, null, "-7.689958402400068",
-                null, "KOSKOSAN", null, 110.41690729558468.toString(), null, null, "Percobaan")
+                null, "KOSKOSAN", "point", 110.41690729558468.toString(), "100", "100", null, "Percobaan", "")
         arrayList.addAll(listOf(dataFav1))
         saveAll(arrayList)
-        addMarker("KOSOSAN", 1000.0, 857.toString(), -7.690715292002636, 110.42399603873491)
+        addMarker("KOSOSAN", 500.0, "444", -7.6915218, 110.421291)
     }
 
 
@@ -427,10 +550,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         } else {
             /*      if (checkPlayServices()) {
-                      //  getLocationUpdates()
-                      getLastKnownLocation()
+
                   }*/
             getLastKnownLocation()
+            //getLocationUpdates()
         }
     }
 
@@ -438,8 +561,11 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         if (requestCode == MY_PERMISSION_REQUEST_CODE) {
             if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
                 setUpLocation()
+
             } else {
+
                 permissionDenied()
             }
         }
@@ -514,14 +640,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val location = LatLng(latitude, longitude)
         titikGps = location
         Log.d("titikGps = ", titikGps.toString())
-        val markerOptions = MarkerOptions()
-                .position(location)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title("Lokasi Saya")
+        /* val markerOptions = MarkerOptions()
+                     .position(location)
+                //     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+                    // .title("Lokasi Saya")*/
         if (mMap != null) {
             if (locationMarker != null)
                 locationMarker!!.remove()
-            locationMarker = mMap?.addMarker(markerOptions)
+            //   locationMarker = mMap?.addMarker(markerOptions)
             val zoom = 14f
             val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, zoom)
             mMap!!.animateCamera(cameraUpdate)
@@ -564,17 +690,15 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                             val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                             val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                             val latlang = LatLng(lat, lang)
-
                             if (this@UserActivity::titikGps.isInitialized) {
                                 addRoute(titikGps, latlang)
                                 val URL = getDirectionURL(titikGps, latlang)
                                 Log.d("testrute = ", URL)
                                 GetDirection(URL).execute()
                             } else {
-                                Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@UserActivity, "CHECK GPS", Toast.LENGTH_SHORT).show()
                             }
                         }
-
 
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
@@ -589,21 +713,25 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         })
     }
 
-
     override fun onResume() {
         super.onResume()
 
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Log.e("CEKCLOGProvider", "ProviderGPS is not avaible");
+            Log.e("CEKCLOGProvider", "ProviderGPS is not avaible")
         } else if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Log.v("CEKCLOGProvider", " ProviderGPS is avaible");
+            Log.v("CEKCLOGProvider", " ProviderGPS is avaible")
         }
         if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            Log.e("CEKCLOGNetwork Provider", "ProviderNetwork is not avaible");
+            Log.e("CEKCLOGNetwork Provider", "ProviderNetwork is not avaible")
         } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            Log.v("CEKCLOGNetwork Provider", "providerNetwork is avaible");
+            Log.v("CEKCLOGNetwork Provider", "providerNetwork is avaible")
         }
-        //startLocationUpdates()
+
+
+        Log.v("CEKPermission", "")
+        //  startLocationUpdates()
+
+
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             AlertDialog.Builder(this)
                     .setMessage("GPS TIDAK AKTIF")
@@ -615,15 +743,11 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (App.preferenceHelper.is_login == "1") {
+                //    percobaan()
                 reloadMapMarkers()
                 reloadMapMarkersZonaWithoutRecyclerView()
             }
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        //    stopLocationUpdates()
     }
 
 
@@ -633,18 +757,20 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
+        mMap?.run {
+            uiSettings.isMyLocationButtonEnabled = false
+            uiSettings.isMapToolbarEnabled = false
+        }
+        mMap?.isMyLocationEnabled = true
 
-        mMap!!.isMyLocationEnabled = true
+        mMap?.setOnInfoWindowClickListener(this)
 
-        mMap!!.setOnInfoWindowClickListener(this)
-
-        setUpLocation()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 
             reloadMapMarkersZona()
+          //  percobaan()
         }
-        //    percobaan()
     }
 
 
@@ -657,21 +783,24 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         val latitude = java.lang.Double.parseDouble(latLng[0])
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
-        val strokeColor = 0xffff0000.toInt(); //red outline
-        val shadeColor = 0x44ff0000; //opaque red fill
-        mMap!!.addMarker(MarkerOptions()
+        val strokeColor = 0xffff0000.toInt() //red outline
+        val shadeColor = 0x44ff0000 //opaque red fill
+
+        mMap?.addMarker(MarkerOptions()
                 .title(message)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(location))
-        mMap!!.addCircle(CircleOptions()
+        mMap?.addCircle(CircleOptions()
                 .center(location)
                 .radius(radius)
                 .fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(2F))
+
+
     }
 
     private fun addMarkerPoint(latLng: LatLng, message: String, radius: Double, number: String) {
-        val strokeColor = 0x0106001b.toInt(); //red outline
-        val shadeColor = 0x44ff0000; //opaque red fill
+        val strokeColor = 0x0106001b.toInt() //red outline
+        val shadeColor = 0x44ff0000 //opaque red fill
         mMap!!.addMarker(MarkerOptions()
                 .title(message)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
@@ -685,18 +814,19 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     private fun onClick(dataItem: DataItem) {
         if (mMap != null) {
             // Remove the anterior marker
-            if (locationMarker != null) {
-                //    dataItem.number = locationMarker!!.title.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
-                val gmmIntentUri = Uri.parse("google.navigation:q=" + dataItem.latitude + "," + dataItem.longitude + "&mode=d")
-                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-                mapIntent.setPackage("com.google.android.apps.maps")
-                startActivity(mapIntent)
-            }
+            //    dataItem.number = locationMarker!!.title.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
+            //     val gmmIntentUri = Uri.parse("google.navigation:q=" + dataItem.latitude + "," + dataItem.longitude + "&mode=d")
+            val intentMaps = Uri.parse("http://maps.google.com/maps?q=loc:" + dataItem.latitude + "," + dataItem.longitude + " (" + dataItem.message + ")")
+            val mapIntent = Intent(Intent.ACTION_VIEW, intentMaps)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            startActivity(mapIntent)
+            Log.d("TESCLIK", "" + dataItem.latitude + "," + dataItem.longitude)
         }
     }
 
     override fun onInfoWindowClick(marker: Marker) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            //   percobaan()
             reloadMapMarkers()
             reloadMapMarkersZonaWithoutRecyclerView()
         }
@@ -705,7 +835,6 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private//select all from db
     fun reloadMapMarkers() {
-        //   mMap!!.clear()
         val dbHelper = GeofenceDbHelper(this)
         dbHelper.DeleteAll()
         mMap?.clear()
@@ -735,33 +864,19 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                         val lat = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         val lang = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         val latlang = LatLng(lat, lang)
+
                         if (this@UserActivity::titikGps.isInitialized) {
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
-
                             val helper = GeofenceDbHelper(this@UserActivity)
-
+                            Log.d("CheckTitikGps", "titik gps = " + titikGps.toString() + " distance  = " + distance)
                             helper.saveToDb(number, latitude, longitude, expires, message!!, distance, type)
-
-                            // updateData(number, distance)
                         } else {
-                            Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@UserActivity, "Akurasi Kompas Rendah", Toast.LENGTH_SHORT).show()
                         }
+
+                        // updateData(number, distance)
 
                         GetDataSQLite()
-
-                        val idList = ArrayList<String>()
-                        idList.add(number)
-                        Log.d("idlist = ", idList.toString())
-
-                        val geoClient = LocationServices.getGeofencingClient(this@UserActivity)
-                        geoClient.removeGeofences(idList).addOnSuccessListener {
-
-                        }.addOnFailureListener {
-                            Log.e("LOGERROR WINDOW CLICK", it.localizedMessage)
-                            Toast.makeText(this@UserActivity, "Error when add geofence!", Toast.LENGTH_SHORT).show()
-                        }
-
-                        Log.d("numberGeo", "number = " + number)
 
                         val geofence = Geofence.Builder()
                                 .setRequestId(number)
@@ -806,6 +921,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         })
     }
 
+
     fun reloadMapMarkersZona() {
         //   mMap!!.clear()
         val dbHelper = GeofenceDbHelper(this)
@@ -835,17 +951,15 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                             if (this@UserActivity::titikGps.isInitialized) {
                                 val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
-
                                 val dataZona = DataItem(number, null, null, latitude.toString(), null, message,
                                         type, longitude.toString(), null, address, distance.toString(), null)
                                 Log.d("dataZONN = ", dataZona.toString())
                                 arrayListZona.addAll(listOf(dataZona))
                                 initRecyclerView()
                             } else {
-                                Toast.makeText(this@UserActivity, "TITIK GPS TIDAK TERDITEKSI ", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@UserActivity, "CHECK GPS", Toast.LENGTH_SHORT).show()
                             }
                         }
-
                     } else {
                         Toast.makeText(this@UserActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
@@ -874,7 +988,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 val type = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_TYPE))
                 val id_min_dis = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.ID_COLUMN_NAME_MIN_DISTANCE))
 
-                Log.d("dataZonaTerdekat = ","id = " +id_min_dis+" nama zona ="+min_dis)
+                Log.d("dataZonaTerdekat = ", "id = " + id_min_dis + " nama zona =" + min_dis)
                 val dataFav1 = DataItem(number, null, expires, latitude, null, messages, type, longitude, null, null, distances, min_dis, id_min_dis)
                 arrayList.addAll(listOf(dataFav1))
             }
@@ -907,15 +1021,16 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     private inner class GetDirection(val url: String) : AsyncTask<Void, Void, List<List<LatLng>>>() {
         override fun doInBackground(vararg params: Void?): List<List<LatLng>> {
-            val client = OkHttpClient()
-            val request = Request.Builder().url(url).build()
-            val response = client.newCall(request).execute()
-            val data = response.body()?.string()
-            Log.d("GoogleMapTest", " data : $data")
             val result = ArrayList<List<LatLng>>()
             try {
-                val respObj = Gson().fromJson(data, GoogleMapDTO::class.java)
+                val client = OkHttpClient()
+                val request = Request.Builder().url(url).build()
+                val response = client.newCall(request).execute()
+                val data = response.body()?.string()
+                Log.d("GoogleMapTest", " data : $data")
 
+
+                val respObj = Gson().fromJson(data, GoogleMapDTO::class.java)
                 val path = ArrayList<LatLng>()
 
                 for (i in 0 until (respObj.routes[0].legs[0].steps.size)) {
@@ -923,8 +1038,14 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                     Log.d("cekPath", "= " + respObj.routes[0].legs[0].steps[i].polyline.points)
                 }
                 result.add(path)
+
             } catch (e: NullPointerException) {
                 e.printStackTrace()
+                Log.d("CEKRUTE = ", e.toString())
+                Toast.makeText(this@UserActivity, "CEK RUTE", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.d("CEKRUTE2 = ", e.toString())
             }
             return result
         }
@@ -937,7 +1058,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 lineoption.color(Color.BLUE)
                 lineoption.geodesic(true)
             }
-            mMap!!.addPolyline(lineoption)
+            mMap?.addPolyline(lineoption)
         }
     }
 

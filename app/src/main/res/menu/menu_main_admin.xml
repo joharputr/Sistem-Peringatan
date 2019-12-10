@@ -17,6 +17,10 @@
             android:id="@+id/data_enter_exit"
             android:icon="@drawable/location_item"
             android:title="Daftar data Notifikasi" />
+       <!-- <item
+            android:id="@+id/setting_notif"
+            android:icon="@drawable/location_item"
+            android:title="Setting Notif" />-->
         <item
             android:id="@+id/logout"
             android:icon="@drawable/location_item"

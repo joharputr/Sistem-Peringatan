@@ -19,8 +19,6 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-
-
     <ProgressBar
         android:id="@+id/progressBar_circular"
         android:layout_width="50dp"

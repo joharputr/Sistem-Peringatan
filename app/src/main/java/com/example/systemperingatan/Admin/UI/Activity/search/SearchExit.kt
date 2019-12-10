@@ -35,7 +35,7 @@ class SearchExit : AppCompatActivity() {
 
         setSupportActionBar(searchToolbar)
         val actionBar = supportActionBar
-        actionBar?.title = "Pencarian Data Notifikasi Keluar Area"
+        actionBar?.title = "data keluar = "+search
 
     }
 

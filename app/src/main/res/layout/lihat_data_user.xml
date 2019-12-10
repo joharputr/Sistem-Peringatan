@@ -7,7 +7,6 @@
     tools:context=".Admin.UI.Activity.ListDataNotifikasi">
 
     <View
-
         android:id="@+id/viewMovie"
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -27,26 +26,42 @@
         app:actionViewClass="android.support.v7.widget.SearchView"
 
         app:layout_constraintBottom_toBottomOf="@+id/viewMovie"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/viewMovie"
+        app:layout_constraintHorizontal_bias="0.96"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:showAsAction="ifRoom|collapseActionView" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerviewData"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:layout_marginTop="60dp"
+        android:id="@+id/swipeNotif"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewMovie"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/viewMovie">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerviewData"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/viewMovie"
+            app:layout_constraintVertical_bias="0.0" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <ProgressBar
         android:id="@+id/progressBar_circular_data"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_gravity="center"
-        app:layout_constraintBottom_toBottomOf="@+id/recyclerviewData"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/recyclerviewData"
-        app:layout_constraintTop_toTopOf="@+id/recyclerviewData" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        app:layout_constraintStart_toStartOf="@+id/swipeNotif"
+        app:layout_constraintTop_toBottomOf="@+id/viewMovie" />
+       </androidx.constraintlayout.widget.ConstraintLayout>

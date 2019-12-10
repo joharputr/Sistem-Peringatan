@@ -1,8 +1,10 @@
 package com.example.systemperingatan.API.Pojo.DataExitEnter
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 
-
+@Parcelize
 data class DataUser(
 
         @field:SerializedName("phone")
@@ -22,4 +24,4 @@ data class DataUser(
 
         @field:SerializedName("nama_zona_terdekat")
         val namaZonaTerdekat: String? = null
-)
+):Parcelable

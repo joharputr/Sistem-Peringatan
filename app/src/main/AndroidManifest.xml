@@ -14,7 +14,7 @@
 
     <application
         android:name=".App"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network"
@@ -24,30 +24,57 @@
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".LoginRegister.FirebaseAuthActivity"></activity>
-        <activity android:name=".Admin.UI.Activity.EditAdminActivity" />
         <activity
-            android:name=".Admin.UI.Activity.EditLocationPointActivity"
-            android:label="Edit Location Point" />
-        <activity android:name=".LoginRegister.Register" />
-        <activity android:name=".LoginRegister.Login" />
+            android:name=".LoginRegister.FirebaseAuthActivity"
+            android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".Admin.UI.Activity.EditRadiusActivity"
-            android:label="@string/title_activity_edit_radius" />
-        <activity android:name=".Admin.UI.Activity.EditNamaAreaActivity" />
-        <activity android:name=".Admin.UI.Activity.EditNamaZonaActivity" />
-        <activity android:name=".Admin.UI.Activity.ListDataAreaZonaActivity" />
-        <activity android:name=".Admin.UI.Activity.ListDataNotifikasi" />
-        <activity android:name=".Admin.UI.Activity.MapsAdminActivity" />
+            android:name=".Admin.UI.Activity.EditAdminActivity"
+            android:screenOrientation="portrait" />
         <activity
-            android:name=".Admin.UI.Activity.AddNewPointActivity"
-            android:label="@string/title_activity_add_new_point" />
+            android:name=".Admin.UI.Activity.EditZonaActivity"
+            android:label="Edit Location Point"
+            />
         <activity
-            android:name=".Admin.UI.Activity.AddNewMapActivity"
-            android:label="@string/title_activity_add_new_map" />
+            android:name=".LoginRegister.Register"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".LoginRegister.Login"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Admin.UI.Activity.EditAreaActivity"
+            android:label="@string/title_activity_edit_radius"
+             />
+        <activity
+            android:name=".Admin.UI.Activity.EditNamaAreaActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Admin.UI.Activity.EditNamaZonaActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Admin.UI.Activity.ListDataAreaZonaActivity"
+            android:screenOrientation="portrait"
+            />
+        <activity
+            android:name=".Admin.UI.Activity.ListDataNotifikasi"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Admin.UI.Activity.MapsAdminActivity"
+             />
+        <activity
+            android:name=".Admin.UI.Settings.SettingActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Admin.UI.Activity.AddZonaActivity"
+            android:label="@string/title_activity_add_new_point"
+            />
+        <activity
+            android:name=".Admin.UI.Activity.AddAreaActivity"
+            android:label="@string/title_activity_add_new_map"
+            />
         <activity
             android:name=".User.UI.UserActivity"
-            android:label="@string/title_activity_user">
+            android:label="@string/title_activity_user"
+           >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -56,7 +83,8 @@
         </activity>
         <activity
             android:name=".Admin.UI.Activity.search.SearchDataUser"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -71,7 +99,8 @@
 
         <activity
             android:name=".Admin.UI.Activity.search.SearchEnter"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -86,7 +115,8 @@
 
         <activity
             android:name=".Admin.UI.Activity.search.SearchExit"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -109,7 +139,12 @@
         <receiver
             android:name=".User.Notification.GeofenceBroadcastReceiver"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+
+        </receiver>
 
         <service
             android:name=".User.Notification.IntentHandleWork"
@@ -120,6 +155,12 @@
                 <action android:name="android.location.PROVIDERS_CHANGED" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".Admin.UI.Settings.NotifikasiDataUser"
+            android:enabled="true"
+            android:exported="true" />
+
 
         <uses-library
             android:name="org.apache.http.legacy"

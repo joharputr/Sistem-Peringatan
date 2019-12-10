@@ -174,14 +174,14 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
 
         fab2_share!!.setOnClickListener {
             mMap?.run {
-                val intent = AddNewMapActivity.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
+                val intent = AddAreaActivity.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
                 startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
         }
 
         fab3_titik!!.setOnClickListener {
             mMap?.run {
-                val intent = AddNewPointActivity.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
+                val intent = AddZonaActivity.newIntent(this@MapsAdminActivity, cameraPosition.target, cameraPosition.zoom)
                 startActivityForResult(intent, NEW_REMINDER_REQUEST_CODE)
             }
         }
@@ -253,7 +253,6 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
 
         if (id == R.id.nav_user) {
             startActivity(Intent(this, UserActivity::class.java))
-
         }
         if (id == R.id.nav_list) {
             startActivity(Intent(this, ListDataAreaZonaActivity::class.java))
@@ -264,6 +263,9 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         if (id == R.id.data_enter_exit) {
             startActivity(Intent(this, ListDataNotifikasi::class.java))
         }
+      /*  if (id == R.id.setting_notif) {
+            startActivity(Intent(this, SettingActivity::class.java))
+        }*/
         if (id == R.id.logout) {
             logout()
             startActivity(Intent(this, FirebaseAuthActivity::class.java))
@@ -515,9 +517,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         mMap!!.setOnMapClickListener(this)
         mMap!!.setOnMarkerClickListener(this)
         mMap!!.setOnInfoWindowClickListener(this)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            reloadMapMarkers()
-        }
+
     }
 
     override fun onConnected(bundle: Bundle?) {
@@ -585,12 +585,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         }
     }
 
-    override fun onResumeFragments() {
-        super.onResumeFragments()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            reloadMapMarkers()
-        }
-    }
+
 
     /* private fun markerForGeofence(latLng: LatLng) {
          if (!mGoogleApiClient!!.isConnected) {
@@ -705,7 +700,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
         mMap!!.addMarker(MarkerOptions()
-                .title("G:$key nama =  $message")
+                .title("G:$key Area Berbahaya =  $message")
                 .snippet("Hapus Marker ini")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(location))
@@ -719,7 +714,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
     private fun addMarkerPoint(latLng: LatLng, message: String,radius: Double, number: String) {
         val strokeColor = 0x0106001b.toInt(); //red outline
         mMap!!.addMarker(MarkerOptions()
-                .title("G:$number Nama Area Evakuasi = $message")
+                .title("G:$number Zona Evakuasi = $message")
                 .snippet("Hapus Marker ini")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
@@ -782,7 +777,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     //load from db
     fun reloadMapMarkers() {
-        //   mMap!!.clear()
+        mMap?.clear()
         api.allData().enqueue(object : Callback<com.example.systemperingatan.API.Pojo.Response> {
             override fun onResponse(call: Call<com.example.systemperingatan.API.Pojo.Response>, response: Response<com.example.systemperingatan.API.Pojo.Response>) {
                 val data = response.body()

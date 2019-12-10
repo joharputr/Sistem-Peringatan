@@ -62,10 +62,19 @@ class LihatDataEnterFragment : Fragment() {
                 return false
             }
         })
+
+        swipeSetup()
+    }
+    private fun swipeSetup() {
+        swipeNotif.setOnRefreshListener {
+            reloadMapMarkers()
+            swipeNotif.isRefreshing = false
+        }
     }
 
 
     fun reloadMapMarkers() {
+        itemListData.clear()
         progressBar_circular_data.visibility = View.VISIBLE
         App.api.dataEnter().enqueue(object : Callback<ResponseDataUser> {
             override fun onResponse(call: Call<ResponseDataUser>, response: retrofit2.Response<ResponseDataUser>) {

@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 
 object NetworkAPI {
-    val url = "192.168.1.14"
+    val url = "192.168.1.15"
     var post = "http://$url/ci-restserver/Api/tambah"
     var RegisterUser = "http://$url/ci-restserver/Api/register"
     var LoginUser = "http://$url/ci-restserver/Api/login"
@@ -25,6 +25,8 @@ object NetworkAPI {
     var edit_notif_keluar = "http://$url/ci-restserver/Api/edit_notif_keluar"
     var edit_notif_zona = "http://$url/ci-restserver/Api/edit_notif_zona"
     var edit_zona_di_notif_masuk = "http://$url/ci-restserver/Api/edit_zona_di_notif_masuk"
+    var cek_firebase_user = "http://$url/ci-restserver/Api/login_firebase_user"
+    var logout_firebase_user = "http://$url/ci-restserver/Api/logout_firebase_user"
     private val base_url = "http://$url/ci-restserver/Api/"
 
     fun getRetrofit(): Retrofit {

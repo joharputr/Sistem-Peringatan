@@ -24,7 +24,7 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
+ const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
 
 class IntentHandleWork : JobIntentService() {
     @SuppressLint("SimpleDateFormat")
@@ -37,6 +37,7 @@ class IntentHandleWork : JobIntentService() {
             sendNotification(4, errorMessage, "")
             Log.e("ERRORGEOFENCE", errorMessage)
         }
+
         val geoFenceTransition = geofencingEvent.geofenceTransition
 
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
@@ -54,13 +55,17 @@ class IntentHandleWork : JobIntentService() {
             Log.d("testtypepoint = ", id + " nama  =  " + data?.message + " point  = " + data?.type)
 
             if (data?.type == "circle" && message != null && minim_distance != null) {
-                postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate)
+                if (App.preferenceHelper.tipe != "admin"){
+                    postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate)
+                }
                 sendNotification(1, message, minim_distance)
             } else if (data?.type == "circle" && message != null && minim_distance == null) {
                 sendNotification(5, message, "")
 
             } else if (data?.type == "point" && message != null) {
-                postDataAman(id.toString(), message, currentDate)
+                if (App.preferenceHelper.tipe != "admin"){
+                    postDataAman(id.toString(), message, currentDate)
+                }
                 sendNotification(4, message, "")
             }
 
@@ -72,7 +77,11 @@ class IntentHandleWork : JobIntentService() {
                 val currentDate = sdf.format(Date())
                 val message = data.message
                 val minim_distance = data.minim_distance
-                postDataExitToServer(data.number.toString(), data.message, currentDate)
+
+                if(App.preferenceHelper.tipe != "admin"){
+                    postDataExitToServer(data.number.toString(), data.message, currentDate)
+                }
+
                 Log.d("namaEXIT = ", message + " minim = " + minim_distance)
                 if (message != null) {
                     sendNotification(2, message, minim_distance!!)
@@ -128,6 +137,7 @@ class IntentHandleWork : JobIntentService() {
                 createNotification(id, msg, minim_distance, notificationPendingIntent))
 
         startForeground(id, createNotification(id, msg, minim_distance, notificationPendingIntent))
+
     }
 
     private fun createNotification(id: Int, msg: String, minim_distance: String, notificationPendingIntent: PendingIntent): Notification {
@@ -152,12 +162,11 @@ class IntentHandleWork : JobIntentService() {
                 .setStyle(NotificationCompat.BigTextStyle()
                         .bigText(bigText))
                 .setContentText(bigText)
+                .setAutoCancel(true)
                 .setContentTitle("Notifikasi Sistem Peringatan")
                 .setContentIntent(notificationPendingIntent)
                 .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
         /*.setPriority(NotificationManager.IMPORTANCE_HIGH)*/
-
-
 
         return notificationBuilder.build()
     }

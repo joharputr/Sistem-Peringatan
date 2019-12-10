@@ -13,8 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaZonaAdapter
-import com.example.systemperingatan.Admin.UI.Activity.EditNamaAreaActivity
-import com.example.systemperingatan.Admin.UI.Activity.EditLocationPointActivity
+import com.example.systemperingatan.Admin.UI.Activity.EditZonaActivity
 import com.example.systemperingatan.Admin.UI.Activity.EditNamaZonaActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
@@ -50,7 +49,7 @@ class ZonaEvakuasiFragment : Fragment() {
     }
 
     private fun editLocation(dataItem: DataItem) {
-        val intent = Intent(context, EditLocationPointActivity::class.java)
+        val intent = Intent(context, EditZonaActivity::class.java)
         intent.putExtra("editLocationPoint", dataItem)
         startActivity(intent)
     }

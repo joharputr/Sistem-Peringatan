@@ -35,12 +35,15 @@ class EditNamaAreaActivity : AppCompatActivity() {
         buttonEditArea.setOnClickListener {
             if (editNama.text.isNullOrEmpty()) {
                 editNama.error = "Nama wajib diisi"
-            }else {
+            } else {
                 updateData(data.number.toString())
                 update_nama_area_masuk(data.number.toString())
                 update_nama_area_keluar(data.number.toString())
-                startActivity(Intent(this,ListDataAreaZonaActivity::class.java))
-             //   finish()
+
+                val i = Intent(this, ListDataAreaZonaActivity::class.java)
+                i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(i)
+                //   finish()
             }
         }
     }
@@ -96,7 +99,6 @@ class EditNamaAreaActivity : AppCompatActivity() {
     }
 
 
-
     private fun update_nama_area_masuk(number: String) {
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
@@ -107,11 +109,11 @@ class EditNamaAreaActivity : AppCompatActivity() {
                 val status1 = jObj.getString("status")
                 Log.d("status post  = ", status1)
                 if (status1.contains("200")) {
-          //          Toast.makeText(this, "Edit Name Complete", Toast.LENGTH_SHORT).show()
+                    //          Toast.makeText(this, "Edit Name Complete", Toast.LENGTH_SHORT).show()
                 } else {
 
                     val msg = jObj.getString("message")
-              //      Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                    //      Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: JSONException) {

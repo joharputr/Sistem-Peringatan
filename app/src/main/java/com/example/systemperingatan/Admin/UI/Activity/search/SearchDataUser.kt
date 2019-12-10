@@ -23,7 +23,6 @@ class SearchDataUser : AppCompatActivity() {
     val adapterArea = DataUserAmanAdapter(itemListData)
     private var search: String? = null
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.searchlayout)
@@ -34,7 +33,7 @@ class SearchDataUser : AppCompatActivity() {
 
         setSupportActionBar(searchToolbar)
         val actionBar = supportActionBar
-        actionBar?.title = "Pencarian Data Notifikasi Aman"
+        actionBar?.title = "data aman = "+search
 
     }
 

@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Admin.UI.Activity.AddNewPointActivity">
+    tools:context=".Admin.UI.Activity.AddZonaActivity">
 
     <fragment
         android:id="@+id/map_point"

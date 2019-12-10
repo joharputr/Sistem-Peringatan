@@ -50,7 +50,8 @@ import retrofit2.Callback
 import java.io.IOException
 import java.util.*
 
-class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     // private lateinit var map: GoogleMap
     private var mpendingIntent: PendingIntent? = null
@@ -86,7 +87,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         private var placesClient: PlacesClient? = null
 
         fun newIntent(context: Context, latLng: LatLng, zoom: Float): Intent {
-            val intent = Intent(context, AddNewPointActivity::class.java)
+            val intent = Intent(context, AddZonaActivity::class.java)
             intent.putExtra(EXTRA_LAT_LNG, latLng).putExtra(EXTRA_ZOOM, zoom)
             return intent
         }
@@ -103,7 +104,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         val SHARED_PREFERENCES_NAME_POINT = BuildConfig.APPLICATION_ID + ".SHARED_PREFERENCES_NAME_POINT"
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME_POINT, Context.MODE_PRIVATE)
         mpendingIntent = null
-        reloadMapMarkers()
+
         finishAddPoint()
         SearchPlace()
         disableView()
@@ -159,7 +160,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         map!!.isMyLocationEnabled = true
         centerCamera()
         AddPointLocation()
-        reloadMapMarkers()
+
     }
 
     override fun onResume() {
@@ -181,9 +182,6 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                 buildGoogleApiClient()
                 createLocationRequest()
                 displayLocation()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    reloadMapMarkers()
-                }
             }
         }
     }
@@ -256,7 +254,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         val markerOptions = MarkerOptions()
                 .position(latLng)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title("lokasi saya = $title")
+                .title("lokasi saya")
         if (map != null) {
             // Remove the anterior marker
             if (locationMarker != null)
@@ -320,26 +318,33 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         val messages = data.data.get(i)?.message.toString()
-                        addMarkerPoint(LatLng(latitude, longitude), messages, numberPoint!!)
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
+                        addMarkerPoint(LatLng(latitude, longitude), messages, radiusMeter, numberPoint!!)
 
                     } else {
-                        Toast.makeText(this@AddNewPointActivity, response.message(), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddZonaActivity, response.message(), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
             override fun onFailure(call: Call<Response>, t: Throwable) {
                 Log.d("gagal", "gagal =" + t.localizedMessage)
-                Toast.makeText(this@AddNewPointActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AddZonaActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
+    private fun addMarkerPoint(latLng: LatLng, message: String, radius: Double, number: String) {
+        val strokeColor = 0x0106001b.toInt(); //red outline
         map!!.addMarker(MarkerOptions()
-                .title("G:$number area = $message")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .title("Zona = $message")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
+        map!!.addCircle(CircleOptions()
+                .center(latLng)
+                .radius(radius)
+                .strokeColor(R.color.wallet_holo_blue_light)
+                .fillColor(0xff0009ff.toInt()).strokeColor(strokeColor).strokeWidth(2f))
     }
 
     private fun disableView() {
@@ -353,6 +358,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
 
     //step 1
     private fun showConfigureLocationStep() {
+        layout_panel_point.visibility = View.GONE
         addMarkerLocationPoint.visibility = View.GONE
         pointTitle.visibility = View.VISIBLE
         message_point.visibility = View.VISIBLE
@@ -390,7 +396,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
             //   val list = ArrayList<Result>()
             val expTime = System.currentTimeMillis() + MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
 
-            addMarkerPoint(reminder.latlang!!, message_point.text.toString(), key)
+            addMarkerPoint(reminder.latlang!!, message_point.text.toString(), 100.0, key)
             val geofence = Geofence.Builder()
                     .setRequestId(key)
                     .setCircularRegion(
@@ -479,7 +485,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
                                 // Adding request to request queue
                                 App.instance?.addToRequestQueue(strReq, tag_string_req)
                                 Log.d("SAVE", "key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
-                                Toast.makeText(this@AddNewPointActivity, "Geofence Added!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@AddZonaActivity, "Sukses Menambahkan Zona Evakuasi", Toast.LENGTH_SHORT).show()
                             } else {
                                 val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
                                 Log.e("ERROR MESSAGE", errorMessage)
@@ -502,8 +508,7 @@ class AddNewPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationLis
         val longitude = java.lang.Double.parseDouble(latLng[1])
         val location = LatLng(latitude, longitude)
         map!!.addMarker(MarkerOptions()
-                .title("G:$message")
-                .snippet("Click here if you want delete this geofence")
+                .title("Area :$message")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(location))
         map!!.addCircle(CircleOptions()

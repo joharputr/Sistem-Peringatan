@@ -53,6 +53,15 @@ class LihatDataAmanFragment : Fragment() {
                 return false
             }
         })
+
+        swipeSetup()
+    }
+
+    private fun swipeSetup() {
+        swipeNotif.setOnRefreshListener {
+            reloadMapMarkers()
+            swipeNotif.isRefreshing = false
+        }
     }
 
     private fun initRecyclerView() {
@@ -63,6 +72,7 @@ class LihatDataAmanFragment : Fragment() {
     }
 
     fun reloadMapMarkers() {
+        itemListData.clear()
         progressBar_circular_data.visibility = View.VISIBLE
         App.api.dataAman().enqueue(object : Callback<ResponseDataUser> {
             override fun onResponse(call: Call<ResponseDataUser>, response: retrofit2.Response<ResponseDataUser>) {

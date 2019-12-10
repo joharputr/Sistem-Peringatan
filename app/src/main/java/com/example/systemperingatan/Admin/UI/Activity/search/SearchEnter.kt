@@ -35,7 +35,7 @@ class SearchEnter : AppCompatActivity() {
 
         setSupportActionBar(searchToolbar)
         val actionBar = supportActionBar
-        actionBar?.title = "Pencarian Data Notifikasi Masuk Area"
+        actionBar?.title = "data masuk = "+search
 
     }
 

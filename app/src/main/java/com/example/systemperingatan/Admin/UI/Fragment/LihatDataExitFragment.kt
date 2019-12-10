@@ -56,7 +56,17 @@ class LihatDataExitFragment : Fragment() {
                 return false
             }
         })
+
+        swipeSetup()
     }
+
+    private fun swipeSetup() {
+        swipeNotif.setOnRefreshListener {
+            reloadMapMarkers()
+            swipeNotif.isRefreshing = false
+        }
+    }
+
     private fun initRecyclerView() {
         recyclerviewData.run {
             adapter = adapterArea
@@ -65,6 +75,7 @@ class LihatDataExitFragment : Fragment() {
     }
 
     fun reloadMapMarkers() {
+        itemListData.clear()
         progressBar_circular_data.visibility = View.VISIBLE
         App.api.dataExit().enqueue(object : Callback<ResponseDataUser> {
             override fun onResponse(call: Call<ResponseDataUser>, response: retrofit2.Response<ResponseDataUser>) {

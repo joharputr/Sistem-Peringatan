@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.SQLException
+import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
@@ -16,10 +17,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
+import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.App
 import com.example.systemperingatan.BuildConfig
 import com.example.systemperingatan.R
@@ -27,23 +28,27 @@ import com.example.systemperingatan.User.Notification.GeofenceTransitionService
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.activity_add_new_point.*
+import com.google.android.gms.maps.model.*
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import kotlinx.android.synthetic.main.activity_edit_location_point.*
 import org.json.JSONException
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
 import java.io.IOException
 import java.util.*
 
-class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+class EditZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     // private lateinit var map: GoogleMap
     private var mpendingIntent: PendingIntent? = null
@@ -76,6 +81,7 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
         private const val EXTRA_LAT_LNG = "EXTRA_LAT_LNG"
         private const val EXTRA_ZOOM = "EXTRA_ZOOM"
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193
+        private var placesClient: PlacesClient? = null
 
     }
 
@@ -92,6 +98,37 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
         mpendingIntent = null
 
         enableView()
+        SearchPlace()
+    }
+
+    private fun SearchPlace() {
+
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyCRK_C8YiQf46yeP6Usf-_Cqrg2a5-OMuM")
+        }
+
+        placesClient = Places.createClient(this)
+
+        // Initialize the AutocompleteSupportFragment.
+        val autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment_point) as AutocompleteSupportFragment?
+
+        autocompleteFragment?.setPlaceFields(Arrays.asList(Place.Field.ID,
+                Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS))
+
+        autocompleteFragment?.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(place.latLng, 14f)
+              map!!.animateCamera(cameraUpdate)
+                Log.d("PLACESTest", "Place: " + place.getName() + ", " + place.getId() +
+                        " Latitude = " + place.latLng?.latitude + " address =" + place.address)
+            }
+
+            override fun onError(status: Status) {
+                // TODO: Handle the error.
+                Log.d("PLACES", "An error occurred: $status")
+            }
+        })
+
     }
 
     private fun AddPointLocation() {
@@ -100,12 +137,55 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        reloadMapMarkers()
+    }
+
 
     private fun finishAddPoint() {
         next_pointEdit.setOnClickListener {
             setResult(Activity.RESULT_OK)
             finish()
         }
+    }
+
+    fun reloadMapMarkers() {
+        //   mMap!!.clear()
+        App.api.allData().enqueue(object : Callback<Response> {
+            override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>) {
+                val data = response.body()
+
+                for (i in 0 until data!!.data!!.size) {
+                    if (data.data != null && data.data.get(i)?.type == "circle") {
+                        val number = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
+                        val messages = data.data.get(i)?.message.toString()
+                        Log.d("CLOG", "test response " + response.message())
+                        addMarker(messages, radiusMeter, number!!, latitude, longitude)
+
+                    } else if (data.data != null && data.data.get(i)?.type == "point") {
+                        val numberPoint = data.data.get(i)?.number
+                        latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
+                        longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
+                        val messages = data.data.get(i)?.message.toString()
+                        radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
+                        addMarkerPoint(LatLng(latitude, longitude), messages, radiusMeter, numberPoint!!)
+
+                    } else {
+                        Toast.makeText(this@EditZonaActivity, response.message(), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<Response>, t: Throwable) {
+                Log.d("gagal", "gagal =" + t.localizedMessage)
+                Toast.makeText(this@EditZonaActivity, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
 
@@ -206,14 +286,13 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
         val markerOptions = MarkerOptions()
                 .position(latLng)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                .title("lokasi saya = $title")
+                .title("lokasi saya")
         if (map != null) {
             // Remove the anterior marker
             if (locationMarker != null)
                 locationMarker!!.remove()
             locationMarker = map!!.addMarker(markerOptions)
             val zoom = 14f
-
         }
     }
 
@@ -242,22 +321,43 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
         Log.d("LOG ONConnection failed", "failed status code = " + connectionResult.errorMessage!!)
     }
 
-
-    private fun addMarkerPoint(latLng: LatLng, message: String, number: String) {
-        map!!.addMarker(MarkerOptions()
-                .title("G:$number area = $message")
-                .snippet("Click here if you want delete this geofence")
+    private fun addMarker(message: String, radius: Double, key: String, latitude: Double, longitude: Double) {
+        val latLng = "$latitude,$longitude".split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val latitude = java.lang.Double.parseDouble(latLng[0])
+        val longitude = java.lang.Double.parseDouble(latLng[1])
+        val location = LatLng(latitude, longitude)
+        map?.addMarker(MarkerOptions()
+                .title("Area :$message")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .position(location))
+        map?.addCircle(CircleOptions()
+                .center(location)
+                .radius(radius)
+                .strokeColor(R.color.wallet_holo_blue_light)
+                .fillColor(Color.parseColor("#80ff0000")))
+    }
+
+    private fun addMarkerPoint(latLng: LatLng, message: String, radius: Double, number: String) {
+        val strokeColor = 0x0106001b.toInt(); //red outline
+        map?.addMarker(MarkerOptions()
+                .title("Zona = $message")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(latLng))
+        map?.addCircle(CircleOptions()
+                .center(latLng)
+                .radius(radius)
+                .strokeColor(R.color.wallet_holo_blue_light)
+                .fillColor(0xff0009ff.toInt()).strokeColor(strokeColor).strokeWidth(2f))
     }
 
     private fun enableView() {
         addMarkerLocationPointEdit.visibility == View.VISIBLE
-        next_pointEdit.visibility = View.VISIBLE
+        next_pointEdit.visibility = View.GONE
     }
 
     //step 1
     private fun showConfigureLocationStep() {
+        layout_panel_point.visibility =View.GONE
         addMarkerLocationPointEdit.visibility = View.GONE
         next_pointEdit.visibility = View.VISIBLE
         markerPointEdit.visibility = View.GONE
@@ -294,7 +394,7 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
             //   val list = ArrayList<Result>()
             val expTime = System.currentTimeMillis() + MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
             val data = intent.getParcelableExtra<DataItem>("editLocationPoint")
-            addMarkerPoint(reminder.latlang!!, data.message.toString(), key)
+            addMarkerPoint(reminder.latlang!!, data.message.toString(), 100.0, key)
             val geofence = Geofence.Builder()
                     .setRequestId(key)
                     .setCircularRegion(
@@ -317,7 +417,7 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
                         val data = intent.getParcelableExtra<DataItem>("editLocationPoint")
                         val tag_string_req = "req_postdata"
                         val strReq = object : StringRequest(Method.POST,
-                                NetworkAPI.edit+"/${data.number}", { response ->
+                                NetworkAPI.edit + "/${data.number}", { response ->
                             Log.d("CLOG", "responh: $response")
                             try {
                                 val jObj = JSONObject(response)
@@ -365,7 +465,7 @@ class EditLocationPointActivity : AppCompatActivity(), OnMapReadyCallback, Locat
                         // Adding request to request queue
                         App.instance?.addToRequestQueue(strReq, tag_string_req)
                         Log.d("SAVE", "key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
-                        Toast.makeText(this@EditLocationPointActivity, "Sukses mengubah posisi zona evakuasi", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@EditZonaActivity, "Sukses mengubah posisi zona evakuasi", Toast.LENGTH_SHORT).show()
                     } else {
                         val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
                         Log.e("ERRORMESSAGE", errorMessage)

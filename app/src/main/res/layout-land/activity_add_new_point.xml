@@ -6,10 +6,10 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Admin.UI.Activity.AddAreaActivity">
+    tools:context=".Admin.UI.Activity.AddZonaActivity">
 
     <fragment
-        android:id="@+id/maps"
+        android:id="@+id/map_point"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -20,23 +20,24 @@
         android:layout_marginLeft="10dp"
         android:layout_gravity="left"
         android:layout_marginTop="13dp"
-        android:id="@+id/layout_panel"
+        android:id="@+id/layout_panel_point"
         android:orientation="horizontal"
-        android:layout_width="290dp"
+        android:layout_width="630dp"
         android:layout_height="40dp">
 
         <fragment
             android:background="@android:color/white"
-            android:id="@+id/autocomplete_fragment"
+            android:id="@+id/autocomplete_fragment_point"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
-   />
+            />
 
     </LinearLayout>
+
     <ImageView
-        android:id="@+id/marker"
+        android:id="@+id/markerPoint"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
@@ -45,7 +46,7 @@
         app:srcCompat="@drawable/location_item" />
 
     <LinearLayout
-        android:id="@+id/container"
+        android:id="@+id/container_point"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
@@ -53,54 +54,73 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/instructionTitle"
+            android:visibility="gone"
+            android:id="@+id/pointTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginBottom="8dp"
-            android:textColor="#000"
-            android:textSize="18sp"
-            tools:text="@string/instruction_where_description" />
-
-
-
-        <SeekBar
-            android:id="@+id/radiusBar"
-            style="@style/Widget.AppCompat.SeekBar.Discrete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="2dp"
-            android:layout_marginRight="2dp"
-            android:max="20"
-            android:progress="2" />
-
-        <TextView
-            android:id="@+id/radiusDescription"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start|bottom"
+            android:layout_gravity="center"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="4dp"
             android:layout_marginRight="16dp"
             android:layout_marginBottom="4dp"
-            tools:text="100 meters" />
+            android:textColor="#000"
+            android:textSize="18sp"
+            tools:text="Tulis Nama Titik" />
 
         <EditText
-            android:id="@+id/message"
+            android:visibility="gone"
+            android:id="@+id/message_point"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="13dp"
             android:layout_marginRight="13dp"
             android:layout_marginBottom="8dp"
-            android:hint="@string/message_hint"
+            android:hint="nama titik"
             android:imeOptions="actionDone"
             android:inputType="textCapSentences"
             android:maxLines="1" />
 
         <Button
-            android:id="@+id/next"
+            android:visibility="gone"
+            android:id="@+id/ok_title_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_button_bluelight"
+            android:text="OK"
+            android:textColor="@color/cardview_dark_background" />
+
+        <Button
+            android:id="@+id/addMarkerLocationPoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_button_blue"
+            android:text="Add Marker Point"
+            android:textColor="@color/cardview_dark_background" />
+
+        <Button
+            android:id="@+id/addNamePoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_button_blue"
+            android:text="Add Name Point"
+            android:textColor="@color/cardview_dark_background" />
+        <Button
+            android:id="@+id/next_point"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -109,9 +129,8 @@
             android:layout_marginRight="16dp"
             android:layout_marginBottom="8dp"
             android:background="@drawable/bg_button"
-            android:foreground="?attr/selectableItemBackground"
-            android:text="@string/continue_description"
-            android:textColor="@color/colorAccent" />
+            android:text="OK"
+            android:textColor="@color/cardview_dark_background" />
 
     </LinearLayout>
 

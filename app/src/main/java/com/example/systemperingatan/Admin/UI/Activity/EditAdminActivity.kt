@@ -39,7 +39,7 @@ class EditAdminActivity : AppCompatActivity() {
                 Log.d("status post  = ", status1)
                 if (status1.contains("200")) {
                     Toast.makeText(this, "Ubah data admin sukses", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, UserActivity::class.java))
+                    finish()
                 } else {
 
                     val msg = jObj.getString("message")

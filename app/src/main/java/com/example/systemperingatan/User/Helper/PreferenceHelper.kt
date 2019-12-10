@@ -9,11 +9,9 @@ class PreferenceHelper(app: Application) {
         app.getSharedPreferences("binar_app", Context.MODE_PRIVATE)
     }
 
-
     private val spe: SharedPreferences.Editor by lazy {
         sp.edit()
     }
-
 
     var is_login: String
         set(value) = spe.putString("is_login", value).apply()

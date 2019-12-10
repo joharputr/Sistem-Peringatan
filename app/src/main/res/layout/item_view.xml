@@ -43,14 +43,16 @@
         <TextView
             android:id="@+id/area"
             android:layout_width="200dp"
-            android:layout_height="20dp"
+            android:layout_height="50dp"
             android:fontFamily="roboto"
             android:gravity="center_horizontal"
             android:textSize="16sp"
             android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/cardImage"
-            app:layout_constraintTop_toTopOf="@+id/cardImage"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.13999999"
             tools:text="Soekarno" />
 
 
