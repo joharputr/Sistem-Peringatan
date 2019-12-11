@@ -696,7 +696,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                                 Log.d("testrute = ", URL)
                                 GetDirection(URL).execute()
                             } else {
-                                Toast.makeText(this@UserActivity, "CHECK GPS", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@UserActivity, "Kalibrasi kompas rendah", Toast.LENGTH_SHORT).show()
                             }
                         }
 
@@ -757,10 +757,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
-        mMap?.run {
-            uiSettings.isMyLocationButtonEnabled = false
-            uiSettings.isMapToolbarEnabled = false
-        }
+
         mMap?.isMyLocationEnabled = true
 
         mMap?.setOnInfoWindowClickListener(this)
@@ -957,7 +954,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                                 arrayListZona.addAll(listOf(dataZona))
                                 initRecyclerView()
                             } else {
-                                Toast.makeText(this@UserActivity, "CHECK GPS", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@UserActivity, "Kalibrasi kompas rendah", Toast.LENGTH_SHORT).show()
                             }
                         }
                     } else {

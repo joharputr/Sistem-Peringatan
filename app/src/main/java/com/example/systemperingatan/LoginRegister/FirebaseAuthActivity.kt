@@ -88,6 +88,7 @@ class FirebaseAuthActivity : AppCompatActivity() {
                 this,
                 mCallbacks
         )
+
     }
 
     private fun verificationCallbacks() {
