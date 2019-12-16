@@ -13,7 +13,7 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
 
 
     override fun onCreate(db: SQLiteDatabase) {
-        val query = "CREATE TABLE Geofences(numbers INTEGER PRIMARY KEY AUTOINCREMENT,latitude TEXT,longitude TEXT,expires TEXT,messages TEXT,distances TEXT,type TEXT)"
+        val query = "CREATE TABLE Geofences(numbers INTEGER PRIMARY KEY AUTOINCREMENT,latitude TEXT,longitude TEXT,expires TEXT,messages TEXT,distances TEXT,type TEXT,level TEXT)"
         db.execSQL(query)
 
     }
@@ -28,9 +28,10 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         onUpgrade(db, oldVersion, newVersion)
     }
 
+    //jika memperbarui tabel atau kolom diharapkan untuk menambah database_version
     companion object {
 
-        private val DATABASE_VERSION = 7
+        private val DATABASE_VERSION = 10
         private val DATABASE_NAME = "Geofences.db"
 
 
@@ -39,7 +40,7 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         }
     }
 
-    fun saveToDb(numbers: String, latitude: Double, longitude: Double, expires: Long, message: String, distance: Double, type: String?) {
+    fun saveToDb(numbers: String, latitude: Double, longitude: Double, expires: Long, message: String?, distance: Double, type: String?, level: String?) {
         val db = writableDatabase
         val values = ContentValues()
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_NUMBERS, numbers)
@@ -49,6 +50,7 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_MESSAGE, message + "")
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE, distance.toString() + "")
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_TYPE, type + "")
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_LEVEL, level + "")
         db.insert("Geofences", null, values)
         Log.d("CLOGsqlite", "data = " + values)
 
@@ -57,16 +59,7 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
     }
 
     fun getCursor(): Cursor {
-        val columns = arrayOf<String>(
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_NUMBERS,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_LAT,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_LNG,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_EXPIRES,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_MESSAGE,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE,
-                GeofenceContract.GeofenceEntry.COLUMN_NAME_MIN_DISTANCE,
-                GeofenceContract.GeofenceEntry.ID_COLUMN_NAME_MIN_DISTANCE
-        )
+
         val db = readableDatabase
         val MY_QUERY = "SELECT *, ( SELECT b.messages FROM Geofences b WHERE type = 'point' ORDER BY type desc, distances + 0 ASC LIMIT 1 ) AS 'minim_distance',( SELECT b.numbers FROM Geofences b WHERE type = 'point' ORDER BY type desc, distances + 0 ASC LIMIT 1 ) AS 'id_minim_distance' FROM Geofences a"
 

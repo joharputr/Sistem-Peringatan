@@ -24,7 +24,7 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
- const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
+const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
 
 class IntentHandleWork : JobIntentService() {
     @SuppressLint("SimpleDateFormat")
@@ -47,15 +47,16 @@ class IntentHandleWork : JobIntentService() {
             val message = data?.message
             val minim_distance = data?.minim_distance
             val id_minim_distance = data?.id_minim_distance
+            val level = data?.level
 
             val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
             val currentDate = sdf.format(Date())
 
-            Log.d("testIdMasuk = ", id + " nama  =  " + data?.message + " dateis  = " + currentDate)
+            Log.d("testIdMasuk = ", id + " nama  =  " + data?.message + " dateis  = " + currentDate + "level = " + level.toString())
             Log.d("testtypepoint = ", id + " nama  =  " + data?.message + " point  = " + data?.type)
 
             if (data?.type == "circle" && message != null && minim_distance != null) {
-                if (App.preferenceHelper.tipe != "admin"){
+                if (App.preferenceHelper.tipe != "admin") {
                     postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate)
                 }
                 sendNotification(1, message, minim_distance)
@@ -63,7 +64,7 @@ class IntentHandleWork : JobIntentService() {
                 sendNotification(5, message, "")
 
             } else if (data?.type == "point" && message != null) {
-                if (App.preferenceHelper.tipe != "admin"){
+                if (App.preferenceHelper.tipe != "admin") {
                     postDataAman(id.toString(), message, currentDate)
                 }
                 sendNotification(4, message, "")
@@ -78,7 +79,7 @@ class IntentHandleWork : JobIntentService() {
                 val message = data.message
                 val minim_distance = data.minim_distance
 
-                if(App.preferenceHelper.tipe != "admin"){
+                if (App.preferenceHelper.tipe != "admin") {
                     postDataExitToServer(data.number.toString(), data.message, currentDate)
                 }
 

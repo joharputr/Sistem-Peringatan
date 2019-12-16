@@ -57,7 +57,7 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
     private var mpendingIntent: PendingIntent? = null
     private var mGoogleApiClient: GoogleApiClient? = null
 
-    private var reminder = DataItem(null, null, null, null, null, null, null, null, null, null, null)
+    private var reminder = DataItem()
 
     val newGeofenceNumber: Int
         get() {

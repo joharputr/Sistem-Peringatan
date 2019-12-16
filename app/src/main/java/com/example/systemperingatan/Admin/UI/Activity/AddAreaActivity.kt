@@ -13,6 +13,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -24,6 +26,7 @@ import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.App
+import com.example.systemperingatan.BuildConfig
 import com.example.systemperingatan.R
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -44,6 +47,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import kotlinx.android.synthetic.main.activity_add_new_map.*
+import kotlinx.android.synthetic.main.spinner_item_selected.*
 import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
@@ -63,12 +67,13 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
     private var mSharedPreferences: SharedPreferences? = null
     private val predictionList: List<AutocompletePrediction>? = null
     private var placesClient: PlacesClient? = null
-    private var reminder = DataItem(null, null, null, null, null, null, null, null, null, null)
+    private var reminder = DataItem()
     val newGeofenceNumber: Int
         get() {
-            val number = mSharedPreferences!!.getInt(MapsAdminActivity.NEW_GEOFENCE_NUMBER, 1)
+            val NEW_GEOFENCE_NUMBER_AREA = BuildConfig.APPLICATION_ID + ".NEW_GEOFENCE_NUMBER_AREA_BERBAHAYA"
+            val number = mSharedPreferences!!.getInt(NEW_GEOFENCE_NUMBER_AREA, 500)
             val editor = mSharedPreferences!!.edit()
-            editor.putInt(MapsAdminActivity.NEW_GEOFENCE_NUMBER, number + 1)
+            editor.putInt(NEW_GEOFENCE_NUMBER_AREA, number + 1)
             editor.apply()
             return number
         }
@@ -125,7 +130,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         mapFragment.getMapAsync(this)
 
         instructionTitle.visibility = View.GONE
-
+        spinner.visibility = View.GONE
         radiusBar.visibility = View.GONE
         radiusDescription.visibility = View.GONE
         message.visibility = View.GONE
@@ -361,6 +366,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
 
     //step 1
     private fun showConfigureLocationStep() {
+        spinner.visibility = View.GONE
         layout_panel.visibility = View.VISIBLE
         marker.visibility = View.VISIBLE
         instructionTitle.visibility = View.VISIBLE
@@ -385,6 +391,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             reloadMapMarkers()
         }
+        spinner.visibility = View.GONE
         layout_panel.visibility = View.GONE
         marker.visibility = View.GONE
         instructionTitle.visibility = View.VISIBLE
@@ -396,7 +403,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         radiusBar.setOnSeekBarChangeListener(radiusBarChangeListener)
         updateRadiusWithProgress(radiusBar.progress)
 
-        map!!.animateCamera(CameraUpdateFactory.zoomTo(15f))
+        map?.animateCamera(CameraUpdateFactory.zoomTo(15f))
 
         showReminderUpdate()
 
@@ -409,6 +416,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
 
     //step 3
     private fun showConfigureMessageStep() {
+        spinner.visibility = View.GONE
         layout_panel.visibility = View.GONE
         marker.visibility = View.GONE
         instructionTitle.visibility = View.VISIBLE
@@ -422,7 +430,8 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
             if (reminder.message.isNullOrEmpty()) {
                 message.error = "Nama area wajib diisi"
             } else {
-                addLocation()
+                addLevel()
+                //   addLocation()
                 Log.d("reminderMessage =", reminder.message)
             }
 
@@ -460,7 +469,38 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         }
     }
 
-    //step 4
+    private fun addLevel() {
+        layout_panel.visibility = View.GONE
+        marker.visibility = View.GONE
+        instructionTitle.text = "Tambahkan Level Area"
+        instructionTitle.visibility = View.VISIBLE
+        radiusBar.visibility = View.GONE
+        radiusDescription.visibility = View.GONE
+        message.visibility = View.GONE
+        spinner.visibility = View.VISIBLE
+        next.visibility = View.VISIBLE
+        val data = arrayOf("Normal", "Waspada", "Siaga", "Awal")
+
+        val adapter = ArrayAdapter(this, R.layout.spinner_item_selected, data)
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+
+        spinner?.adapter = adapter
+        spinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                reminder.level = parent.getItemAtPosition(position).toString()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+
+            }
+        }
+
+        next.setOnClickListener {
+            addLocation()
+        }
+    }
+
+
     private fun addLocation() {
         map!!.clear()
 
@@ -514,6 +554,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
                 params["expires"] = expTime.toString()
                 params["radius"] = reminder.radius.toString()
                 params["message"] = reminder.message.toString()
+                params["level"] = reminder.level.toString()
                 //  params["latlang"] = reminder.latlang.toString()
                 params["type"] = "circle"
                 return params

@@ -143,6 +143,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         //spinner
         private val gson = Gson()
         internal var number: String? = null
+        internal var level: String? = null
         internal var latitude: Double = 0.toDouble()
         internal var radiusMeter: Double = 0.toDouble()
         internal var longitude: Double = 0.toDouble()
@@ -682,6 +683,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         message = data.data.get(i)?.message.toString()
                         address = data.data.get(i)?.address.toString()
+
                         val type = data.data.get(i)?.type
 
                         if (data.data.get(i)?.type == "point") {
@@ -842,13 +844,17 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
                 for (i in 0 until data!!.data!!.size) {
                     if (data.data != null) {
+                        val id = data.data.get(i)?.id
                         val number = data.data.get(i)?.number
                         latitude = java.lang.Double.parseDouble(data.data.get(i)?.latitude)
                         longitude = java.lang.Double.parseDouble(data.data.get(i)?.longitude)
                         expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         message = data.data.get(i)?.message.toString()
+                        level = data.data.get(i)?.level.toString()
                         val type = data.data.get(i)?.type
+
+                        Log.d("idku = ",id+"message = "+ message)
 
                         if (data.data.get(i)?.type == "circle") {
                             addMarker(message!!, radiusMeter, number!!, latitude, longitude)
@@ -866,7 +872,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
                             val helper = GeofenceDbHelper(this@UserActivity)
                             Log.d("CheckTitikGps", "titik gps = " + titikGps.toString() + " distance  = " + distance)
-                            helper.saveToDb(number, latitude, longitude, expires, message!!, distance, type)
+                            helper.saveToDb(number, latitude, longitude, expires, message, distance, type,level)
                         } else {
                             Toast.makeText(this@UserActivity, "Akurasi Kompas Rendah", Toast.LENGTH_SHORT).show()
                         }
@@ -984,9 +990,10 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 val min_dis = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_MIN_DISTANCE))
                 val type = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_TYPE))
                 val id_min_dis = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.ID_COLUMN_NAME_MIN_DISTANCE))
+                val level = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_LEVEL))
 
-                Log.d("dataZonaTerdekat = ", "id = " + id_min_dis + " nama zona =" + min_dis)
-                val dataFav1 = DataItem(number, null, expires, latitude, null, messages, type, longitude, null, null, distances, min_dis, id_min_dis)
+                Log.d("dataZonaTerdekat = ", "id = " + id_min_dis + " nama zona =" + min_dis+" level = "+level)
+                val dataFav1 = DataItem(number, null, expires, latitude, null, messages, type, longitude, null, null, distances, min_dis, id_min_dis,level)
                 arrayList.addAll(listOf(dataFav1))
             }
         }

@@ -3,6 +3,9 @@ package com.example.systemperingatan.Admin.UI.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.toolbox.StringRequest
@@ -11,17 +14,21 @@ import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.activity_edit_area.*
+import kotlinx.android.synthetic.main.spinner_item_selected.*
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 
-class EditNamaAreaActivity : AppCompatActivity() {
 
+class EditNamaAreaActivity : AppCompatActivity() {
+    val reminder = DataItem()
+    var data = DataItem()
+    var ceklevel: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_area)
         val intent = intent
-        val data = intent.getParcelableExtra<DataItem>("editArea")
+        data = intent.getParcelableExtra("editArea")
         Log.d("cekDataNumber", data.number)
 
         setSupportActionBar(toolbarArea)
@@ -31,6 +38,27 @@ class EditNamaAreaActivity : AppCompatActivity() {
         actionBar?.elevation = 4.0F
 
         editNama.setText(data.message)
+        val dataLevel = arrayOf("Pilih Level", "Normal", "Waspada", "Siaga", "Awal")
+
+        val adapter = ArrayAdapter(this, R.layout.spinner_item_selected, dataLevel)
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+
+        spinnerEdit?.adapter = adapter
+        spinnerEdit?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                text1.text = data.level
+                if (parent.getItemAtPosition(position) == "Pilih Level") {
+                    ceklevel = data.level
+                } else {
+                    ceklevel = parent.getItemAtPosition(position).toString()
+                }
+                Log.d("reminderlevel  = ", ceklevel)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+
+            }
+        }
 
         buttonEditArea.setOnClickListener {
             if (editNama.text.isNullOrEmpty()) {
@@ -91,6 +119,9 @@ class EditNamaAreaActivity : AppCompatActivity() {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
                 params["message"] = editNama.text.toString()
+
+                params["level"] = ceklevel.toString()
+
                 Log.d("testName= ", editNama.text.toString())
                 return params
             }
@@ -192,6 +223,7 @@ class EditNamaAreaActivity : AppCompatActivity() {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
                 params["area"] = editNama.text.toString()
+
                 Log.d("testNameArea= ", editNama.text.toString())
                 return params
             }

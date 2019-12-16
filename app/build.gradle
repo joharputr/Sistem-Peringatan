@@ -92,7 +92,7 @@ dependencies {
     //phone number
     implementation 'io.michaelrocks:libphonenumber-android:8.8.5'
 
-    //implementation 'com.github.joielechong:countrycodepicker:2.1.5'
+  //  implementation'com.github.devdhar04:MaterialSpinner:v0.1.2'
 }
 
 apply plugin: 'com.google.gms.google-services'

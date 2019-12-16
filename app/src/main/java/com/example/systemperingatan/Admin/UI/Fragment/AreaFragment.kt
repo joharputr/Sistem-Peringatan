@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaZonaAdapter
-import com.example.systemperingatan.Admin.UI.Activity.EditNamaAreaActivity
 import com.example.systemperingatan.Admin.UI.Activity.EditAreaActivity
+import com.example.systemperingatan.Admin.UI.Activity.EditNamaAreaActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.areafragment.*
@@ -30,7 +30,7 @@ class AreaFragment : Fragment() {
     //long click
     private fun onLongClick(dataItem: DataItem) {
         if (App.preferenceHelper.tipe == "admin") {
-            val options: Array<String> = arrayOf("Edit Nama", "Edit Lokasi")
+            val options: Array<String> = arrayOf("Edit Nama dan Level", "Edit Lokasi dan Radius")
             AlertDialog.Builder(context)
                     // whcih = index dar pilihan
                     .setItems(options) { dialog, which ->
@@ -65,9 +65,9 @@ class AreaFragment : Fragment() {
     }
 
 
-   override fun onResume() {
+    override fun onResume() {
         super.onResume()
-       Log.d("testFragment","test")
+        Log.d("testFragment", "test")
         itemListArea.clear()
         adapterArea.notifyDataSetChanged()
         reloadMapMarkers()
@@ -114,11 +114,13 @@ class AreaFragment : Fragment() {
                         val expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
                         val radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         val message = data.data.get(i)?.message.toString()
+                        val level = data.data.get(i)?.level.toString()
 
-                   //     Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+                        //  Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
 
                         val dataFav1 = DataItem(number, null, null, latitude.toString(),
-                                null, message, null, longitude.toString(), null, null, null)
+                                null, message, null, longitude.toString(), null, null,
+                                null, null, null, level)
                         Log.d("dataListArea = ", dataFav1.toString())
 
                         itemListArea.addAll(listOf(dataFav1))

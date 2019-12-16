@@ -932,7 +932,7 @@ class MapsAdminActivity : AppCompatActivity(), LocationListener, NavigationView.
     companion object {
         lateinit var titikGps: LatLng
         private const val NEW_REMINDER_REQUEST_CODE = 330
-        val NEW_GEOFENCE_NUMBER = BuildConfig.APPLICATION_ID + ".NEW_GEOFENCE_NUMBER"
+        val NEW_GEOFENCE_NUMBER = "" + ".NEW_GEOFENCE_NUMBER"
         private val MY_PERMISSION_REQUEST_CODE = 7192
         private val GEO_DURATION = (60 * 60 * 1000).toLong()
         private val PLAY_SERVICE_RESOLUTION_REQUEST = 300193

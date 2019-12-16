@@ -46,6 +46,9 @@ data class DataItem(
         var minim_distance: String? = null,
 
         @field:SerializedName("id_minim_distance")
-        var id_minim_distance: String? = null
+        var id_minim_distance: String? = null,
+
+        @field:SerializedName("level")
+        var level: String? = null
 
 ) : Parcelable

@@ -61,16 +61,8 @@ class EditAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     private var mSharedPreferences: SharedPreferences? = null
     private val predictionList: List<AutocompletePrediction>? = null
     private var placesClient: PlacesClient? = null
-    private var reminder = DataItem(null, null, null, null, null, null, null, null, null, null)
+    private var reminder = DataItem()
 
-    val newGeofenceNumber: Int
-        get() {
-            val number = mSharedPreferences!!.getInt(MapsAdminActivity.NEW_GEOFENCE_NUMBER, 1)
-            val editor = mSharedPreferences!!.edit()
-            editor.putInt(MapsAdminActivity.NEW_GEOFENCE_NUMBER, number + 1)
-            editor.apply()
-            return number
-        }
 
     //set ukuran radius
     private val radiusBarChangeListener = object : SeekBar.OnSeekBarChangeListener {

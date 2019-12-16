@@ -15,26 +15,26 @@
         android:layout_height="match_parent" />
 
     <LinearLayout
-        android:background="@color/cardview_light_background"
-        android:visibility="visible"
-        android:layout_marginLeft="10dp"
-        android:layout_gravity="left"
-        android:layout_marginTop="13dp"
         android:id="@+id/layout_panel"
-        android:orientation="horizontal"
         android:layout_width="290dp"
-        android:layout_height="40dp">
+        android:layout_height="40dp"
+        android:layout_gravity="left"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="13dp"
+        android:background="@color/cardview_light_background"
+        android:orientation="horizontal"
+        android:visibility="visible">
 
         <fragment
-            android:background="@android:color/white"
             android:id="@+id/autocomplete_fragment"
+            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
-   />
+            android:background="@android:color/white" />
 
     </LinearLayout>
+
     <ImageView
         android:id="@+id/marker"
         android:layout_width="48dp"
@@ -63,7 +63,6 @@
             android:textColor="#000"
             android:textSize="18sp"
             tools:text="@string/instruction_where_description" />
-
 
 
         <SeekBar
@@ -99,6 +98,25 @@
             android:inputType="textCapSentences"
             android:maxLines="1" />
 
+        <Spinner
+            android:id="@+id/spinner"
+            style="@style/Widget.AppCompat.Spinner"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/dropdownListPreferredItemHeight"
+            android:layout_margin="10dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/spinner_bg"
+            android:dropDownWidth="300dp"
+            android:dropDownVerticalOffset="?attr/dropdownListPreferredItemHeight"
+            android:paddingRight="14dp"
+            android:popupBackground="@android:color/white"
+            android:popupElevation="3dp"
+            android:stateListAnimator="@drawable/spinner_sla"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
         <Button
             android:id="@+id/next"
             android:layout_width="match_parent"
