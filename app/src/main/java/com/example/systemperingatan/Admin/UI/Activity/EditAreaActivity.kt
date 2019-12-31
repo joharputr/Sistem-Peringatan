@@ -396,7 +396,7 @@ class EditAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             showConfigureMessageStep()
         }
     }
-    private fun getRadius(progress: Int) = 1500 + (2 * progress.toDouble() + 2) * 100
+    private fun getRadius(progress: Int) = 800 + (2 * progress.toDouble() + 2) * 100
 
     //step 3
     private fun showConfigureMessageStep() {
@@ -426,7 +426,7 @@ class EditAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             val latLng = reminder.latlang as LatLng
             val marker = map.addMarker(MarkerOptions()
                     .position(latLng)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
             // marker.tag = reminder.id
             if (reminder.radius != null) {
                 val radius = java.lang.Double.parseDouble(reminder.radius!!)

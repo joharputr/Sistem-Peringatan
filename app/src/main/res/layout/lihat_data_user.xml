@@ -19,6 +19,21 @@
 
     </View>
 
+    <Spinner
+        android:id="@+id/sorting"
+        android:layout_width="100dp"
+        android:layout_height="60dp"
+        android:layout_marginRight="10dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/searchMovie"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/viewMovie"
+        app:layout_constraintTop_toBottomOf="@+id/searchMovie"
+        app:layout_constraintVertical_bias="0.0">
+
+    </Spinner>
+
     <SearchView
         android:id="@+id/searchMovie"
         android:layout_width="wrap_content"
@@ -34,15 +49,15 @@
 
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:layout_marginTop="60dp"
         android:id="@+id/swipeNotif"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginTop="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewMovie">
+        app:layout_constraintTop_toBottomOf="@+id/viewMovie"
+        app:layout_constraintVertical_bias="1.0">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerviewData"
@@ -64,4 +79,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/swipeNotif"
         app:layout_constraintTop_toBottomOf="@+id/viewMovie" />
-       </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

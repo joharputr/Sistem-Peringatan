@@ -23,5 +23,14 @@ data class DataUser(
         val nama_zona: String? = null,
 
         @field:SerializedName("nama_zona_terdekat")
-        val namaZonaTerdekat: String? = null
-):Parcelable
+        val namaZonaTerdekat: String? = null,
+
+        @field:SerializedName("level")
+        val level: String? = null,
+
+        @field:SerializedName("jarak")
+        val jarak: String? = null,
+
+        @field:SerializedName("id_area_keluar")
+        val id_area_keluar: String? = null
+) : Parcelable

@@ -5,16 +5,18 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.Admin.Adapter.DataUserEnterAdapter
-import com.example.systemperingatan.Admin.UI.Activity.search.SearchDataUser
 import com.example.systemperingatan.Admin.UI.Activity.search.SearchEnter
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
@@ -30,11 +32,40 @@ class LihatDataEnterFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         itemListData.clear()
-        reloadMapMarkers()
+
+
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.lihat_data_user, container, false)
+    }
+
+    private fun addLevel() {
+
+        val data = arrayOf("Jarak", "Waktu")
+
+        val adapter = ArrayAdapter(context, R.layout.spinner_item_selected, data)
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+
+        sorting?.adapter = adapter
+        sorting?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+
+                val check = parent.getItemAtPosition(position).toString()
+             //   Toast.makeText(context, check, Toast.LENGTH_SHORT).show()
+                if ( parent.getItemAtPosition(position).toString() == "Jarak"){
+                    reloadMapMarkers_jarak()
+                }else{
+                    reloadMapMarkers()
+                }
+
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+
+            }
+        }
+
     }
 
     private fun initRecyclerView() {
@@ -46,6 +77,8 @@ class LihatDataEnterFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        addLevel()
+      //  reloadMapMarkers()
         val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
 
         val componentName = ComponentName(context!!, SearchEnter::class.java)
@@ -65,6 +98,7 @@ class LihatDataEnterFragment : Fragment() {
 
         swipeSetup()
     }
+
     private fun swipeSetup() {
         swipeNotif.setOnRefreshListener {
             reloadMapMarkers()
@@ -89,16 +123,56 @@ class LihatDataEnterFragment : Fragment() {
                         val area = data.data.get(i)?.namaArea
                         val waktu = data.data.get(i)?.waktu
                         val zona = data.data.get(i)?.namaZonaTerdekat
+                        val level = data.data.get(i)?.level
+                        val jarak = data.data.get(i)?.jarak
 
-              /*          Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
-*/
-                        val dataUser = DataUser(phone, waktu, area, id ,null,zona)
+                        /* Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+          */
+                        val dataUser = DataUser(phone, waktu, area, id, null, zona, level,jarak)
                         Log.d("dataUser = ", dataUser.toString())
 
                         itemListData.addAll(listOf(dataUser))
                         adapterArea.notifyDataSetChanged()
                         initRecyclerView()
 
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseDataUser>, t: Throwable) {
+                Log.d("gagal", "gagal =" + t.localizedMessage)
+                Toast.makeText(context, "gagal =" + t.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+
+    fun reloadMapMarkers_jarak() {
+        itemListData.clear()
+        progressBar_circular_data.visibility = View.VISIBLE
+        App.api.dataEnter_jarak().enqueue(object : Callback<ResponseDataUser> {
+            override fun onResponse(call: Call<ResponseDataUser>, response: retrofit2.Response<ResponseDataUser>) {
+
+                val data = response.body()
+                progressBar_circular_data.visibility = View.GONE
+
+                for (i in 0 until data!!.data!!.size) {
+                    if (data.data != null) {
+                        val id = data.data.get(i)?.id
+                        val phone = data.data.get(i)?.phone
+                        val area = data.data.get(i)?.namaArea
+                        val waktu = data.data.get(i)?.waktu
+                        val zona = data.data.get(i)?.namaZonaTerdekat
+                        val level = data.data.get(i)?.level
+                        val jarak = data.data.get(i)?.jarak
+                        /* Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+          */
+                        val dataUser = DataUser(phone, waktu, area, id, null, zona, level,jarak)
+                        Log.d("dataUser = ", dataUser.toString())
+
+                        itemListData.addAll(listOf(dataUser))
+                        adapterArea.notifyDataSetChanged()
+                        initRecyclerView()
                     }
                 }
             }

@@ -1,8 +1,7 @@
 package com.example.systemperingatan
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -15,7 +14,7 @@ class ExampleUnitTest {
         assertEquals(4, (2 + 2).toLong())
     }
 
-    lateinit var var1: String
+    var var1: String? = null
 
     @Test
     fun tes1() {

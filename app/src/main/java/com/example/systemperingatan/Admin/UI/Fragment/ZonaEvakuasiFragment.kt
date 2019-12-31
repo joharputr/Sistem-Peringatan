@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.API.Pojo.Response
 import com.example.systemperingatan.Admin.Adapter.ListDataAreaZonaAdapter
-import com.example.systemperingatan.Admin.UI.Activity.EditZonaActivity
 import com.example.systemperingatan.Admin.UI.Activity.EditNamaZonaActivity
+import com.example.systemperingatan.Admin.UI.Activity.EditZonaActivity
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.areafragment.*
@@ -103,11 +103,14 @@ class ZonaEvakuasiFragment : Fragment() {
                         val expires = java.lang.Long.parseLong(data.data.get(i)?.expires)
                         val radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         val message = data.data.get(i)?.message.toString()
-                  //      Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+                        val no_hp = data.data.get(i)?.no_hp.toString()
+                        val nama_pj = data.data.get(i)?.nama_p_jawab.toString()
+
+                        //      Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
 
                         val dataFav1 = DataItem(number, null, null, latitude.toString(),
                                 null, message, null, longitude.toString(), null,
-                                null, null, null)
+                                null, null, null, null, null, no_hp, nama_pj)
                         Log.d("dataList = ", dataFav1.toString())
                         itemListArea.addAll(listOf(dataFav1))
                         adapterArea.notifyDataSetChanged()

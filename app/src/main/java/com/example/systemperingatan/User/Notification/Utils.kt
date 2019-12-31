@@ -1,3 +1,4 @@
+/*
 package com.example.systemperingatan.User.Notification
 
 import android.app.*
@@ -27,7 +28,7 @@ fun getFirstReminder(triggeringGeofences: List<Geofence>): DataItem? {
     return UserActivity.get(firstGeofence.requestId)
 }
 
-fun postDataEnterToServer(context: Context, id: String, id_min_dis: String, name: String?, zone: String?, date: String) {
+fun postDataEnterToServer(context: Context, id: String, id_min_dis: String, name: String?, zone: String?, date: String,distance :String?) {
 
     val tag_string_req = "req_postdata"
     val strReq = object : StringRequest(Method.POST,
@@ -260,11 +261,15 @@ private fun createNotification(context: Context, id: Int, msg: String, minim_dis
             .setStyle(NotificationCompat.BigTextStyle()
                     .bigText(bigText))
             .setContentText(bigText)
-            /*.setAutoCancel(true)*/
+            */
+/*.setAutoCancel(true)*//*
+
             .setContentTitle("Notifikasi Sistem Peringatan")
             .setContentIntent(notificationPendingIntent)
             .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
-    /*.setPriority(NotificationManager.IMPORTANCE_HIGH)*/
+    */
+/*.setPriority(NotificationManager.IMPORTANCE_HIGH)*//*
+
 
 
 
@@ -272,3 +277,4 @@ private fun createNotification(context: Context, id: Int, msg: String, minim_dis
 }
 
 
+*/

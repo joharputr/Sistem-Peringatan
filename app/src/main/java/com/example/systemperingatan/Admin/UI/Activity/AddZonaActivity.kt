@@ -11,7 +11,6 @@ import android.database.SQLException
 import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -105,7 +104,7 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME_POINT, Context.MODE_PRIVATE)
         mpendingIntent = null
 
-        finishAddPoint()
+        //finishAddPoint()
         SearchPlace()
         disableView()
     }
@@ -149,8 +148,7 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
 
     private fun finishAddPoint() {
         next_point.setOnClickListener {
-            setResult(Activity.RESULT_OK)
-            finish()
+
         }
     }
 
@@ -338,7 +336,7 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         val strokeColor = 0x0106001b.toInt(); //red outline
         map!!.addMarker(MarkerOptions()
                 .title("Zona = $message")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(latLng))
         map!!.addCircle(CircleOptions()
                 .center(latLng)
@@ -354,10 +352,16 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         ok_title_point.visibility = View.GONE
         next_point.visibility = View.GONE
         addNamePoint.visibility = View.GONE
+        no_hp.visibility = View.GONE
+        edt_no_hp.visibility = View.GONE
+        TextpJawab.visibility = View.GONE
+        edt_pjwb.visibility = View.GONE
     }
 
     //step 1
     private fun showConfigureLocationStep() {
+        no_hp.visibility = View.GONE
+        edt_no_hp.visibility = View.GONE
         layout_panel_point.visibility = View.GONE
         addMarkerLocationPoint.visibility = View.GONE
         pointTitle.visibility = View.VISIBLE
@@ -365,6 +369,8 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         ok_title_point.visibility = View.VISIBLE
         next_point.visibility = View.GONE
         markerPoint.visibility = View.GONE
+        TextpJawab.visibility = View.GONE
+        edt_pjwb.visibility = View.GONE
         if (map != null) {
             reminder.latlang = map?.cameraPosition?.target
             reminder.latitude = map!!.cameraPosition.target.latitude.toString()
@@ -392,113 +398,150 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
                 return
             }
 
-            val key = newGeofenceNumber.toString() + ""
-            //   val list = ArrayList<Result>()
-            val expTime = System.currentTimeMillis() + MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
-
-            addMarkerPoint(reminder.latlang!!, message_point.text.toString(), 100.0, key)
-            val geofence = Geofence.Builder()
-                    .setRequestId(key)
-                    .setCircularRegion(
-                            reminder.latitude!!.toDouble(),
-                            reminder.longitude!!.toDouble(),
-                            100f
-                    )
-                    .setExpirationDuration(MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-                    .build()
-
-
 
             ok_title_point.setOnClickListener {
                 if (message_point.text.isNullOrEmpty()) {
                     message_point.error = "Nama zona evakuasi wajib diisi"
                 } else {
-                    pointTitle.visibility = View.GONE
-                    message_point.visibility = View.GONE
-                    ok_title_point.visibility = View.GONE
-                    next_point.visibility = View.VISIBLE
-
-                    try {
-                        LocationServices.GeofencingApi.addGeofences(
-                                mGoogleApiClient,
-                                createGeofenceRequest(geofence),
-                                createGeofencePendingIntent()
-                        ).setResultCallback { status ->
-                            if (status.isSuccess) {
-                                Log.d("__DEBUG", "key :" + key + " Latitude :" + reminder.latitude + " Longitude :" + reminder.longitude + " expTime:" + expTime)
-
-                                val tag_string_req = "req_postdata"
-                                val strReq = object : StringRequest(Request.Method.POST,
-                                        NetworkAPI.post, { response ->
-                                    Log.d("CLOG", "responh: $response")
-                                    try {
-                                        val jObj = JSONObject(response)
-                                        val status1 = jObj.getString("status")
-                                        if (status1.contains("200")) {
-                                            Toast.makeText(this, "sukses", Toast.LENGTH_SHORT).show()
-
-                                        } else {
-                                            val msg = jObj.getString("message")
-                                            Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                                        }
-
-                                    } catch (e: JSONException) {
-                                        e.printStackTrace()
-                                    }
-
-
-                                }, { error ->
-                                    Log.d("CLOG", "verespon: $error")
-                                    val json: String?
-                                    val response = error.networkResponse
-                                    if (response != null && response.data != null) {
-                                        json = String(response.data)
-                                        val jObj: JSONObject?
-                                        try {
-                                            jObj = JSONObject(json)
-                                            val msg = jObj.getString("message")
-                                            Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
-                                        } catch (e: JSONException) {
-                                            e.printStackTrace()
-                                        }
-                                    }
-
-                                }) {
-                                    override fun getParams(): Map<String, String> {
-                                        // Posting parameters to login url
-                                        val params = HashMap<String, String>()
-                                        val radius = 100.0
-                                        params["number"] = key
-                                        params["latitude"] = reminder.latitude.toString()
-                                        params["longitude"] = reminder.longitude.toString()
-                                        params["expires"] = expTime.toString()
-                                        params["message"] = message_point.text.toString()
-                                        params["type"] = "point"
-                                        params["address"] = reminder.address.toString()
-                                        Log.d("CLOGAdress", "address = " + message_point.text.toString())
-                                        params["radius"] = radius.toString()
-                                        return params
-                                    }
-                                }
-
-                                // Adding request to request queue
-                                App.instance?.addToRequestQueue(strReq, tag_string_req)
-                                Log.d("SAVE", "key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
-                                Toast.makeText(this@AddZonaActivity, "Sukses Menambahkan Zona Evakuasi", Toast.LENGTH_SHORT).show()
-                            } else {
-                                val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
-                                Log.e("ERROR MESSAGE", errorMessage)
-                            }
-                        }
-                    } catch (securityException: SecurityException) {
-                        logSecurityException(securityException)
-                    } catch (e: SQLException) {
-                        e.stackTrace
-                    }
+                    add_noHp()
                 }
             }
         }
+    }
+
+    private fun add_noHp() {
+        no_hp.visibility = View.GONE
+        edt_no_hp.visibility = View.VISIBLE
+        pointTitle.visibility = View.VISIBLE
+        message_point.visibility = View.GONE
+        next_point.visibility = View.VISIBLE
+        ok_title_point.visibility = View.GONE
+        TextpJawab.visibility = View.GONE
+        edt_pjwb.visibility = View.GONE
+        next_point.setOnClickListener {
+
+            if (edt_no_hp.text.isNullOrEmpty()) {
+                edt_no_hp.error = "Nomer Handphone Wajib Diisi"
+            } else {
+                addNamaPenanggungJawab()
+            }
+        }
+    }
+
+    private fun addNamaPenanggungJawab() {
+        no_hp.visibility = View.GONE
+        edt_no_hp.visibility = View.GONE
+        pointTitle.visibility = View.VISIBLE
+        message_point.visibility = View.GONE
+        next_point.visibility = View.VISIBLE
+        ok_title_point.visibility = View.GONE
+        TextpJawab.visibility = View.GONE
+        edt_pjwb.visibility = View.VISIBLE
+        next_point.setOnClickListener {
+            if (edt_pjwb.text.isNullOrEmpty()) {
+                edt_pjwb.error = "Nama Penangggung Jawab Wajib Diisi"
+            } else {
+                try {
+                    val key = newGeofenceNumber.toString() + ""
+                    //   val list = ArrayList<Result>()
+                    val expTime = System.currentTimeMillis() + MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS
+
+                    addMarkerPoint(reminder.latlang!!, message_point.text.toString(), 100.0, key)
+                    val geofence = Geofence.Builder()
+                            .setRequestId(key)
+                            .setCircularRegion(
+                                    reminder.latitude!!.toDouble(),
+                                    reminder.longitude!!.toDouble(),
+                                    100f
+                            )
+                            .setExpirationDuration(MapsAdminActivity.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+                            .build()
+
+                    LocationServices.GeofencingApi.addGeofences(
+                            mGoogleApiClient,
+                            createGeofenceRequest(geofence),
+                            createGeofencePendingIntent()
+                    ).setResultCallback { status ->
+                        if (status.isSuccess) {
+                            Log.d("__DEBUG", "key :" + key + " Latitude :" + reminder.latitude + " Longitude :" + reminder.longitude + " expTime:" + expTime)
+
+                            val tag_string_req = "req_postdata"
+                            val strReq = object : StringRequest(Request.Method.POST,
+                                    NetworkAPI.post, { response ->
+                                Log.d("CLOG", "responh: $response")
+                                try {
+                                    val jObj = JSONObject(response)
+                                    val status1 = jObj.getString("status")
+                                    if (status1.contains("200")) {
+                                        Toast.makeText(this, "sukses", Toast.LENGTH_SHORT).show()
+
+                                    } else {
+                                        val msg = jObj.getString("message")
+                                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                    }
+
+                                } catch (e: JSONException) {
+                                    e.printStackTrace()
+                                }
+
+
+                            }, { error ->
+                                Log.d("CLOG", "verespon: $error")
+                                val json: String?
+                                val response = error.networkResponse
+                                if (response != null && response.data != null) {
+                                    json = String(response.data)
+                                    val jObj: JSONObject?
+                                    try {
+                                        jObj = JSONObject(json)
+                                        val msg = jObj.getString("message")
+                                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                    } catch (e: JSONException) {
+                                        e.printStackTrace()
+                                    }
+                                }
+
+                            }) {
+                                override fun getParams(): Map<String, String> {
+                                    // Posting parameters to login url
+                                    val params = HashMap<String, String>()
+                                    val radius = 100.0
+                                    params["number"] = key
+                                    params["latitude"] = reminder.latitude.toString()
+                                    params["longitude"] = reminder.longitude.toString()
+                                    params["expires"] = expTime.toString()
+                                    params["message"] = message_point.text.toString()
+                                    params["type"] = "point"
+                                    params["no_hp"] = edt_no_hp.text.toString()
+                                    params["nama_p_jawab"] = edt_pjwb.text.toString()
+                                    params["address"] = reminder.address.toString()
+                                    Log.d("CLOGAdress", "address = " + message_point.text.toString())
+                                    params["radius"] = radius.toString()
+                                    return params
+                                }
+                            }
+
+                            // Adding request to request queue
+                            App.instance?.addToRequestQueue(strReq, tag_string_req)
+                            Log.d("SAVE", "no hp = ${edt_no_hp.text} key = " + key + " lat = " + reminder.latitude + " long = " + reminder.longitude + " exp = " + expTime)
+                            Toast.makeText(this@AddZonaActivity, "Sukses Menambahkan Zona Evakuasi", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val errorMessage = GeofenceTransitionService.getErrorString(status.statusCode)
+                            Log.e("ERROR MESSAGE", errorMessage)
+                        }
+                    }
+                } catch (securityException: SecurityException) {
+                    logSecurityException(securityException)
+                } catch (e: SQLException) {
+                    e.stackTrace
+                }
+
+                setResult(Activity.RESULT_OK)
+                finish()
+            }
+        }
+
     }
 
 
@@ -509,7 +552,7 @@ class AddZonaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         val location = LatLng(latitude, longitude)
         map!!.addMarker(MarkerOptions()
                 .title("Area :$message")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(location))
         map!!.addCircle(CircleOptions()
                 .center(location)

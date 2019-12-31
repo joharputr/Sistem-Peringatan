@@ -2,9 +2,12 @@ package com.example.systemperingatan.User.Notification
 
 import android.annotation.SuppressLint
 import android.app.*
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.media.AudioAttributes
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -23,6 +26,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
 
@@ -48,6 +52,8 @@ class IntentHandleWork : JobIntentService() {
             val minim_distance = data?.minim_distance
             val id_minim_distance = data?.id_minim_distance
             val level = data?.level
+            val radius = data?.radius
+            val distance = data?.distance
 
             val sdf = SimpleDateFormat("dd/M/yyyy HH:mm:ss")
             val currentDate = sdf.format(Date())
@@ -55,21 +61,45 @@ class IntentHandleWork : JobIntentService() {
             Log.d("testIdMasuk = ", id + " nama  =  " + data?.message + " dateis  = " + currentDate + "level = " + level.toString())
             Log.d("testtypepoint = ", id + " nama  =  " + data?.message + " point  = " + data?.type)
 
-            if (data?.type == "circle" && message != null && minim_distance != null) {
+            //masuk area berbahaya
+            if (data?.type == "circle" && message != null && minim_distance != null && data.level == "Normal") {
                 if (App.preferenceHelper.tipe != "admin") {
-                    postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate)
+                    postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate,distance,level)
                 }
-                sendNotification(1, message, minim_distance)
-            } else if (data?.type == "circle" && message != null && minim_distance == null) {
+                sendNotification(1, message + " dengan radius =  ${radius} Meter", minim_distance + ", Level  = $level, anda dapat beraktifitas seperti biasa")
+            } else if (data?.type == "circle" && message != null && minim_distance != null && data.level == "Waspada") {
+                if (App.preferenceHelper.tipe != "admin") {
+                    postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate,distance,level)
+                }
+                sendNotification(1, message + " dengan radius =  ${radius} Meter", minim_distance + ", Level  = $level, anda diharapkan berhati-hati")
+            } else if (data?.type == "circle" && message != null && minim_distance != null && data.level == "Siaga") {
+                Log.d("TESTDISTANCE = ", distance)
+                if (App.preferenceHelper.tipe != "admin") {
+                    postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate,distance,level)
+                }
+                sendNotification(1, message + " dengan radius =  ${radius} Meter", minim_distance + ", Level  = $level, anda diharapkan mengkosongkan area ini")
+            } else if (data?.type == "circle" && message != null && minim_distance != null && data.level == "Awal") {
+                if (App.preferenceHelper.tipe != "admin") {
+                    postDataEnterToServer(id.toString(), id_minim_distance.toString(), message, minim_distance, currentDate,distance,level)
+                }
+                sendNotification(1, message + " dengan radius =  ${radius} Meter", minim_distance + ", Level  = $level, anda diharapkan segera meninggalkan area ini")
+            }
+
+            //percobaan
+            else if (data?.type == "circle" && message != null && minim_distance == null) {
                 sendNotification(5, message, "")
 
-            } else if (data?.type == "point" && message != null) {
+            }
+
+            //masuk zona evakuasi
+            else if (data?.type == "point" && message != null) {
                 if (App.preferenceHelper.tipe != "admin") {
                     postDataAman(id.toString(), message, currentDate)
                 }
                 sendNotification(4, message, "")
             }
 
+            //keluar area berbahaya
         } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
 
             val data = getFirstReminder(geofencingEvent.triggeringGeofences)
@@ -115,9 +145,15 @@ class IntentHandleWork : JobIntentService() {
         stackBuilder.addParentStack(UserActivity::class.java)
         stackBuilder.addNextIntent(notificationIntent)
 
+        val uri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + getApplicationContext().getPackageName() + "/" + R.raw.alert);
+
         val notificationPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
         val notificatioMng = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val att = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val mChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID, "Geofence", importance)
             mChannel.enableLights(true)
@@ -125,6 +161,7 @@ class IntentHandleWork : JobIntentService() {
             mChannel.enableVibration(true)
             mChannel.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
             mChannel.setShowBadge(false)
+            mChannel.setSound(uri, att)
             notificatioMng.createNotificationChannel(mChannel)
         } else {
             Log.d("CLOG", "dibawah 0")
@@ -138,14 +175,13 @@ class IntentHandleWork : JobIntentService() {
                 createNotification(id, msg, minim_distance, notificationPendingIntent))
 
         startForeground(id, createNotification(id, msg, minim_distance, notificationPendingIntent))
-
     }
 
     private fun createNotification(id: Int, msg: String, minim_distance: String, notificationPendingIntent: PendingIntent): Notification {
         val notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val bigText: String
         if (id == 1) {
-            bigText = "Anda Berada di " + msg + ", zona evakuasi terdekat adalah  " + minim_distance
+            bigText = "Anda memasuki area bencana " + msg + ", zona evakuasi terdekat di " + minim_distance
         } else if (id == 2) {
             bigText = "Anda diluar $msg"
         } else if (id == 3) {
@@ -166,13 +202,13 @@ class IntentHandleWork : JobIntentService() {
                 .setAutoCancel(true)
                 .setContentTitle("Notifikasi Sistem Peringatan")
                 .setContentIntent(notificationPendingIntent)
-                .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE or Notification.DEFAULT_SOUND)
-        /*.setPriority(NotificationManager.IMPORTANCE_HIGH)*/
+                //   .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_VIBRATE)
+                .setPriority(NotificationManager.IMPORTANCE_HIGH)
 
         return notificationBuilder.build()
     }
 
-    private fun postDataEnterToServer(id: String, id_min_dis: String, name: String?, zone: String?, date: String) {
+    private fun postDataEnterToServer(id: String, id_min_dis: String, name: String?, zone: String?, date: String,distance : String?,level : String?) {
 
         val tag_string_req = "req_postdata"
         val strReq = object : StringRequest(Method.POST,
@@ -223,13 +259,14 @@ class IntentHandleWork : JobIntentService() {
                 params["nama_zona_terdekat"] = zone.toString()
                 params["id_area_masuk"] = id
                 params["id_zona_terdekat"] = id_min_dis
+                params["jarak"] = distance.toString()
+                params["level"] = level.toString()
                 return params
             }
         }
 
         // Adding request to request queue
         App.instance?.addToRequestQueue(strReq, tag_string_req)
-
     }
 
     private fun postDataExitToServer(number: String, name: String?, waktu: String?) {

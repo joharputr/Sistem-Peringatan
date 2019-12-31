@@ -23,6 +23,10 @@ interface Api {
     @Headers("Content-Type: application/json")
     fun dataEnter(): Call<ResponseDataUser>
 
+    @GET("lihatDataEnter_jarak")
+    @Headers("Content-Type: application/json")
+    fun dataEnter_jarak(): Call<ResponseDataUser>
+
     @GET("lihatDataExit")
     @Headers("Content-Type: application/json")
     fun dataExit(): Call<ResponseDataUser>

@@ -412,7 +412,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         }
     }
 
-    private fun getRadius(progress: Int) = 1500 + (2 * progress.toDouble() + 2) * 100
+    private fun getRadius(progress: Int) = 800 + (2 * progress.toDouble() + 2) * 100
 
     //step 3
     private fun showConfigureMessageStep() {
@@ -456,7 +456,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
             val latLng = reminder.latlang as LatLng
             val marker = map.addMarker(MarkerOptions()
                     .position(latLng)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
             // marker.tag = reminder.id
             if (reminder.radius != null) {
                 val radius = java.lang.Double.parseDouble(reminder.radius!!)
@@ -618,7 +618,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         val location = LatLng(latitude, longitude)
         map!!.addMarker(MarkerOptions()
                 .title("Area :$message")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(location))
         map!!.addCircle(CircleOptions()
                 .center(location)
@@ -631,7 +631,7 @@ class AddAreaActivity : AppCompatActivity(), OnMapReadyCallback, LocationListene
         val strokeColor = 0x0106001b.toInt(); //red outline
         map!!.addMarker(MarkerOptions()
                 .title("Zona = $message")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(latLng))
         map!!.addCircle(CircleOptions()
                 .center(latLng)

@@ -5,17 +5,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
-    android:layout_height="160dp"
+    android:layout_height="250dp"
     android:layout_gravity="center"
     android:layout_marginLeft="19dp"
-    android:layout_marginTop="16dp"
+    android:layout_marginTop="20dp"
     android:layout_marginRight="15dp"
 
     android:background="@android:color/transparent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="160dp">
+        android:layout_marginTop="5dp"
+        android:layout_height="250dp">
 
         <TextView
             android:id="@+id/textView7"
@@ -26,7 +27,7 @@
             app:layout_constraintEnd_toStartOf="@+id/phone"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/phone" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView8"
@@ -52,15 +53,16 @@
 
         <TextView
 
+            android:id="@+id/textView10"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:text="Zona evakuasi : terdekat "
-            app:layout_constraintBottom_toBottomOf="@+id/zona"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/zona"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/zona"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/textView9"
+            app:layout_constraintVertical_bias="0.19" />
 
         <TextView
             android:id="@+id/phone"
@@ -75,7 +77,7 @@
             app:layout_constraintHorizontal_bias="0.84"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.13999999"
+            app:layout_constraintVertical_bias="0.0"
             tools:text="Soekarno" />
 
         <TextView
@@ -90,7 +92,7 @@
             app:layout_constraintEnd_toEndOf="@+id/longitude"
             app:layout_constraintStart_toStartOf="@+id/waktu"
             app:layout_constraintTop_toBottomOf="@+id/waktu"
-            app:layout_constraintVertical_bias="0.22000003" />
+            app:layout_constraintVertical_bias="0.126" />
 
         <TextView
             android:id="@+id/waktu"
@@ -106,6 +108,7 @@
             app:layout_constraintTop_toBottomOf="@+id/phone"
             app:layout_constraintVertical_bias="0.120000005" />
 
+
         <TextView
             android:id="@+id/zona"
             android:layout_width="150dp"
@@ -118,7 +121,63 @@
             app:layout_constraintEnd_toEndOf="@+id/latitude"
             app:layout_constraintStart_toStartOf="@+id/area_data"
             app:layout_constraintTop_toBottomOf="@+id/area_data"
-            app:layout_constraintVertical_bias="0.39" />
+            app:layout_constraintVertical_bias="0.166" />
+
+        <TextView
+            android:id="@+id/textView11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Level  :"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/level"
+            app:layout_constraintHorizontal_bias="0.982"
+            app:layout_constraintStart_toStartOf="@+id/textView10"
+            app:layout_constraintTop_toBottomOf="@+id/textView10"
+            app:layout_constraintVertical_bias="0.105" />
+
+        <TextView
+            android:id="@+id/level"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/phone"
+            android:gravity="center_horizontal"
+            android:text="Waspada"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/zona"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/zona"
+            app:layout_constraintTop_toBottomOf="@+id/zona"
+            app:layout_constraintVertical_bias="0.302" />
+
+        <TextView
+
+            android:id="@+id/textView111"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Jarak  :"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/textView11"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/textView11"
+            app:layout_constraintTop_toBottomOf="@+id/textView11"
+            app:layout_constraintVertical_bias="0.32" />
+
+        <TextView
+            android:id="@+id/jarak"
+            android:layout_width="150dp"
+            android:layout_height="20dp"
+            android:layout_below="@id/phone"
+            android:gravity="center_horizontal"
+            android:text="526.3529029550361 meter"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/level"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/textView11"
+            app:layout_constraintTop_toBottomOf="@+id/level"
+            app:layout_constraintVertical_bias="0.382" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

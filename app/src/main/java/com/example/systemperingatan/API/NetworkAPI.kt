@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 
 object NetworkAPI {
-    val url = "192.168.1.18"
+    val url = "192.168.43.246"
     var post = "http://$url/ci-restserver/Api/tambah"
     var RegisterUser = "http://$url/ci-restserver/Api/register"
     var LoginUser = "http://$url/ci-restserver/Api/login"
@@ -28,6 +28,7 @@ object NetworkAPI {
     var cek_firebase_user = "http://$url/ci-restserver/Api/login_firebase_user"
     var logout_firebase_user = "http://$url/ci-restserver/Api/logout_firebase_user"
     private val base_url = "http://$url/ci-restserver/Api/"
+    var delete_data_enter_when_go_to_exit_area = "http://$url/ci-restserver/Api/delete_data_enter_when_goto_exit_area/"
 
     fun getRetrofit(): Retrofit {
         return Retrofit.Builder()

@@ -119,6 +119,54 @@
             android:background="@drawable/bg_button_blue"
             android:text="Add Name Point"
             android:textColor="@color/cardview_dark_background" />
+
+        <TextView
+            android:id="@+id/no_hp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="#000"
+            android:textSize="18sp"
+            tools:text="No Handphone" />
+
+        <EditText
+            android:id="@+id/edt_no_hp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="13dp"
+            android:layout_marginRight="13dp"
+            android:layout_marginBottom="8dp"
+            android:hint="No Handphone"
+            android:imeOptions="actionDone"
+            android:inputType="number"
+            android:maxLines="1" />
+
+
+        <TextView
+            android:id="@+id/TextpJawab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="#000"
+            android:textSize="18sp"
+            tools:text="Nama Penanggung Jawab" />
+
+        <EditText
+            android:id="@+id/edt_pjwb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="13dp"
+            android:layout_marginRight="13dp"
+            android:layout_marginBottom="8dp"
+            android:hint="Nama Penanggung Jawab"
+            android:imeOptions="actionDone"
+            android:maxLines="1" />
         <Button
             android:id="@+id/next_point"
             android:layout_width="match_parent"
@@ -131,6 +179,9 @@
             android:background="@drawable/bg_button"
             android:text="OK"
             android:textColor="@color/cardview_dark_background" />
+
+
+
 
     </LinearLayout>
 

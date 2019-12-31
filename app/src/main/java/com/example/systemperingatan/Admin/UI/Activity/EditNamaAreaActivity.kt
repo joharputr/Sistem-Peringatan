@@ -21,7 +21,6 @@ import java.util.*
 
 
 class EditNamaAreaActivity : AppCompatActivity() {
-    val reminder = DataItem()
     var data = DataItem()
     var ceklevel: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,9 +118,7 @@ class EditNamaAreaActivity : AppCompatActivity() {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
                 params["message"] = editNama.text.toString()
-
                 params["level"] = ceklevel.toString()
-
                 Log.d("testName= ", editNama.text.toString())
                 return params
             }
@@ -223,7 +220,6 @@ class EditNamaAreaActivity : AppCompatActivity() {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
                 params["area"] = editNama.text.toString()
-
                 Log.d("testNameArea= ", editNama.text.toString())
                 return params
             }

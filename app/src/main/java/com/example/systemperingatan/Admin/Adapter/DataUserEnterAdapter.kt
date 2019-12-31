@@ -17,6 +17,8 @@ class DataUserEnterAdapter(private val data: ArrayList<DataUser>) : RecyclerView
             area_data.text = item.namaArea
             zona.text = item.namaZonaTerdekat
             waktu.text = item.waktu
+            level.text = item.level
+            jarak.text = item.jarak +" meter"
         }
     }
 

@@ -122,7 +122,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest {
             Log.d("CREATE GEO REQUEST", "createGeofenceRequest")
             return GeofencingRequest.Builder()
-                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER /*or GeofencingRequest.INITIAL_TRIGGER_EXIT*/)
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER/* or GeofencingRequest.INITIAL_TRIGGER_EXIT*/)
                     .addGeofence(geofence)
                     .build()
         }
@@ -144,6 +144,8 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         private val gson = Gson()
         internal var number: String? = null
         internal var level: String? = null
+        internal var no_hp: String? = null
+        internal var nama_p_jawab: String? = null
         internal var latitude: Double = 0.toDouble()
         internal var radiusMeter: Double = 0.toDouble()
         internal var longitude: Double = 0.toDouble()
@@ -768,7 +770,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 
             reloadMapMarkersZona()
-          //  percobaan()
+            //  percobaan()
         }
     }
 
@@ -787,7 +789,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
         mMap?.addMarker(MarkerOptions()
                 .title(message)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(location))
         mMap?.addCircle(CircleOptions()
                 .center(location)
@@ -797,12 +799,13 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
 
     }
 
-    private fun addMarkerPoint(latLng: LatLng, message: String, radius: Double, number: String) {
+    private fun addMarkerPoint(latLng: LatLng, message: String?, radius: Double, number: String?, no_hp: String?, nama_p_jawab: String?) {
         val strokeColor = 0x0106001b.toInt() //red outline
         val shadeColor = 0x44ff0000 //opaque red fill
         mMap!!.addMarker(MarkerOptions()
                 .title(message)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                .snippet("Penanggung Jawab = " + nama_p_jawab + " No Hp = " + no_hp)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(latLng))
         mMap!!.addCircle(CircleOptions()
                 .center(latLng)
@@ -852,14 +855,16 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                         radiusMeter = java.lang.Double.parseDouble(data.data.get(i)?.radius)
                         message = data.data.get(i)?.message.toString()
                         level = data.data.get(i)?.level.toString()
+                        no_hp = data.data.get(i)?.no_hp.toString()
+                        nama_p_jawab = data.data.get(i)?.nama_p_jawab.toString()
                         val type = data.data.get(i)?.type
 
-                        Log.d("idku = ",id+"message = "+ message)
+                        Log.d("idku = ", id + "message = " + message)
 
                         if (data.data.get(i)?.type == "circle") {
                             addMarker(message!!, radiusMeter, number!!, latitude, longitude)
                         } else {
-                            addMarkerPoint(LatLng(latitude, longitude), message!!, radiusMeter, number!!)
+                            addMarkerPoint(LatLng(latitude, longitude), message!!, radiusMeter, number!!, no_hp, nama_p_jawab)
                         }
 
                         val radiusFloat = radiusMeter.toFloat()
@@ -872,7 +877,7 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                             val distance = SphericalUtil.computeDistanceBetween(titikGps, latlang)
                             val helper = GeofenceDbHelper(this@UserActivity)
                             Log.d("CheckTitikGps", "titik gps = " + titikGps.toString() + " distance  = " + distance)
-                            helper.saveToDb(number, latitude, longitude, expires, message, distance, type,level)
+                            helper.saveToDb(number, latitude, longitude, expires, message, distance, type, level, radiusMeter.toString())
                         } else {
                             Toast.makeText(this@UserActivity, "Akurasi Kompas Rendah", Toast.LENGTH_SHORT).show()
                         }
@@ -991,9 +996,9 @@ class UserActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener, 
                 val type = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_TYPE))
                 val id_min_dis = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.ID_COLUMN_NAME_MIN_DISTANCE))
                 val level = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_LEVEL))
-
-                Log.d("dataZonaTerdekat = ", "id = " + id_min_dis + " nama zona =" + min_dis+" level = "+level)
-                val dataFav1 = DataItem(number, null, expires, latitude, null, messages, type, longitude, null, null, distances, min_dis, id_min_dis,level)
+                val radius = cursor.getString(cursor.getColumnIndex(GeofenceContract.GeofenceEntry.COLUMN_NAME_RADIUS))
+                Log.d("dataZonaTerdekat = ", "id = " + id_min_dis + " nama zona =" + min_dis + " level = " + level)
+                val dataFav1 = DataItem(number, null, expires, latitude, null, messages, type, longitude, radius, null, distances, min_dis, id_min_dis, level)
                 arrayList.addAll(listOf(dataFav1))
             }
         }

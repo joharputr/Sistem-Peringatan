@@ -8,6 +8,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,7 +30,7 @@ class LihatDataAmanFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         itemListData.clear()
-        reloadMapMarkers()
+
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -37,6 +39,9 @@ class LihatDataAmanFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        reloadMapMarkers()
+        sorting.visibility = View.GONE
+
         val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
 
         val componentName = ComponentName(context!!, SearchDataUser::class.java)
@@ -57,6 +62,7 @@ class LihatDataAmanFragment : Fragment() {
         swipeSetup()
     }
 
+
     private fun swipeSetup() {
         swipeNotif.setOnRefreshListener {
             reloadMapMarkers()
@@ -67,7 +73,7 @@ class LihatDataAmanFragment : Fragment() {
     private fun initRecyclerView() {
         recyclerviewData.run {
             adapter = adapterArea
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = LinearLayoutManager(context,LinearLayoutManager.VERTICAL, false)
         }
     }
 

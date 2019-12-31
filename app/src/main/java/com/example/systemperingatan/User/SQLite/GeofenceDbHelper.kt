@@ -13,9 +13,8 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
 
 
     override fun onCreate(db: SQLiteDatabase) {
-        val query = "CREATE TABLE Geofences(numbers INTEGER PRIMARY KEY AUTOINCREMENT,latitude TEXT,longitude TEXT,expires TEXT,messages TEXT,distances TEXT,type TEXT,level TEXT)"
+        val query = "CREATE TABLE Geofences(numbers INTEGER PRIMARY KEY AUTOINCREMENT,latitude TEXT,longitude TEXT,expires TEXT,messages TEXT,distances TEXT,type TEXT,level TEXT, radius TEXT)"
         db.execSQL(query)
-
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -31,16 +30,15 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
     //jika memperbarui tabel atau kolom diharapkan untuk menambah database_version
     companion object {
 
-        private val DATABASE_VERSION = 10
+        private val DATABASE_VERSION = 30
         private val DATABASE_NAME = "Geofences.db"
-
 
         fun get(): GeofenceDbHelper {
             return GeofenceDbHelper(App.instance!!)
         }
     }
 
-    fun saveToDb(numbers: String, latitude: Double, longitude: Double, expires: Long, message: String?, distance: Double, type: String?, level: String?) {
+    fun saveToDb(numbers: String, latitude: Double, longitude: Double, expires: Long, message: String?, distance: Double, type: String?, level: String?, radius : String) {
         val db = writableDatabase
         val values = ContentValues()
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_NUMBERS, numbers)
@@ -51,6 +49,7 @@ class GeofenceDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_DISTANCE, distance.toString() + "")
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_TYPE, type + "")
         values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_LEVEL, level + "")
+        values.put(GeofenceContract.GeofenceEntry.COLUMN_NAME_RADIUS, radius + "")
         db.insert("Geofences", null, values)
         Log.d("CLOGsqlite", "data = " + values)
 

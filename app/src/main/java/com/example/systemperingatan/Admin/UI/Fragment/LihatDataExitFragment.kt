@@ -3,6 +3,7 @@ package com.example.systemperingatan.Admin.UI.Fragment
 import android.app.SearchManager
 import android.content.ComponentName
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,16 +12,23 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.android.volley.toolbox.StringRequest
+import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataExitEnter.DataUser
 import com.example.systemperingatan.API.Pojo.DataExitEnter.ResponseDataUser
 import com.example.systemperingatan.Admin.Adapter.DataUserExitAdapter
-import com.example.systemperingatan.Admin.UI.Activity.search.SearchEnter
 import com.example.systemperingatan.Admin.UI.Activity.search.SearchExit
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
 import kotlinx.android.synthetic.main.lihat_data_user.*
+import org.json.JSONException
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.Map
+import kotlin.collections.listOf
 
 class LihatDataExitFragment : Fragment() {
     private var itemListData = ArrayList<DataUser>()
@@ -40,6 +48,7 @@ class LihatDataExitFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        sorting.visibility = View.GONE
         val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
 
         val componentName = ComponentName(context!!, SearchExit::class.java)
@@ -89,10 +98,10 @@ class LihatDataExitFragment : Fragment() {
                         val phone = data.data.get(i)?.phone
                         val area = data.data.get(i)?.namaArea
                         val waktu = data.data.get(i)?.waktu
-
-                    /*    Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
-*/
-                        val dataUser = DataUser(phone, waktu, area, id, null,null)
+                        val id_area_masuk = data.data.get(i)?.id
+                        /*    Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show()
+    */
+                          val dataUser = DataUser(phone, waktu, area, id, null, null, null, null,id_area_masuk)
                         Log.d("dataUserExit = ", dataUser.toString())
 
                         itemListData.addAll(listOf(dataUser))
@@ -108,4 +117,6 @@ class LihatDataExitFragment : Fragment() {
             }
         })
     }
+
+
 }

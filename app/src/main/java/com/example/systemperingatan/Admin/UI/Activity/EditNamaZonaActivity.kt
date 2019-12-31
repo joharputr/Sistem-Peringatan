@@ -10,16 +10,18 @@ import com.example.systemperingatan.API.NetworkAPI
 import com.example.systemperingatan.API.Pojo.DataItem
 import com.example.systemperingatan.App
 import com.example.systemperingatan.R
-import kotlinx.android.synthetic.main.activity_edit_area.*
+import kotlinx.android.synthetic.main.activity_edit_area.buttonEditArea
+import kotlinx.android.synthetic.main.activity_edit_area.toolbarArea
+import kotlinx.android.synthetic.main.activity_edit_zona.*
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.HashMap
+import java.util.*
 
 class EditNamaZonaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_edit_area)
+        setContentView(R.layout.activity_edit_zona)
         val intent = intent
         val data = intent.getParcelableExtra<DataItem>("editZona")
         Log.d("cekDataNumber", data.number)
@@ -30,12 +32,14 @@ class EditNamaZonaActivity : AppCompatActivity() {
         actionBar?.title = "Edit Data"
         actionBar?.elevation = 4.0F
 
-        editNama.setText(data.message)
+        editNamaZona.setText(data.message)
+        editNoHp.setText(data.no_hp)
+        edit_nama_pj.setText(data.nama_p_jawab)
 
         buttonEditArea.setOnClickListener {
-            if (editNama.text.isNullOrEmpty()) {
-                editNama.error = "Nama wajib diisi"
-            }else {
+            if (editNamaZona.text.isNullOrEmpty()) {
+                editNamaZona.error = "Nama wajib diisi"
+            } else {
                 updateData(data.number.toString())
                 update_data_zona_aman(data.number.toString())
                 update_data_zona_terdekat_di_data_enter(data.number.toString())
@@ -89,8 +93,10 @@ class EditNamaZonaActivity : AppCompatActivity() {
             override fun getParams(): Map<String, String> {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
-                params["message"] = editNama.text.toString()
-                Log.d("testName= ", editNama.text.toString())
+                params["message"] = editNamaZona.text.toString()
+                params["no_hp"] = editNoHp.text.toString()
+                params["nama_p_jawab"] = edit_nama_pj.text.toString()
+                Log.d("testName= ", editNamaZona.text.toString())
                 return params
             }
         }
@@ -139,8 +145,8 @@ class EditNamaZonaActivity : AppCompatActivity() {
             override fun getParams(): Map<String, String> {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
-                params["nama_zona"] = editNama.text.toString()
-                Log.d("testNameArea= ", editNama.text.toString())
+                params["nama_zona"] = editNamaZona.text.toString()
+                Log.d("testNameArea= ", editNamaZona.text.toString())
                 return params
             }
         }
@@ -190,8 +196,8 @@ class EditNamaZonaActivity : AppCompatActivity() {
             override fun getParams(): Map<String, String> {
                 // Posting parameters to login url
                 val params = HashMap<String, String>()
-                params["nama_zona_terdekat"] = editNama.text.toString()
-                Log.d("testNameArea= ", editNama.text.toString())
+                params["nama_zona_terdekat"] = editNamaZona.text.toString()
+                Log.d("testNameArea= ", editNamaZona.text.toString())
                 return params
             }
         }
